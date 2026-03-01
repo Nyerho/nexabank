@@ -85,3 +85,6 @@ const DB = {
     add(entry) { const all = DB.auditLog.getAll(); all.push(entry); DB.set('auditLog', all); },
   }
 };
+
+// Initialize DB and ensure Admin exists
+DB.seed();
