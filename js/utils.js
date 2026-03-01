@@ -19,10 +19,19 @@ function showModal(title, html, footer='') {
   el.className = 'nb-modal-overlay';
   el.innerHTML = `<div class="nb-modal"><div class="nb-modal-header"><div class="nb-modal-title">${title}</div><button class="nb-modal-close" onclick="closeModal()"><i class="bi bi-x"></i></button></div><div id="modal-body">${html}</div>${footer?'<div class="mt-3">'+footer+'</div>':''}</div>`;
   el.addEventListener('click', e => { if(e.target===el) closeModal(); });
-  document.getElementById('modal-container').appendChild(el);
+  document.body.appendChild(el);
 }
 
 function closeModal() { const m = document.getElementById('active-modal'); if(m) m.remove(); }
+
+function toggleSidebar(force) {
+  const s = document.getElementById('sidebar');
+  const o = document.getElementById('sidebar-overlay');
+  if (!s || !o) return;
+  const open = force !== undefined ? force : !s.classList.contains('open');
+  s.classList.toggle('open', open);
+  o.classList.toggle('active', open);
+}
 
 function logAudit(action, entity, entityId, detail='') {
   if (!STATE.user) return;

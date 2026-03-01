@@ -12,10 +12,14 @@
 </head>
 <body>
   <div id="app">
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar(false)"></div>
+
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
-      <div class="sidebar-header">
+      <div class="sidebar-header d-flex justify-content-between align-items-center">
         <div class="sidebar-logo"><i class="bi bi-bank2 me-2"></i>Nexa<span>Bank</span> <span class="admin-badge">Admin</span></div>
+        <button class="btn-nb btn-nb-outline btn-nb-sm d-lg-none" onclick="toggleSidebar(false)" style="border-color:rgba(255,255,255,0.2);color:rgba(255,255,255,0.8);"><i class="bi bi-x-lg"></i></button>
       </div>
       <div class="sidebar-user">
         <div class="d-flex align-items-center gap-3">
@@ -50,7 +54,7 @@
     <div class="main-content">
       <div class="topbar">
         <div class="d-flex align-items-center gap-3">
-          <button class="btn-nb btn-nb-outline d-lg-none" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="bi bi-list"></i></button>
+          <button class="btn-nb btn-nb-outline d-lg-none" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
           <div class="topbar-title">Admin Portal</div>
         </div>
         <div class="d-flex align-items-center gap-3">

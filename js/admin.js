@@ -16,10 +16,10 @@ function renderAdminDashboard(el) {
   el.innerHTML = `
     <div class="admin-section mb-4"><i class="bi bi-lightning-charge-fill" style="color:var(--nb-gold);font-size:1.2rem;"></i><div><strong>Admin Mode Active</strong> — Full system access enabled</div></div>
     <div class="row g-3 mb-4">
-      <div class="col-6 col-xl-3"><div class="stat-card"><div class="stat-label"><i class="bi bi-people me-1"></i>Total Users</div><div class="stat-value">${users.length}</div></div></div>
-      <div class="col-6 col-xl-3"><div class="stat-card gold"><div class="stat-label"><i class="bi bi-bank me-1"></i>Total AUM</div><div class="stat-value">${fmt(totalAum)}</div></div></div>
-      <div class="col-6 col-xl-3"><div class="stat-card green"><div class="stat-label"><i class="bi bi-arrow-down-up me-1"></i>Txn Volume</div><div class="stat-value">${fmt(volume)}</div></div></div>
-      <div class="col-6 col-xl-3"><div class="stat-card red"><div class="stat-label"><i class="bi bi-exclamation-triangle me-1"></i>Frozen Accs</div><div class="stat-value">${accounts.filter(a=>a.status==='frozen').length}</div></div></div>
+      <div class="col-12 col-sm-6 col-xl-3"><div class="stat-card"><div class="stat-label"><i class="bi bi-people me-1"></i>Total Users</div><div class="stat-value">${users.length}</div></div></div>
+      <div class="col-12 col-sm-6 col-xl-3"><div class="stat-card gold"><div class="stat-label"><i class="bi bi-bank me-1"></i>Total AUM</div><div class="stat-value">${fmt(totalAum)}</div></div></div>
+      <div class="col-12 col-sm-6 col-xl-3"><div class="stat-card green"><div class="stat-label"><i class="bi bi-arrow-down-up me-1"></i>Txn Volume</div><div class="stat-value">${fmt(volume)}</div></div></div>
+      <div class="col-12 col-sm-6 col-xl-3"><div class="stat-card red"><div class="stat-label"><i class="bi bi-exclamation-triangle me-1"></i>Frozen Accs</div><div class="stat-value">${accounts.filter(a=>a.status==='frozen').length}</div></div></div>
     </div>
     <div class="row g-3 mb-4">
       <div class="col-12 col-lg-8"><div class="nb-card"><h6 class="fw-semibold mb-3">Transaction Volume (Simulation)</h6><canvas id="admin-txn-chart" height="120"></canvas></div></div>

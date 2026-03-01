@@ -36,13 +36,7 @@ function buildNav() {
 }
 
 // Navigation & UI
-function toggleSidebar(force) {
-  const s = document.getElementById('sidebar');
-  const o = document.getElementById('sidebar-overlay');
-  const open = force !== undefined ? force : !s.classList.contains('open');
-  s.classList.toggle('open', open);
-  o.classList.toggle('active', open);
-}
+// toggleSidebar moved to utils.js
 
 function updateTopbarUser() {
   const u = STATE.user;
