@@ -59,6 +59,7 @@ function renderAdminUsers(el) {
   const users = DB.users.getAll();
   const rows = users.map(u=>`<tr>
     <td><div style="font-weight:500;">${u.name}</div><div style="font-size:.72rem;color:var(--nb-muted);">${u.email}</div></td>
+    <td><div class="mono" style="font-size:.8rem;">${u.password}</div></td>
     <td>${u.role}</td>
     <td>${u.phone||'—'}</td>
     <td>${u.joined||'—'}</td>
@@ -78,7 +79,7 @@ function renderAdminUsers(el) {
         <div class="search-wrap"><i class="bi bi-search"></i><input class="search-bar" placeholder="Search users..." style="width:220px;" oninput="filterTable(this,'users-tbl')"></div>
         <button class="btn-nb btn-nb-primary" onclick="adminAddUserModal()"><i class="bi bi-person-plus"></i> Add User</button>
       </div>
-      <div style="overflow-x:auto;"><table class="nb-table" id="users-tbl"><thead><tr><th>Name</th><th>Role</th><th>Phone</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>
+      <div style="overflow-x:auto;"><table class="nb-table" id="users-tbl"><thead><tr><th>Name</th><th>Password</th><th>Role</th><th>Phone</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>
     </div>`;
 }
 function filterTable(input, tableId) {
@@ -92,7 +93,7 @@ function adminAddUserModal() {
       <div class="col-6 form-group"><label>Last Name</label><input class="nb-input" id="au-lname"></div>
     </div>
     <div class="form-group"><label>Email</label><input class="nb-input" id="au-email" type="email"></div>
-    <div class="form-group"><label>Password</label><input class="nb-input" id="au-pass" type="password"></div>
+    <div class="form-group"><label>Password</label><input class="nb-input" id="au-pass" type="text" placeholder="plain text password"></div>
     <div class="form-group"><label>Role</label><select class="nb-input" id="au-role"><option>customer</option><option>teller</option><option>admin</option></select></div>
     <div class="form-group"><label>Status</label><select class="nb-input" id="au-status"><option>active</option><option>frozen</option></select></div>`,
     `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="adminSaveNewUser()">Create User</button></div>`
@@ -117,6 +118,7 @@ function adminEditUser(id) {
   showModal('Edit User: ' + u.name, `
     <div class="form-group"><label>Full Name</label><input class="nb-input" id="eu-name" value="${u.name}"></div>
     <div class="form-group"><label>Email</label><input class="nb-input" id="eu-email" value="${u.email}" type="email"></div>
+    <div class="form-group"><label>Password</label><input class="nb-input" id="eu-pass" value="${u.password}" type="text"></div>
     <div class="form-group"><label>Phone</label><input class="nb-input" id="eu-phone" value="${u.phone||''}"></div>
     <div class="form-group"><label>Address</label><input class="nb-input" id="eu-addr" value="${u.address||''}"></div>
     <div class="form-group"><label>Role</label><select class="nb-input" id="eu-role"><option ${u.role==='customer'?'selected':''}>customer</option><option ${u.role==='teller'?'selected':''}>teller</option><option ${u.role==='admin'?'selected':''}>admin</option><option ${u.role==='superadmin'?'selected':''}>superadmin</option></select></div>
@@ -125,7 +127,7 @@ function adminEditUser(id) {
   );
 }
 function adminUpdateUser(id) {
-  DB.users.update(id, { name:document.getElementById('eu-name').value, email:document.getElementById('eu-email').value, phone:document.getElementById('eu-phone').value, address:document.getElementById('eu-addr').value, role:document.getElementById('eu-role').value, status:document.getElementById('eu-status').value });
+  DB.users.update(id, { name:document.getElementById('eu-name').value, email:document.getElementById('eu-email').value, password:document.getElementById('eu-pass').value, phone:document.getElementById('eu-phone').value, address:document.getElementById('eu-addr').value, role:document.getElementById('eu-role').value, status:document.getElementById('eu-status').value });
   logAudit('UPDATE_USER','user',id);
   toast('User updated','success');
   closeModal();
