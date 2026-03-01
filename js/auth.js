@@ -60,6 +60,12 @@ function renderAuthForm(type='login') {
       <div class="form-group"><label>Email</label><input class="nb-input" id="r-email" type="email" placeholder="you@email.com"></div>
       <div class="form-group"><label>Date of Birth</label><input class="nb-input" id="r-dob" type="date"></div>
       <div class="form-group"><label>Phone</label><input class="nb-input" id="r-phone" placeholder="+1-555-0100"></div>
+      <div class="form-group"><label>Account Type</label>
+        <select class="nb-input" id="r-acc-type">
+          <option value="Checking">Checking Account</option>
+          <option value="Savings">Savings Account</option>
+        </select>
+      </div>
       <div class="form-group"><label>Password</label><input class="nb-input" id="r-pass" type="password" placeholder="min 8 chars"></div>
       <div class="form-group"><label>Confirm Password</label><input class="nb-input" id="r-pass2" type="password" placeholder="repeat password"></div>
       <button class="btn-nb btn-nb-primary w-100 justify-content-center" style="padding:.75rem;" onclick="doRegister()"><i class="bi bi-person-plus"></i> Create Account</button>
@@ -93,9 +99,10 @@ function doRegister() {
   if (pass.length < 6) return toast('Password must be 6+ characters', 'error');
   if (DB.users.getByEmail(email)) return toast('Email already registered', 'error');
   const id = 'u' + uid();
+  const accType = document.getElementById('r-acc-type').value;
   const user = { id, name:`${fname} ${lname}`, email, password:pass, role:'customer', status:'active', phone:document.getElementById('r-phone').value, dob:document.getElementById('r-dob').value, address:'', joined:new Date().toISOString().slice(0,10), failedLogins:0 };
   DB.users.create(user);
-  DB.accounts.create({ id:'a'+uid(), userId:id, type:'Checking', balance:0, iban:'GB29NWBK'+Math.floor(Math.random()*1e14), swift:'NXBKGB21', status:'active', limit:5000, createdAt:new Date().toISOString().slice(0,10) });
+  DB.accounts.create({ id:'a'+uid(), userId:id, type:accType, balance:0, iban:Math.floor(1000000000 + Math.random() * 9000000000).toString(), swift:'NXBKGB21', status:'active', limit:5000, createdAt:new Date().toISOString().slice(0,10) });
   const res = login(email, pass);
   if (res.ok) {
     bootApp();

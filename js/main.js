@@ -170,8 +170,6 @@ function renderDashboard(el) {
   const accounts = DB.accounts.getByUser(user.id);
   const txns = DB.transactions.getByUser(user.id).slice(0,6);
   const totalBal = accounts.reduce((s,a)=>s+(a.status==='active'?a.balance:0), 0);
-  const income = txns.filter(t=>t.toId && accounts.map(a=>a.id).includes(t.toId)).reduce((s,t)=>s+t.amount,0);
-  const expenses = txns.filter(t=>t.fromId && accounts.map(a=>a.id).includes(t.fromId) && t.type!=='transfer').reduce((s,t)=>s+t.amount,0);
   const accCards = accounts.map(a=>`
     <div class="col-12 col-md-4">
       <div class="nb-card" style="cursor:pointer;" onclick="navigate('accounts')">
@@ -192,10 +190,8 @@ function renderDashboard(el) {
     </tr>`;}).join('');
   el.innerHTML = `
     <div class="row g-3 mb-4">
-      <div class="col-12 col-sm-6 col-xl-3"><div class="stat-card"><div class="stat-label"><i class="bi bi-wallet2 me-1"></i>Total Balance</div><div class="stat-value">${fmt(totalBal)}</div></div></div>
-      <div class="col-12 col-sm-6 col-xl-3"><div class="stat-card green"><div class="stat-label"><i class="bi bi-arrow-down-circle me-1"></i>Income (Recent)</div><div class="stat-value">${fmt(income)}</div></div></div>
-      <div class="col-12 col-sm-6 col-xl-3"><div class="stat-card red"><div class="stat-label"><i class="bi bi-arrow-up-circle me-1"></i>Expenses (Recent)</div><div class="stat-value">${fmt(expenses)}</div></div></div>
-      <div class="col-12 col-sm-6 col-xl-3"><div class="stat-card gold"><div class="stat-label"><i class="bi bi-bank me-1"></i>Active Accounts</div><div class="stat-value">${accounts.filter(a=>a.status==='active').length}</div></div></div>
+      <div class="col-12 col-sm-6"><div class="stat-card"><div class="stat-label"><i class="bi bi-wallet2 me-1"></i>Total Balance</div><div class="stat-value">${fmt(totalBal)}</div></div></div>
+      <div class="col-12 col-sm-6"><div class="stat-card gold"><div class="stat-label"><i class="bi bi-bank me-1"></i>Active Accounts</div><div class="stat-value">${accounts.filter(a=>a.status==='active').length}</div></div></div>
     </div>
     <div class="d-flex flex-wrap gap-2 mb-4">
       <button class="btn-nb btn-nb-primary" onclick="navigate('transfers')"><i class="bi bi-arrow-left-right"></i> Transfer</button>
@@ -290,7 +286,7 @@ function openNewAccountModal() {
 function doOpenAccount() {
   const type = document.getElementById('new-acc-type').value;
   const deposit = parseFloat(document.getElementById('new-acc-deposit').value)||0;
-  DB.accounts.create({ id:'a'+uid(), userId:STATE.user.id, type, balance:deposit, iban:'GB29NWBK'+Math.floor(Math.random()*1e14), swift:'NXBKGB21', status:'active', limit:5000, createdAt:new Date().toISOString().slice(0,10) });
+  DB.accounts.create({ id:'a'+uid(), userId:STATE.user.id, type, balance:deposit, iban:Math.floor(1000000000 + Math.random() * 9000000000).toString(), swift:'NXBKGB21', status:'active', limit:5000, createdAt:new Date().toISOString().slice(0,10) });
   toast(`${type} account opened!`, 'success');
   closeModal();
   navigate('accounts');
@@ -422,7 +418,10 @@ function deletePayee(id) { DB.payees.delete(id); toast('Payee removed', 'success
 
 function renderHistory(el) {
   const txns = DB.transactions.getByUser(STATE.user.id);
-  const myAccIds = DB.accounts.getByUser(STATE.user.id).map(a=>a.id);
+  const accounts = DB.accounts.getByUser(STATE.user.id);
+  const myAccIds = accounts.map(a=>a.id);
+  const income = txns.filter(t=>t.toId && myAccIds.includes(t.toId)).reduce((s,t)=>s+t.amount,0);
+  const expenses = txns.filter(t=>t.fromId && myAccIds.includes(t.fromId) && t.type!=='transfer').reduce((s,t)=>s+t.amount,0);
   const rows = txns.map(t=>{
     const isDebit = myAccIds.includes(t.fromId) && t.type!=='credit';
     return `<tr>
@@ -438,6 +437,10 @@ function renderHistory(el) {
       <td><button class="btn-nb btn-nb-outline btn-nb-sm" onclick="viewTxn('${t.id}')"><i class="bi bi-eye"></i></button></td>
     </tr>`;}).join('');
   el.innerHTML = `
+    <div class="row g-3 mb-4">
+      <div class="col-12 col-sm-6"><div class="stat-card green"><div class="stat-label"><i class="bi bi-arrow-down-circle me-1"></i>Total Income</div><div class="stat-value">${fmt(income)}</div></div></div>
+      <div class="col-12 col-sm-6"><div class="stat-card red"><div class="stat-label"><i class="bi bi-arrow-up-circle me-1"></i>Total Expenses</div><div class="stat-value">${fmt(expenses)}</div></div></div>
+    </div>
     <div class="nb-card">
       <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
         <h6 class="mb-0 fw-semibold">All Transactions</h6>
