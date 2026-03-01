@@ -49,7 +49,7 @@ a { text-decoration: none; color: inherit; }
 .sidebar-logo span { color: var(--nb-gold); }
 .sidebar-user { padding: 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,.1); }
 .sidebar-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--nb-gold); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .9rem; color: var(--nb-primary); }
-.sidebar nav { flex: 1; padding: .75rem 0; }
+.sidebar nav { flex: 1; padding: .75rem 0; display: flex; flex-direction: column; }
 .nav-section { padding: .25rem 1.5rem; font-size: .65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,.4); margin-top: .5rem; }
 .nav-item { display: flex; align-items: center; gap: .75rem; padding: .65rem 1.5rem; font-size: .88rem; color: var(--nb-sidebar-text); cursor: pointer; transition: all .2s; border-left: 3px solid transparent; }
 .nav-item:hover { background: rgba(255,255,255,.07); color: #fff; }

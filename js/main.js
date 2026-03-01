@@ -25,6 +25,12 @@ function buildNav() {
     if (p.section !== lastSection) { html += `<div class="nav-section">${p.section}</div>`; lastSection = p.section; }
     html += `<div class="nav-item ${STATE.page===p.id?'active':''}" onclick="navigate('${p.id}')"><i class="bi bi-${p.icon}"></i>${p.label}</div>`;
   });
+  
+  // Add Logout
+  html += `<div style="margin-top:auto;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.1);">
+    <div class="nav-item" onclick="logout()"><i class="bi bi-box-arrow-right"></i>Logout</div>
+  </div>`;
+
   const el = document.getElementById('sidebar-nav');
   if (el) el.innerHTML = html;
 }

@@ -28,12 +28,13 @@
   <!-- APP LAYOUT -->
   <div id="app" style="display:none;">
     <!-- Sidebar Overlay -->
-    <div class="nb-modal-overlay" id="sidebar-overlay" onclick="toggleSidebar(false)" style="display:none;z-index:999;background:rgba(0,0,0,.3);"></div>
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar(false)"></div>
 
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
-      <div class="sidebar-header">
+      <div class="sidebar-header d-flex justify-content-between align-items-center">
         <div class="sidebar-logo"><i class="bi bi-bank2 me-2"></i>Nexa<span>Bank</span></div>
+        <button class="btn-nb btn-nb-outline btn-nb-sm d-lg-none" onclick="toggleSidebar(false)" style="border-color:rgba(255,255,255,0.2);color:rgba(255,255,255,0.8);"><i class="bi bi-x-lg"></i></button>
       </div>
       <div class="sidebar-user">
         <div class="d-flex align-items-center gap-3">
@@ -58,7 +59,7 @@
         </div>
         <div class="topbar-actions">
           <div class="icon-btn" onclick="toggleTheme()" id="theme-btn"><i class="bi bi-sun"></i></div>
-          <div class="icon-btn" onclick="navigate('notifications')" style="position:relative;">
+          <div class="icon-btn" onclick="showNotifications()" style="position:relative;">
             <i class="bi bi-bell"></i>
             <span class="badge-status badge-danger" id="notif-dot" style="position:absolute;top:5px;right:5px;width:8px;height:8px;padding:0;display:none;"></span>
           </div>
