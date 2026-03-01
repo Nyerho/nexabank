@@ -1,0 +1,735 @@
+
+// ============================================================
+// MAIN APP LOGIC
+// ============================================================
+
+// Navigation & UI
+function toggleSidebar(force) {
+  const s = document.getElementById('sidebar');
+  const o = document.getElementById('sidebar-overlay');
+  const open = force !== undefined ? force : !s.classList.contains('open');
+  s.classList.toggle('open', open);
+  o.classList.toggle('active', open);
+}
+
+function updateTopbarUser() {
+  const u = STATE.user;
+  if (!u) return;
+  const initials = u.name.split(' ').map(n=>n[0]).join('').toUpperCase();
+  const sidebarAvatar = document.getElementById('sidebar-avatar');
+  const topbarAvatar = document.getElementById('topbar-avatar');
+  const sidebarName = document.getElementById('sidebar-name');
+  const sidebarRole = document.getElementById('sidebar-role');
+
+  if(sidebarAvatar) sidebarAvatar.textContent = initials;
+  if(topbarAvatar) topbarAvatar.textContent = initials;
+  if(sidebarName) sidebarName.textContent = u.name;
+  if(sidebarRole) sidebarRole.textContent = u.role.charAt(0).toUpperCase()+u.role.slice(1);
+  updateNotifDot();
+}
+
+function updateNotifDot() {
+  if (!STATE.user) return;
+  const unread = DB.notifications.getByUser(STATE.user.id).filter(n=>!n.read).length;
+  const dot = document.getElementById('notif-dot');
+  if(dot) dot.style.display = unread > 0 ? 'block' : 'none';
+}
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const dark = html.dataset.theme === 'dark';
+  html.dataset.theme = dark ? 'light' : 'dark';
+  const btn = document.getElementById('theme-btn');
+  if(btn) btn.innerHTML = dark ? '<i class="bi bi-moon"></i>' : '<i class="bi bi-sun"></i>';
+  localStorage.setItem('nb_theme', html.dataset.theme);
+}
+
+function navigate(page) {
+  STATE.page = page;
+  const title = document.getElementById('topbar-title');
+  const pageLabel = [...PAGES_CUSTOMER].find(p=>p.id===page)?.label || page; 
+  if(title) title.textContent = pageLabel;
+  
+  buildNav();
+  renderPage(page);
+  if (window.innerWidth < 992) toggleSidebar(false);
+}
+
+function renderPage(page) {
+  const el = document.getElementById('page-content');
+  if (!el) return;
+  
+  const pages = { 
+    dashboard: renderDashboard, 
+    accounts: renderAccounts, 
+    transfers: renderTransfers, 
+    history: renderHistory, 
+    cards: renderCards, 
+    loans: renderLoans, 
+    bills: renderBills, 
+    profile: renderProfile 
+  };
+
+  if (pages[page]) { 
+    pages[page](el); 
+  } else { 
+    // Fallback if page not found or if it's an admin page and we are in customer view
+    // If it's an admin page, we should probably redirect or show access denied if this script is only for customers.
+    // However, for simplicity, we'll just show page not found.
+    el.innerHTML = '<div class="empty-state"><i class="bi bi-question-circle"></i>Page not found</div>'; 
+  }
+}
+
+// Boot
+function bootApp() {
+  // DB.seed() is now a no-op or handled in db.js initialization if needed.
+  // We assume DB is ready.
+  
+  const authScreen = document.getElementById('auth-screen');
+  const appScreen = document.getElementById('app');
+  
+  if(authScreen) authScreen.style.display = 'none';
+  if(appScreen) appScreen.style.display = 'flex';
+  
+  updateTopbarUser();
+  buildNav();
+  
+  // Determine start page
+  let startPage = 'dashboard';
+  if (isAdmin()) {
+     // If user is admin, they should be redirected to admin.html or we handle it here.
+     // The requirement is to separate admin into a separate script.
+     // So if we are here, we are likely in app.html (customer app).
+     // If an admin logs in here, maybe we should redirect them to admin.html?
+     window.location.href = 'admin.html';
+     return;
+  }
+  
+  navigate(startPage);
+  
+  const saved = localStorage.getItem('nb_theme');
+  if (saved === 'dark') { 
+    document.documentElement.dataset.theme = 'dark'; 
+    const btn = document.getElementById('theme-btn');
+    if(btn) btn.innerHTML = '<i class="bi bi-sun"></i>'; 
+  }
+  
+  // Sidebar overlay listener
+  document.getElementById('sidebar-overlay')?.addEventListener('click', () => toggleSidebar(false));
+}
+
+function showNotifications() {
+  const notifs = DB.notifications.getByUser(STATE.user.id);
+  DB.notifications.markAllRead(STATE.user.id);
+  updateNotifDot();
+  const rows = notifs.length ? notifs.map(n=>`
+    <div class="d-flex gap-2 mb-3 pb-3" style="border-bottom:1px solid var(--nb-border);">
+      <div style="width:36px;height:36px;border-radius:50%;background:${n.type==='success'?'#d1fae5':n.type==='warning'?'#fef3c7':'#dbeafe'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <i class="bi bi-${n.type==='success'?'check-circle':n.type==='warning'?'exclamation-triangle':'info-circle'}" style="color:${n.type==='success'?'var(--nb-success)':n.type==='warning'?'var(--nb-warning)':'var(--nb-accent)'};"></i>
+      </div>
+      <div><div style="font-size:.88rem;">${n.message}</div><div style="font-size:.75rem;color:var(--nb-muted);">${fmtDate(n.ts)}</div></div>
+    </div>`).join('') : '<div class="empty-state"><i class="bi bi-bell-slash"></i>No notifications</div>';
+  showModal('Notifications', rows);
+}
+
+// ============================================================
+// CUSTOMER PAGES
+// ============================================================
+
+function renderDashboard(el) {
+  const user = STATE.user;
+  const accounts = DB.accounts.getByUser(user.id);
+  const txns = DB.transactions.getByUser(user.id).slice(0,6);
+  const totalBal = accounts.reduce((s,a)=>s+(a.status==='active'?a.balance:0), 0);
+  const income = txns.filter(t=>t.toId && accounts.map(a=>a.id).includes(t.toId)).reduce((s,t)=>s+t.amount,0);
+  const expenses = txns.filter(t=>t.fromId && accounts.map(a=>a.id).includes(t.fromId) && t.type!=='transfer').reduce((s,t)=>s+t.amount,0);
+  const accCards = accounts.map(a=>`
+    <div class="col-12 col-md-4">
+      <div class="nb-card" style="cursor:pointer;" onclick="navigate('accounts')">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div><div style="font-size:.78rem;color:var(--nb-muted);">${a.type}</div><div class="mono" style="font-size:1.3rem;font-weight:700;">${fmt(a.balance)}</div></div>
+          <span class="badge-status badge-${a.status}">${a.status}</span>
+        </div>
+        <div style="font-size:.72rem;color:var(--nb-muted);">${a.iban}</div>
+      </div>
+    </div>`).join('');
+  const txRows = txns.map(t=>{
+    const myAccIds = accounts.map(a=>a.id);
+    const isDebit = myAccIds.includes(t.fromId) && t.type!=='credit';
+    return `<tr>
+      <td><div style="font-size:.88rem;font-weight:500;">${t.desc}</div><div style="font-size:.72rem;color:var(--nb-muted);">${t.category} • ${fmtDate(t.ts)}</div></td>
+      <td><span class="${isDebit?'amount-neg':'amount-pos'}">${isDebit?'-':'+'}${fmt(t.amount)}</span></td>
+      <td><span class="badge-status badge-${t.status}">${t.status}</span></td>
+    </tr>`;}).join('');
+  el.innerHTML = `
+    <div class="row g-3 mb-4">
+      <div class="col-12 col-sm-6 col-xl-3"><div class="stat-card"><div class="stat-label"><i class="bi bi-wallet2 me-1"></i>Total Balance</div><div class="stat-value">${fmt(totalBal)}</div></div></div>
+      <div class="col-12 col-sm-6 col-xl-3"><div class="stat-card green"><div class="stat-label"><i class="bi bi-arrow-down-circle me-1"></i>Income (Recent)</div><div class="stat-value">${fmt(income)}</div></div></div>
+      <div class="col-12 col-sm-6 col-xl-3"><div class="stat-card red"><div class="stat-label"><i class="bi bi-arrow-up-circle me-1"></i>Expenses (Recent)</div><div class="stat-value">${fmt(expenses)}</div></div></div>
+      <div class="col-12 col-sm-6 col-xl-3"><div class="stat-card gold"><div class="stat-label"><i class="bi bi-bank me-1"></i>Active Accounts</div><div class="stat-value">${accounts.filter(a=>a.status==='active').length}</div></div></div>
+    </div>
+    <div class="d-flex flex-wrap gap-2 mb-4">
+      <button class="btn-nb btn-nb-primary" onclick="navigate('transfers')"><i class="bi bi-arrow-left-right"></i> Transfer</button>
+      <button class="btn-nb btn-nb-outline" onclick="navigate('bills')"><i class="bi bi-receipt"></i> Pay Bills</button>
+      <button class="btn-nb btn-nb-outline" onclick="navigate('loans')"><i class="bi bi-bank"></i> Apply Loan</button>
+      <button class="btn-nb btn-nb-outline" onclick="navigate('cards')"><i class="bi bi-credit-card"></i> Cards</button>
+    </div>
+    <div class="row g-3 mb-4">${accCards}</div>
+    <div class="row g-3">
+      <div class="col-12 col-lg-8">
+        <div class="nb-card">
+          <div class="d-flex justify-content-between align-items-center mb-3"><h6 class="mb-0 fw-semibold">Recent Transactions</h6><button class="btn-nb btn-nb-outline btn-nb-sm" onclick="navigate('history')">View All</button></div>
+          <div style="overflow-x:auto;"><table class="nb-table"><thead><tr><th>Description</th><th>Amount</th><th>Status</th></tr></thead><tbody>${txRows||'<tr><td colspan="3" class="text-center text-muted py-4">No transactions</td></tr>'}</tbody></table></div>
+        </div>
+      </div>
+      <div class="col-12 col-lg-4">
+        <div class="nb-card"><h6 class="mb-3 fw-semibold">Spending by Category</h6><canvas id="spending-chart" height="200"></canvas></div>
+      </div>
+    </div>`;
+  // Chart
+  const cats = {}; txns.filter(t=>t.type==='payment').forEach(t=>{ cats[t.category]=(cats[t.category]||0)+t.amount; });
+  if (Object.keys(cats).length > 0) {
+    setTimeout(()=>{
+      const ctx = document.getElementById('spending-chart');
+      if(ctx) new Chart(ctx, { type:'doughnut', data:{ labels:Object.keys(cats), datasets:[{data:Object.values(cats),backgroundColor:['#1d6fa4','#c9a84c','#12b76a','#f04438','#7c3aed','#f79009'],borderWidth:0}]}, options:{plugins:{legend:{position:'bottom',labels:{font:{family:'Poppins',size:11},boxWidth:10}}},cutout:'65%'}});
+    },50);
+  }
+}
+
+function renderAccounts(el) {
+  const accounts = DB.accounts.getByUser(STATE.user.id);
+  const colorClass = ['blue','dark','gold'];
+  const cards = accounts.map((a,i)=>`
+    <div class="col-12 col-md-6 col-xl-4">
+      <div class="bank-card ${colorClass[i%3]}">
+        <div class="card-chip"></div>
+        <div style="position:relative;z-index:1;">
+          <div class="card-number mb-3">${a.iban.replace(/(.{4})/g,'$1 ').trim()}</div>
+          <div class="d-flex justify-content-between align-items-end">
+            <div><div class="card-name">${STATE.user.name}</div><div style="font-size:.7rem;opacity:.7;">${a.type}</div></div>
+            <div class="text-end"><div style="font-size:1.3rem;font-weight:700;">${fmt(a.balance)}</div><span class="badge-status badge-${a.status}" style="font-size:.65rem;">${a.status}</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="nb-card mt-3">
+        <div class="row g-2" style="font-size:.82rem;">
+          <div class="col-6"><div style="color:var(--nb-muted);">IBAN</div><div class="mono" style="font-size:.78rem;">${a.iban}</div></div>
+          <div class="col-6"><div style="color:var(--nb-muted);">SWIFT</div><div class="mono">${a.swift}</div></div>
+          <div class="col-6"><div style="color:var(--nb-muted);">Transfer Limit</div><div class="mono">${fmt(a.limit||0)}/day</div></div>
+          <div class="col-6"><div style="color:var(--nb-muted);">Opened</div><div>${a.createdAt}</div></div>
+        </div>
+        <hr class="divider">
+        <div class="d-flex gap-2">
+          <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="navigate('history')"><i class="bi bi-clock-history"></i> History</button>
+          <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="downloadStatement('${a.id}')"><i class="bi bi-download"></i> Statement</button>
+          ${a.status==='active'&&a.type!=='Fixed Deposit'?`<button class="btn-nb btn-nb-danger btn-nb-sm" onclick="closeAccountConfirm('${a.id}')"><i class="bi bi-x-circle"></i> Close</button>`:''}
+        </div>
+      </div>
+    </div>`).join('');
+  el.innerHTML = `
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h5 class="mb-0 fw-semibold">My Accounts</h5>
+      <button class="btn-nb btn-nb-primary" onclick="openNewAccountModal()"><i class="bi bi-plus-lg"></i> Open Account</button>
+    </div>
+    <div class="row g-4">${cards||'<div class="col-12"><div class="empty-state"><i class="bi bi-wallet2"></i>No accounts yet</div></div>'}</div>`;
+}
+
+function closeAccountConfirm(id) {
+  showModal('Close Account', `<p>Are you sure you want to close this account? Any remaining balance will be transferred to your primary account.</p>`, `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-danger" onclick="doCloseAccount('${id}')">Close Account</button></div>`);
+}
+function doCloseAccount(id) {
+  DB.accounts.update(id, { status:'closed' });
+  toast('Account closed successfully.', 'success');
+  closeModal();
+  navigate('accounts');
+}
+function downloadStatement(accountId) {
+  const txns = DB.transactions.getByAccount(accountId);
+  const csv = ['Date,Description,Category,Amount,Type', ...txns.map(t=>`${t.ts},${t.desc},${t.category},${t.amount},${t.type}`)].join('\n');
+  const a = document.createElement('a'); a.href = 'data:text/csv,' + encodeURIComponent(csv); a.download = 'statement.csv'; a.click();
+  toast('Statement downloaded', 'success');
+}
+function openNewAccountModal() {
+  showModal('Open New Account', `
+    <div class="form-group"><label>Account Type</label>
+      <select class="nb-input" id="new-acc-type"><option>Savings</option><option>Fixed Deposit</option></select>
+    </div>
+    <div class="form-group"><label>Initial Deposit</label><input class="nb-input" id="new-acc-deposit" type="number" placeholder="0.00" min="0"></div>`,
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="doOpenAccount()"><i class="bi bi-plus"></i> Open Account</button></div>`
+  );
+}
+function doOpenAccount() {
+  const type = document.getElementById('new-acc-type').value;
+  const deposit = parseFloat(document.getElementById('new-acc-deposit').value)||0;
+  DB.accounts.create({ id:'a'+uid(), userId:STATE.user.id, type, balance:deposit, iban:'GB29NWBK'+Math.floor(Math.random()*1e14), swift:'NXBKGB21', status:'active', limit:5000, createdAt:new Date().toISOString().slice(0,10) });
+  toast(`${type} account opened!`, 'success');
+  closeModal();
+  navigate('accounts');
+}
+
+function renderTransfers(el) {
+  const accounts = DB.accounts.getByUser(STATE.user.id).filter(a=>a.status==='active');
+  const payees = DB.payees.getByUser(STATE.user.id);
+  const fromOpts = accounts.map(a=>`<option value="${a.id}">${a.type} — ${fmt(a.balance)}</option>`).join('');
+  el.innerHTML = `
+    <div class="row g-4">
+      <div class="col-12 col-lg-7">
+        <div class="nb-card">
+          <h6 class="fw-semibold mb-3">New Transfer</h6>
+          <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTransferTab(this,'internal')">Internal</button>
+            <button class="tab-btn" onclick="switchTransferTab(this,'external')">To Someone</button>
+            <button class="tab-btn" onclick="switchTransferTab(this,'international')">International</button>
+          </div>
+          <div id="transfer-tab-content">
+            <div class="form-group"><label>From Account</label><select class="nb-input" id="t-from">${fromOpts}</select></div>
+            <div id="transfer-to-internal">
+              <div class="form-group"><label>To Account</label><select class="nb-input" id="t-to-internal">${fromOpts}</select></div>
+            </div>
+            <div id="transfer-to-external" style="display:none;">
+              <div class="form-group"><label>Recipient Account / IBAN</label><input class="nb-input" id="t-to-iban" placeholder="GB29 NWBK 6016..."></div>
+              <div class="form-group"><label>Recipient Name</label><input class="nb-input" id="t-to-name" placeholder="John Doe"></div>
+              <div class="form-group"><label>Bank Name</label><input class="nb-input" id="t-to-bank" placeholder="NexaBank"></div>
+            </div>
+            <div id="transfer-to-intl" style="display:none;">
+              <div class="form-group"><label>SWIFT/BIC Code</label><input class="nb-input" id="t-swift" placeholder="BOFAUS3N"></div>
+              <div class="form-group"><label>Beneficiary IBAN</label><input class="nb-input" id="t-intl-iban" placeholder="DE89 3704 0044..."></div>
+              <div class="form-group"><label>Beneficiary Name</label><input class="nb-input" id="t-intl-name" placeholder="Hans Mueller"></div>
+              <div class="form-group"><label>Country</label><input class="nb-input" id="t-intl-country" placeholder="Germany"></div>
+            </div>
+            <div class="row g-2">
+              <div class="col-8"><div class="form-group"><label>Amount</label><input class="nb-input" id="t-amount" type="number" placeholder="0.00" min="0.01"></div></div>
+              <div class="col-4"><div class="form-group"><label>Currency</label><select class="nb-input" id="t-currency"><option>USD</option><option>EUR</option><option>GBP</option></select></div></div>
+            </div>
+            <div class="form-group"><label>Description / Reference</label><input class="nb-input" id="t-desc" placeholder="What's this for?"></div>
+            <button class="btn-nb btn-nb-primary w-100 justify-content-center" style="padding:.7rem;" onclick="initiateTransfer()"><i class="bi bi-send"></i> Review Transfer</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-lg-5">
+        <div class="nb-card mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0 fw-semibold">Saved Payees</h6>
+            <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="addPayeeModal()"><i class="bi bi-plus"></i> Add</button>
+          </div>
+          ${payees.length?payees.map(p=>`<div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px solid var(--nb-border);">
+            <div><div style="font-size:.88rem;font-weight:500;">${p.name}</div><div style="font-size:.75rem;color:var(--nb-muted);">${p.bank} • ${p.account.slice(-4)}</div></div>
+            <button class="btn-nb btn-nb-danger btn-nb-sm" onclick="deletePayee('${p.id}')"><i class="bi bi-trash"></i></button>
+          </div>`).join(''):'<div style="color:var(--nb-muted);font-size:.85rem;text-align:center;padding:1rem;">No saved payees</div>'}
+        </div>
+        <div class="nb-card">
+          <h6 class="fw-semibold mb-3">Exchange Rates</h6>
+          <div style="font-size:.85rem;">
+            ${[['EUR','0.9215'],['GBP','0.7892'],['JPY','149.72'],['CAD','1.3610']].map(([c,r])=>`<div class="d-flex justify-content-between py-1" style="border-bottom:1px solid var(--nb-border);"><span>USD → ${c}</span><span class="mono fw-semibold">${r}</span></div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+let transferMode = 'internal';
+function switchTransferTab(btn, mode) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  transferMode = mode;
+  document.getElementById('transfer-to-internal').style.display = mode==='internal'?'block':'none';
+  document.getElementById('transfer-to-external').style.display = mode==='external'?'block':'none';
+  document.getElementById('transfer-to-intl').style.display = mode==='international'?'block':'none';
+}
+function initiateTransfer() {
+  const amount = parseFloat(document.getElementById('t-amount').value);
+  const fromId = document.getElementById('t-from').value;
+  const desc = document.getElementById('t-desc').value || 'Transfer';
+  const currency = document.getElementById('t-currency').value;
+  if (!amount || amount <= 0) return toast('Enter a valid amount', 'error');
+  const fromAcc = DB.accounts.getById(fromId);
+  if (fromAcc.balance < amount) return toast('Insufficient funds', 'error');
+  // OTP confirm
+  showModal('Confirm Transfer', `
+    <div style="text-align:center;padding:1rem 0;">
+      <div style="font-size:2rem;font-weight:700;color:var(--nb-accent);">${currency} ${fmt(amount)}</div>
+      <div style="color:var(--nb-muted);margin:.5rem 0;">${desc}</div>
+      <p style="font-size:.85rem;">Enter your OTP to confirm:</p>
+      <input class="nb-input" id="otp-input" placeholder="Enter 6-digit OTP" style="max-width:200px;margin:0 auto;text-align:center;font-size:1.2rem;letter-spacing:4px;" maxlength="6">
+      <p style="font-size:.78rem;color:var(--nb-muted);margin-top:.5rem;">Demo OTP: <strong>123456</strong></p>
+    </div>`,
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="confirmTransfer('${fromId}',${amount},'${desc}')"><i class="bi bi-check2"></i> Confirm</button></div>`
+  );
+}
+function confirmTransfer(fromId, amount, desc) {
+  const otp = document.getElementById('otp-input').value;
+  if (otp !== '123456') return toast('Invalid OTP', 'error');
+  const fromAcc = DB.accounts.getById(fromId);
+  DB.accounts.update(fromId, { balance: fromAcc.balance - amount });
+  let toId = null;
+  if (transferMode === 'internal') {
+    toId = document.getElementById('t-to-internal')?.value;
+    if (toId) { const toAcc = DB.accounts.getById(toId); DB.accounts.update(toId, { balance: toAcc.balance + amount }); }
+  }
+  DB.transactions.create({ id:'t'+uid(), fromId, toId, amount, type:'transfer', category:'Transfer', desc, status:'completed', ts:new Date().toISOString() });
+  DB.notifications.add({ id:'n'+uid(), userId:STATE.user.id, message:`Transfer of ${fmt(amount)} was successful.`, type:'success', read:false, ts:new Date().toISOString() });
+  toast('Transfer successful!', 'success');
+  closeModal();
+  navigate('history');
+}
+function addPayeeModal() {
+  showModal('Add Payee', `
+    <div class="form-group"><label>Payee Name</label><input class="nb-input" id="py-name" placeholder="Full Name"></div>
+    <div class="form-group"><label>Account / IBAN</label><input class="nb-input" id="py-acc" placeholder="GB29NWBK..."></div>
+    <div class="form-group"><label>Bank</label><input class="nb-input" id="py-bank" placeholder="NexaBank"></div>
+    <div class="form-group"><label>Category</label><select class="nb-input" id="py-cat"><option>Personal</option><option>Business</option><option>Utilities</option></select></div>`,
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="savePayee()">Save Payee</button></div>`
+  );
+}
+function savePayee() {
+  const name = document.getElementById('py-name').value.trim();
+  const acc = document.getElementById('py-acc').value.trim();
+  if (!name || !acc) return toast('Name and account required', 'error');
+  DB.payees.create({ id:'p'+uid(), userId:STATE.user.id, name, account:acc, bank:document.getElementById('py-bank').value||'External', category:document.getElementById('py-cat').value });
+  toast('Payee saved!', 'success');
+  closeModal();
+  navigate('transfers');
+}
+function deletePayee(id) { DB.payees.delete(id); toast('Payee removed', 'success'); navigate('transfers'); }
+
+function renderHistory(el) {
+  const txns = DB.transactions.getByUser(STATE.user.id);
+  const myAccIds = DB.accounts.getByUser(STATE.user.id).map(a=>a.id);
+  const rows = txns.map(t=>{
+    const isDebit = myAccIds.includes(t.fromId) && t.type!=='credit';
+    return `<tr>
+      <td><div class="d-flex align-items-center gap-2">
+        <div style="width:36px;height:36px;border-radius:50%;background:${isDebit?'#fee2e2':'#d1fae5'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="bi bi-arrow-${isDebit?'up':'down'}-circle" style="color:${isDebit?'var(--nb-danger)':'var(--nb-success)'};"></i>
+        </div>
+        <div><div style="font-weight:500;">${t.desc}</div><div style="font-size:.75rem;color:var(--nb-muted);">${t.category}</div></div>
+      </div></td>
+      <td style="font-size:.78rem;color:var(--nb-muted);">${fmtDate(t.ts)}</td>
+      <td><span class="${isDebit?'amount-neg':'amount-pos'}">${isDebit?'-':'+'}${fmt(t.amount)}</span></td>
+      <td><span class="badge-status badge-${t.status}">${t.status}</span></td>
+      <td><button class="btn-nb btn-nb-outline btn-nb-sm" onclick="viewTxn('${t.id}')"><i class="bi bi-eye"></i></button></td>
+    </tr>`;}).join('');
+  el.innerHTML = `
+    <div class="nb-card">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <h6 class="mb-0 fw-semibold">All Transactions</h6>
+        <div class="d-flex gap-2 flex-wrap">
+          <div class="search-wrap"><i class="bi bi-search"></i><input class="search-bar" placeholder="Search..." oninput="filterTxns(this.value)" style="width:200px;"></div>
+          <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="exportTxns()"><i class="bi bi-download"></i> Export</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto;"><table class="nb-table" id="txn-table"><thead><tr><th>Description</th><th>Date</th><th>Amount</th><th>Status</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="5" class="text-center text-muted py-4">No transactions</td></tr>'}</tbody></table></div>
+    </div>`;
+}
+function viewTxn(id) {
+  const t = DB.transactions.getAll().find(tx=>tx.id===id);
+  if (!t) return;
+  showModal('Transaction Details', `
+    <div style="font-size:.88rem;">
+      <div class="d-flex justify-content-between py-2 border-bottom"><span style="color:var(--nb-muted);">ID</span><span class="mono">${t.id}</span></div>
+      <div class="d-flex justify-content-between py-2 border-bottom"><span style="color:var(--nb-muted);">Description</span><span>${t.desc}</span></div>
+      <div class="d-flex justify-content-between py-2 border-bottom"><span style="color:var(--nb-muted);">Category</span><span>${t.category}</span></div>
+      <div class="d-flex justify-content-between py-2 border-bottom"><span style="color:var(--nb-muted);">Amount</span><span class="mono fw-bold">${fmt(t.amount)}</span></div>
+      <div class="d-flex justify-content-between py-2 border-bottom"><span style="color:var(--nb-muted);">Type</span><span>${t.type}</span></div>
+      <div class="d-flex justify-content-between py-2 border-bottom"><span style="color:var(--nb-muted);">Status</span><span class="badge-status badge-${t.status}">${t.status}</span></div>
+      <div class="d-flex justify-content-between py-2"><span style="color:var(--nb-muted);">Date</span><span>${new Date(t.ts).toLocaleString()}</span></div>
+    </div>`
+  );
+}
+function filterTxns(q) {
+  const rows = document.querySelectorAll('#txn-table tbody tr');
+  rows.forEach(r => { r.style.display = r.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none'; });
+}
+function exportTxns() {
+  const txns = DB.transactions.getByUser(STATE.user.id);
+  const csv = ['Date,Description,Category,Amount,Type,Status', ...txns.map(t=>`${t.ts},"${t.desc}",${t.category},${t.amount},${t.type},${t.status}`)].join('\n');
+  const a = document.createElement('a'); a.href = 'data:text/csv,' + encodeURIComponent(csv); a.download = 'transactions.csv'; a.click();
+}
+
+function renderCards(el) {
+  const cards = DB.cards.getByUser(STATE.user.id);
+  const colorClass = ['blue','dark','gold'];
+  const cardHtml = cards.map((c,i)=>`
+    <div class="col-12 col-md-6">
+      <div class="bank-card ${colorClass[i%3]} mb-3">
+        <div class="card-chip"></div>
+        <div style="position:relative;z-index:1;">
+          <div class="card-number mb-2">${c.maskedNumber}</div>
+          <div class="d-flex justify-content-between align-items-end">
+            <div><div class="card-name">${STATE.user.name}</div><div style="font-size:.7rem;opacity:.7;">VALID THRU ${c.expiry}</div></div>
+            <div class="text-end"><div style="font-weight:700;font-size:1.1rem;">${c.type}</div><span class="badge-status badge-${c.status}" style="font-size:.65rem;">${c.status}</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="nb-card">
+        <div class="row g-2 mb-3" style="font-size:.82rem;">
+          <div class="col-6"><div style="color:var(--nb-muted);">Daily Limit</div><div class="mono fw-bold">${fmt(c.dailyLimit)}</div></div>
+          <div class="col-6"><div style="color:var(--nb-muted);">Monthly Limit</div><div class="mono fw-bold">${fmt(c.monthlyLimit)}</div></div>
+          ${c.creditLimit?`<div class="col-6"><div style="color:var(--nb-muted);">Credit Limit</div><div class="mono">${fmt(c.creditLimit)}</div></div><div class="col-6"><div style="color:var(--nb-muted);">Used</div><div class="mono">${fmt(c.used||0)}</div></div>`:''}
+        </div>
+        ${c.creditLimit?`<div class="loan-progress"><div style="font-size:.75rem;color:var(--nb-muted);margin-bottom:.3rem;">Utilization ${Math.round((c.used/c.creditLimit)*100)}%</div><div class="progress-bar-custom"><div class="progress-fill" style="width:${Math.round((c.used/c.creditLimit)*100)}%;"></div></div></div>`:''}
+        <div class="d-flex gap-2 flex-wrap mt-2">
+          <button class="btn-nb ${c.status==='active'?'btn-nb-outline':'btn-nb-success'} btn-nb-sm" onclick="toggleCard('${c.id}')"><i class="bi bi-${c.status==='active'?'snow':'check2'}"></i> ${c.status==='active'?'Freeze':'Unfreeze'}</button>
+          <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="setCardLimitModal('${c.id}')"><i class="bi bi-sliders"></i> Limits</button>
+          <button class="btn-nb btn-nb-danger btn-nb-sm" onclick="reportCard('${c.id}')"><i class="bi bi-flag"></i> Report Lost</button>
+        </div>
+      </div>
+    </div>`).join('');
+  el.innerHTML = `
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h5 class="mb-0 fw-semibold">My Cards</h5>
+      <button class="btn-nb btn-nb-primary" onclick="requestCardModal()"><i class="bi bi-plus-lg"></i> Request Card</button>
+    </div>
+    <div class="row g-4">${cardHtml||'<div class="col"><div class="empty-state"><i class="bi bi-credit-card-2-front"></i>No cards</div></div>'}</div>`;
+}
+function toggleCard(id) {
+  const c = DB.cards.getById(id);
+  const ns = c.status==='active'?'frozen':'active';
+  DB.cards.update(id, {status:ns});
+  toast(`Card ${ns}`, ns==='frozen'?'warning':'success');
+  navigate('cards');
+}
+function reportCard(id) {
+  DB.cards.update(id, {status:'blocked'});
+  toast('Card reported as lost. A new card will be issued.', 'warning');
+  navigate('cards');
+}
+function setCardLimitModal(id) {
+  const c = DB.cards.getById(id);
+  showModal('Set Card Limits', `
+    <div class="form-group"><label>Daily Limit ($)</label><input class="nb-input" id="cl-daily" type="number" value="${c.dailyLimit}"></div>
+    <div class="form-group"><label>Monthly Limit ($)</label><input class="nb-input" id="cl-monthly" type="number" value="${c.monthlyLimit}"></div>`,
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="saveCardLimits('${id}')">Save</button></div>`
+  );
+}
+function saveCardLimits(id) {
+  DB.cards.update(id, { dailyLimit: parseFloat(document.getElementById('cl-daily').value), monthlyLimit: parseFloat(document.getElementById('cl-monthly').value) });
+  toast('Card limits updated', 'success');
+  closeModal();
+  navigate('cards');
+}
+function requestCardModal() {
+  const accounts = DB.accounts.getByUser(STATE.user.id).filter(a=>a.status==='active');
+  showModal('Request New Card', `
+    <div class="form-group"><label>Account</label><select class="nb-input" id="nc-acc">${accounts.map(a=>`<option value="${a.id}">${a.type} — ${fmt(a.balance)}</option>`).join('')}</select></div>
+    <div class="form-group"><label>Card Type</label><select class="nb-input" id="nc-type"><option>Debit</option><option>Virtual</option></select></div>`,
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="doRequestCard()">Request Card</button></div>`
+  );
+}
+function doRequestCard() {
+  const num = '**** **** **** ' + Math.floor(1000+Math.random()*9000);
+  DB.cards.create({ id:'c'+uid(), accountId:document.getElementById('nc-acc').value, userId:STATE.user.id, type:document.getElementById('nc-type').value, maskedNumber:num, expiry:'12/29', status:'active', dailyLimit:1500, monthlyLimit:7500 });
+  toast('Card requested! Processing in 3-5 business days.', 'success');
+  closeModal();
+  navigate('cards');
+}
+
+function renderLoans(el) {
+  const loans = DB.loans.getByUser(STATE.user.id);
+  const loanRows = loans.map(l=>`
+    <div class="nb-card mb-3">
+      <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+        <div><div class="d-flex align-items-center gap-2"><h6 class="mb-0">${l.type} Loan</h6><span class="badge-status badge-${l.status}">${l.status}</span></div>
+          <div style="font-size:.8rem;color:var(--nb-muted);">Applied: ${fmtDate(l.appliedAt)}</div>
+        </div>
+        <div class="text-end"><div class="mono fw-bold fs-5">${fmt(l.amount)}</div><div style="font-size:.78rem;color:var(--nb-muted);">${l.rate}% APR • ${l.term} months</div></div>
+      </div>
+      <div class="row g-3 mb-3" style="font-size:.82rem;">
+        <div class="col-6 col-md-3"><div style="color:var(--nb-muted);">Paid</div><div class="mono">${fmt(l.paid)}</div></div>
+        <div class="col-6 col-md-3"><div style="color:var(--nb-muted);">Remaining</div><div class="mono">${fmt(l.amount-l.paid)}</div></div>
+        <div class="col-6 col-md-3"><div style="color:var(--nb-muted);">Monthly</div><div class="mono">${fmt(l.monthlyPayment)}</div></div>
+        <div class="col-6 col-md-3"><div style="color:var(--nb-muted);">Next Payment</div><div>${l.nextPayment}</div></div>
+      </div>
+      <div class="loan-progress"><div style="font-size:.75rem;color:var(--nb-muted);margin-bottom:.3rem;">Progress: ${Math.round((l.paid/l.amount)*100)}% paid</div><div class="progress-bar-custom"><div class="progress-fill" style="width:${Math.round((l.paid/l.amount)*100)}%;"></div></div></div>
+      ${l.status==='active'?`<div class="mt-3"><button class="btn-nb btn-nb-outline btn-nb-sm" onclick="earlyRepay('${l.id}')"><i class="bi bi-cash-stack"></i> Early Repayment</button></div>`:''}
+    </div>`).join('');
+  el.innerHTML = `
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h5 class="mb-0 fw-semibold">Loans & Credit</h5>
+      <button class="btn-nb btn-nb-primary" onclick="applyLoanModal()"><i class="bi bi-plus-lg"></i> Apply for Loan</button>
+    </div>
+    ${loanRows||'<div class="empty-state"><i class="bi bi-bank2"></i>No active loans</div>'}
+    <div class="nb-card mt-3">
+      <h6 class="fw-semibold mb-3">Loan Calculator</h6>
+      <div class="row g-3">
+        <div class="col-md-4"><label>Loan Amount ($)</label><input class="nb-input" id="lc-amount" type="number" value="10000" oninput="calcLoan()"></div>
+        <div class="col-md-4"><label>Interest Rate (%)</label><input class="nb-input" id="lc-rate" type="number" value="5.5" step="0.1" oninput="calcLoan()"></div>
+        <div class="col-md-4"><label>Term (months)</label><input class="nb-input" id="lc-term" type="number" value="24" oninput="calcLoan()"></div>
+      </div>
+      <div class="row g-3 mt-1" id="loan-calc-result">
+        <div class="col-md-4"><div class="nb-card" style="text-align:center;"><div style="color:var(--nb-muted);font-size:.78rem;">Monthly Payment</div><div class="mono fw-bold" id="lc-monthly" style="font-size:1.5rem;color:var(--nb-accent);"></div></div></div>
+        <div class="col-md-4"><div class="nb-card" style="text-align:center;"><div style="color:var(--nb-muted);font-size:.78rem;">Total Payment</div><div class="mono fw-bold" id="lc-total" style="font-size:1.5rem;"></div></div></div>
+        <div class="col-md-4"><div class="nb-card" style="text-align:center;"><div style="color:var(--nb-muted);font-size:.78rem;">Total Interest</div><div class="mono fw-bold" id="lc-interest" style="font-size:1.5rem;color:var(--nb-danger);"></div></div></div>
+      </div>
+    </div>`;
+  calcLoan();
+}
+function calcLoan() {
+  const p = parseFloat(document.getElementById('lc-amount')?.value)||0;
+  const r = (parseFloat(document.getElementById('lc-rate')?.value)||0)/100/12;
+  const n = parseInt(document.getElementById('lc-term')?.value)||1;
+  const m = r>0 ? p*(r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1) : p/n;
+  const total = m*n;
+  if (document.getElementById('lc-monthly')) {
+    document.getElementById('lc-monthly').textContent = fmt(m);
+    document.getElementById('lc-total').textContent = fmt(total);
+    document.getElementById('lc-interest').textContent = fmt(total-p);
+  }
+}
+function applyLoanModal() {
+  showModal('Apply for Loan', `
+    <div class="form-group"><label>Loan Type</label><select class="nb-input" id="al-type"><option>Personal</option><option>Auto</option><option>Mortgage</option><option>Business</option></select></div>
+    <div class="form-group"><label>Amount</label><input class="nb-input" id="al-amount" type="number" placeholder="e.g. 10000"></div>
+    <div class="form-group"><label>Preferred Term (months)</label><input class="nb-input" id="al-term" type="number" placeholder="e.g. 24"></div>
+    <div class="form-group"><label>Purpose</label><input class="nb-input" id="al-purpose" placeholder="What is this loan for?"></div>`,
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="submitLoan()">Submit Application</button></div>`
+  );
+}
+function submitLoan() {
+  const amount = parseFloat(document.getElementById('al-amount').value);
+  const term = parseInt(document.getElementById('al-term').value);
+  if (!amount||!term) return toast('Fill in all fields', 'error');
+  const rate = 5.5;
+  const r = rate/100/12;
+  const monthly = r>0 ? amount*(r*Math.pow(1+r,term))/(Math.pow(1+r,term)-1) : amount/term;
+  DB.loans.create({ id:'l'+uid(), userId:STATE.user.id, type:document.getElementById('al-type').value, amount, rate, term, paid:0, status:'pending', appliedAt:new Date().toISOString().slice(0,10), nextPayment:'—', monthlyPayment:Math.round(monthly*100)/100 });
+  toast('Loan application submitted! Review within 2-3 business days.', 'success');
+  closeModal();
+  navigate('loans');
+}
+function earlyRepay(id) {
+  const l = DB.loans.getById(id);
+  showModal('Early Repayment', `<p>Make a payment towards your ${l.type} Loan (remaining: ${fmt(l.amount-l.paid)})</p><div class="form-group"><label>Payment Amount</label><input class="nb-input" id="ep-amount" type="number" value="${l.monthlyPayment}"></div>`,
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-success" onclick="processPayment('${id}')">Pay Now</button></div>`
+  );
+}
+function processPayment(id) {
+  const amount = parseFloat(document.getElementById('ep-amount').value);
+  const l = DB.loans.getById(id);
+  const newPaid = l.paid + amount;
+  DB.loans.update(id, { paid: newPaid, status: newPaid >= l.amount ? 'paid' : 'active' });
+  toast('Payment processed!', 'success');
+  closeModal();
+  navigate('loans');
+}
+
+function renderBills(el) {
+  const payees = DB.payees.getByUser(STATE.user.id);
+  const accounts = DB.accounts.getByUser(STATE.user.id).filter(a=>a.status==='active');
+  el.innerHTML = `
+    <div class="row g-4">
+      <div class="col-12 col-lg-7">
+        <div class="nb-card">
+          <h6 class="fw-semibold mb-4">Pay a Bill</h6>
+          <div class="form-group"><label>Payment Category</label>
+            <select class="nb-input" id="bill-cat">
+              <option>Electricity</option><option>Water</option><option>Internet</option><option>Gas</option><option>Phone</option><option>Insurance</option><option>Subscription</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Provider / Payee</label><input class="nb-input" id="bill-provider" placeholder="Provider name or account number"></div>
+          <div class="form-group"><label>From Account</label><select class="nb-input" id="bill-from">${accounts.map(a=>`<option value="${a.id}">${a.type} — ${fmt(a.balance)}</option>`).join('')}</select></div>
+          <div class="form-group"><label>Amount ($)</label><input class="nb-input" id="bill-amount" type="number" placeholder="0.00"></div>
+          <div class="form-group"><label>Schedule (Optional)</label><input class="nb-input" id="bill-schedule" type="date"></div>
+          <button class="btn-nb btn-nb-primary" onclick="payBill()"><i class="bi bi-receipt"></i> Pay Bill</button>
+        </div>
+      </div>
+      <div class="col-12 col-lg-5">
+        <div class="nb-card">
+          <h6 class="fw-semibold mb-3">Quick Pay</h6>
+          <div class="row g-2">
+            ${['Electricity','Water','Internet','Gas','Phone','TV'].map(b=>`
+              <div class="col-4"><button class="btn-nb btn-nb-outline w-100 justify-content-center flex-column py-3" style="gap:.3rem;" onclick="quickBill('${b}')">
+                <i class="bi bi-${b==='Electricity'?'lightning':b==='Water'?'droplet':b==='Internet'?'wifi':b==='Gas'?'fire':b==='Phone'?'phone':'tv'}" style="font-size:1.3rem;"></i>
+                <span style="font-size:.75rem;">${b}</span>
+              </button></div>`).join('')}
+          </div>
+        </div>
+        <div class="nb-card mt-3">
+          <h6 class="fw-semibold mb-3">Saved Payees</h6>
+          ${payees.map(p=>`<div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px solid var(--nb-border);">
+            <div style="font-size:.85rem;"><strong>${p.name}</strong><br><span style="color:var(--nb-muted);">${p.category}</span></div>
+            <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="payToPayee('${p.id}')">Pay</button>
+          </div>`).join('')||'<div style="color:var(--nb-muted);font-size:.85rem;">No saved payees</div>'}
+        </div>
+      </div>
+    </div>`;
+}
+function payBill() {
+  const amount = parseFloat(document.getElementById('bill-amount').value);
+  if (!amount||amount<=0) return toast('Enter valid amount', 'error');
+  const fromId = document.getElementById('bill-from').value;
+  const acc = DB.accounts.getById(fromId);
+  if (acc.balance < amount) return toast('Insufficient funds','error');
+  DB.accounts.update(fromId, {balance:acc.balance-amount});
+  DB.transactions.create({id:'t'+uid(),fromId,toId:null,amount,type:'payment',category:document.getElementById('bill-cat').value,desc:document.getElementById('bill-provider').value||'Bill Payment',status:'completed',ts:new Date().toISOString()});
+  toast('Bill paid successfully!','success');
+  navigate('history');
+}
+function quickBill(cat) {
+  document.getElementById('bill-cat').value = cat;
+  document.getElementById('bill-provider').value = cat + ' Provider';
+  document.getElementById('bill-amount').focus();
+}
+function payToPayee(id) {
+  const p = DB.payees.getById ? DB.payees.getById(id) : (DB.get('payees')||[]).find(px=>px.id===id);
+  if (p) { document.getElementById('bill-provider').value = p.name; }
+}
+
+function renderProfile(el) {
+  const u = STATE.user;
+  el.innerHTML = `
+    <div class="row g-4">
+      <div class="col-12 col-lg-4">
+        <div class="nb-card text-center">
+          <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--nb-primary),var(--nb-accent));margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;color:#fff;">${u.name.split(' ').map(n=>n[0]).join('')}</div>
+          <h5 class="fw-semibold mb-1">${u.name}</h5>
+          <div style="color:var(--nb-muted);font-size:.85rem;">${u.email}</div>
+          <div class="mt-2"><span class="chip"><i class="bi bi-shield-check"></i> ${u.role}</span></div>
+          <hr class="divider">
+          <div class="text-start" style="font-size:.85rem;">
+            <div class="d-flex justify-content-between py-1"><span style="color:var(--nb-muted);">Member since</span><span>${u.joined}</span></div>
+            <div class="d-flex justify-content-between py-1"><span style="color:var(--nb-muted);">Accounts</span><span>${DB.accounts.getByUser(u.id).length}</span></div>
+            <div class="d-flex justify-content-between py-1"><span style="color:var(--nb-muted);">Cards</span><span>${DB.cards.getByUser(u.id).length}</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-lg-8">
+        <div class="nb-card mb-3">
+          <h6 class="fw-semibold mb-3">Personal Information</h6>
+          <div class="row g-3">
+            <div class="col-md-6 form-group"><label>Full Name</label><input class="nb-input" id="p-name" value="${u.name}"></div>
+            <div class="col-md-6 form-group"><label>Email</label><input class="nb-input" id="p-email" value="${u.email}" type="email"></div>
+            <div class="col-md-6 form-group"><label>Phone</label><input class="nb-input" id="p-phone" value="${u.phone||''}"></div>
+            <div class="col-md-6 form-group"><label>Date of Birth</label><input class="nb-input" id="p-dob" value="${u.dob||''}" type="date"></div>
+            <div class="col-12 form-group"><label>Address</label><input class="nb-input" id="p-addr" value="${u.address||''}"></div>
+          </div>
+          <button class="btn-nb btn-nb-primary mt-2" onclick="saveProfile()"><i class="bi bi-check2"></i> Save Changes</button>
+        </div>
+        <div class="nb-card">
+          <h6 class="fw-semibold mb-3">Change Password</h6>
+          <div class="row g-3">
+            <div class="col-md-4 form-group"><label>Current Password</label><input class="nb-input" id="p-cur-pass" type="password"></div>
+            <div class="col-md-4 form-group"><label>New Password</label><input class="nb-input" id="p-new-pass" type="password"></div>
+            <div class="col-md-4 form-group"><label>Confirm New</label><input class="nb-input" id="p-con-pass" type="password"></div>
+          </div>
+          <button class="btn-nb btn-nb-outline mt-2" onclick="changePassword()"><i class="bi bi-lock"></i> Update Password</button>
+        </div>
+      </div>
+    </div>`;
+}
+function saveProfile() {
+  DB.users.update(STATE.user.id, { name:document.getElementById('p-name').value, email:document.getElementById('p-email').value, phone:document.getElementById('p-phone').value, dob:document.getElementById('p-dob').value, address:document.getElementById('p-addr').value });
+  STATE.user = DB.users.getById(STATE.user.id);
+  updateTopbarUser();
+  toast('Profile updated!', 'success');
+}
+function changePassword() {
+  const cur = document.getElementById('p-cur-pass').value;
+  const nw = document.getElementById('p-new-pass').value;
+  const cn = document.getElementById('p-con-pass').value;
+  if (cur !== STATE.user.password) return toast('Current password incorrect', 'error');
+  if (nw !== cn) return toast('Passwords do not match', 'error');
+  if (nw.length < 6) return toast('Password must be 6+ chars', 'error');
+  DB.users.update(STATE.user.id, { password: nw });
+  STATE.user.password = nw;
+  toast('Password updated!', 'success');
+}

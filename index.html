@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NexaBank — Future of Banking</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+  <link href="css/styles.css" rel="stylesheet"/>
+  <style>
+    /* Landing Page Specific Styles */
+    body { font-family: 'Poppins', sans-serif; overflow-x: hidden; }
+    
+    /* Navbar */
+    .landing-nav {
+      padding: 1.5rem 0;
+      position: absolute;
+      top: 0;
+      width: 100%;
+      z-index: 100;
+    }
+    .nav-logo { font-weight: 700; font-size: 1.5rem; color: var(--nb-primary); text-decoration: none; display: flex; align-items: center; gap: .5rem; }
+    .nav-logo span { color: var(--nb-accent); }
+    
+    /* Hero */
+    .hero {
+      padding: 8rem 0 5rem;
+      background: linear-gradient(135deg, #f3f6fb 0%, #e8f1fb 100%);
+      position: relative;
+    }
+    .hero h1 { font-weight: 700; font-size: 3.5rem; line-height: 1.1; color: var(--nb-primary); margin-bottom: 1.5rem; }
+    .hero p { font-size: 1.1rem; color: var(--nb-muted); margin-bottom: 2rem; max-width: 500px; }
+    .hero-img { width: 100%; max-width: 600px; animation: float 6s ease-in-out infinite; }
+    
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
+      100% { transform: translateY(0px); }
+    }
+
+    /* Features */
+    .section-title { text-align: center; margin-bottom: 3rem; }
+    .section-title h2 { font-weight: 700; color: var(--nb-primary); }
+    .section-title p { color: var(--nb-muted); }
+    
+    .feature-card {
+      padding: 2rem;
+      border-radius: 16px;
+      background: #fff;
+      border: 1px solid var(--nb-border);
+      transition: all .3s;
+      height: 100%;
+    }
+    .feature-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+    .feature-icon {
+      width: 60px; height: 60px;
+      border-radius: 12px;
+      background: var(--nb-light-accent);
+      color: var(--nb-accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Stats */
+    .stats-section { background: var(--nb-primary); color: #fff; padding: 4rem 0; }
+    .stat-item { text-align: center; }
+    .stat-val { font-size: 2.5rem; font-weight: 700; color: var(--nb-gold); }
+    
+    /* Testimonials */
+    .testimonial-card {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 16px;
+      border: 1px solid var(--nb-border);
+      position: relative;
+    }
+    .quote-icon { position: absolute; top: 1.5rem; right: 2rem; font-size: 2rem; color: var(--nb-border); opacity: .5; }
+    
+    /* Footer */
+    footer { background: #0b223f; color: rgba(255,255,255,0.7); padding: 4rem 0 2rem; }
+    footer h5 { color: #fff; margin-bottom: 1.5rem; font-weight: 600; }
+    footer ul { list-style: none; padding: 0; }
+    footer ul li { margin-bottom: .8rem; }
+    footer a { color: rgba(255,255,255,0.7); text-decoration: none; transition: .2s; }
+    footer a:hover { color: #fff; }
+    
+    .btn-cta {
+      background: var(--nb-accent);
+      color: #fff;
+      padding: .8rem 2rem;
+      border-radius: 8px;
+      font-weight: 500;
+      text-decoration: none;
+      display: inline-block;
+      transition: .2s;
+    }
+    .btn-cta:hover { background: #165b8a; color: #fff; }
+
+    @media(max-width: 991px) {
+      .hero h1 { font-size: 2.5rem; }
+      .hero { text-align: center; padding-top: 6rem; }
+      .hero p { margin: 0 auto 2rem; }
+      .nav-logo { justify-content: center; }
+      .landing-nav .container { justify-content: center !important; }
+      .landing-nav .btn-cta { display: none; } /* Hide top CTA on mobile, rely on hero CTA */
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="landing-nav">
+    <div class="container d-flex justify-content-between align-items-center">
+      <a href="#" class="nav-logo"><i class="bi bi-bank2"></i>Nexa<span>Bank</span></a>
+      <a href="app.html" class="btn-cta d-none d-lg-block">Online Banking Login</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-lg-6">
+          <h1>Banking for the <span style="color:var(--nb-accent)">Digital Age</span></h1>
+          <p>Experience seamless, secure, and smart banking with NexaBank. Manage your finances, track spending, and grow your wealth—all in one place.</p>
+          <div class="d-flex gap-3 justify-content-center justify-content-lg-start">
+            <a href="app.html" class="btn-cta">Open an Account</a>
+            <a href="#features" class="btn btn-outline-secondary" style="padding:.8rem 2rem;border-radius:8px;">Learn More</a>
+          </div>
+        </div>
+        <div class="col-lg-6 mt-5 mt-lg-0 text-center">
+          <!-- Simple CSS Graphic for Bank App -->
+          <div style="background:#fff;border-radius:24px;box-shadow:0 20px 60px rgba(0,0,0,0.1);padding:1.5rem;max-width:400px;margin:0 auto;transform:rotate(-3deg);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+              <div style="font-weight:700;color:var(--nb-primary);">My Wallet</div>
+              <div style="width:32px;height:32px;background:var(--nb-bg);border-radius:50%;"></div>
+            </div>
+            <div style="background:linear-gradient(135deg, #0f2d52, #1d6fa4);color:#fff;border-radius:16px;padding:1.5rem;text-align:left;margin-bottom:1.5rem;">
+              <div style="opacity:.8;font-size:.8rem;">Total Balance</div>
+              <div style="font-size:1.8rem;font-weight:600;margin-bottom:1rem;">$24,500.00</div>
+              <div style="display:flex;gap:1rem;">
+                <div style="background:rgba(255,255,255,0.2);padding:.4rem .8rem;border-radius:8px;font-size:.8rem;">**** 4242</div>
+                <div style="background:rgba(255,255,255,0.2);padding:.4rem .8rem;border-radius:8px;font-size:.8rem;">09/28</div>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;">
+              <div style="width:48px;height:48px;background:var(--nb-light-accent);border-radius:12px;"></div>
+              <div style="width:48px;height:48px;background:var(--nb-bg);border-radius:12px;"></div>
+              <div style="width:48px;height:48px;background:var(--nb-bg);border-radius:12px;"></div>
+              <div style="width:48px;height:48px;background:var(--nb-bg);border-radius:12px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features" class="py-5">
+    <div class="container py-5">
+      <div class="section-title">
+        <h2>Why Choose NexaBank?</h2>
+        <p>We build tools that help you master your money.</p>
+      </div>
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="feature-card">
+            <div class="feature-icon"><i class="bi bi-shield-lock"></i></div>
+            <h4>Bank-Grade Security</h4>
+            <p class="text-muted">Your data is protected by 256-bit encryption and multi-factor authentication. We never sleep on security.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="feature-card">
+            <div class="feature-icon"><i class="bi bi-graph-up-arrow"></i></div>
+            <h4>Smart Analytics</h4>
+            <p class="text-muted">Visualize your spending habits with intuitive charts and insights to help you save more.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="feature-card">
+            <div class="feature-icon"><i class="bi bi-phone"></i></div>
+            <h4>Mobile First</h4>
+            <p class="text-muted">Access your account from anywhere, on any device. Our platform is built for life on the go.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="stats-section">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-md-4 stat-item">
+          <div class="stat-val">2M+</div>
+          <div>Happy Customers</div>
+        </div>
+        <div class="col-md-4 stat-item">
+          <div class="stat-val">$5B+</div>
+          <div>Transactions Processed</div>
+        </div>
+        <div class="col-md-4 stat-item">
+          <div class="stat-val">99.9%</div>
+          <div>Uptime Guarantee</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="py-5 bg-light">
+    <div class="container py-5">
+      <div class="section-title">
+        <h2>What Our Users Say</h2>
+        <p>Rated 4.9/5 by over 10,000 users.</p>
+      </div>
+      <div class="row g-4">
+        <div class="col-md-6">
+          <div class="testimonial-card">
+            <i class="bi bi-quote quote-icon"></i>
+            <p class="mb-3">"NexaBank completely changed how I manage my small business finances. The interface is so clean and the reports are exactly what I needed."</p>
+            <div class="d-flex align-items-center gap-3">
+              <div style="width:40px;height:40px;background:#ddd;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;">JD</div>
+              <div>
+                <div style="font-weight:600;">John Doe</div>
+                <div style="font-size:.8rem;color:var(--nb-muted);">Small Business Owner</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="testimonial-card">
+            <i class="bi bi-quote quote-icon"></i>
+            <p class="mb-3">"Finally, a bank that doesn't feel like it's stuck in the 90s. The mobile experience is flawless and transfers are instant."</p>
+            <div class="d-flex align-items-center gap-3">
+              <div style="width:40px;height:40px;background:#ddd;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;">AS</div>
+              <div>
+                <div style="font-weight:600;">Sarah Smith</div>
+                <div style="font-size:.8rem;color:var(--nb-muted);">Freelance Designer</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact CTA -->
+  <section class="py-5">
+    <div class="container py-5 text-center">
+      <div style="max-width:600px;margin:0 auto;">
+        <h2 class="mb-3" style="font-weight:700;color:var(--nb-primary);">Ready to get started?</h2>
+        <p class="mb-4 text-muted">Join millions of users who trust NexaBank for their financial needs. Open an account in less than 5 minutes.</p>
+        <a href="app.html" class="btn-cta btn-lg">Open Free Account</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="row g-5">
+        <div class="col-lg-4">
+          <h5 class="d-flex align-items-center gap-2"><i class="bi bi-bank2"></i> NexaBank</h5>
+          <p style="font-size:.9rem;line-height:1.6;">Secure, modern, and reliable banking for everyone. We are committed to helping you achieve your financial goals.</p>
+          <div class="d-flex gap-3 mt-3">
+            <a href="#"><i class="bi bi-twitter"></i></a>
+            <a href="#"><i class="bi bi-facebook"></i></a>
+            <a href="#"><i class="bi bi-instagram"></i></a>
+            <a href="#"><i class="bi bi-linkedin"></i></a>
+          </div>
+        </div>
+        <div class="col-6 col-lg-2">
+          <h5>Product</h5>
+          <ul>
+            <li><a href="#">Checking</a></li>
+            <li><a href="#">Savings</a></li>
+            <li><a href="#">Credit Cards</a></li>
+            <li><a href="#">Loans</a></li>
+          </ul>
+        </div>
+        <div class="col-6 col-lg-2">
+          <h5>Company</h5>
+          <ul>
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">Careers</a></li>
+            <li><a href="#">Press</a></li>
+            <li><a href="#">Contact</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-4">
+          <h5>Contact Us</h5>
+          <ul style="font-size:.9rem;">
+            <li><i class="bi bi-geo-alt me-2"></i> 123 Finance Street, New York, NY 10001</li>
+            <li><i class="bi bi-envelope me-2"></i> support@nexabank.com</li>
+            <li><i class="bi bi-telephone me-2"></i> +1 (555) 123-4567</li>
+          </ul>
+        </div>
+      </div>
+      <div class="border-top border-secondary mt-5 pt-4 text-center" style="font-size:.8rem;opacity:.6;">
+        &copy; 2024 NexaBank Inc. All rights reserved.
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

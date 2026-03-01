@@ -1,0 +1,1803 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NexaBank — Online Banking</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --nb-primary: #0f2d52;
+      --nb-accent: #1d6fa4;
+      --nb-light-accent: #e8f1fb;
+      --nb-gold: #c9a84c;
+      --nb-success: #12b76a;
+      --nb-danger: #f04438;
+      --nb-warning: #f79009;
+      --nb-bg: #f3f6fb;
+      --nb-card: #ffffff;
+      --nb-text: #1a1f36;
+      --nb-muted: #6b7280;
+      --nb-border: #e5e9f0;
+      --nb-sidebar-w: 260px;
+      --nb-sidebar-bg: #0f2d52;
+      --nb-sidebar-text: rgba(255,255,255,0.85);
+    }
+    [data-theme="dark"] {
+      --nb-bg: #0d1117;
+      --nb-card: #161b22;
+      --nb-text: #e6edf3;
+      --nb-muted: #8b949e;
+      --nb-border: #30363d;
+      --nb-light-accent: #1c2e45;
+      --nb-sidebar-bg: #010409;
+    }
+    * { box-sizing: border-box; }
+    body { font-family: 'Poppins', sans-serif; background: var(--nb-bg); color: var(--nb-text); margin: 0; transition: background .3s, color .3s; }
+    a { text-decoration: none; color: inherit; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* ===== AUTH ===== */
+    #auth-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0f2d52 0%, #1d6fa4 60%, #0a1f38 100%); position: relative; overflow: hidden; }
+    #auth-screen::before { content:''; position:absolute; width:600px; height:600px; border-radius:50%; background:rgba(255,255,255,.04); top:-200px; right:-200px; }
+    #auth-screen::after { content:''; position:absolute; width:400px; height:400px; border-radius:50%; background:rgba(255,255,255,.03); bottom:-150px; left:-100px; }
+    .auth-card { background: rgba(255,255,255,.97); border-radius: 20px; padding: 2.5rem; width: 100%; max-width: 440px; box-shadow: 0 25px 60px rgba(0,0,0,.3); position: relative; z-index: 1; }
+    [data-theme="dark"] .auth-card { background: #161b22; }
+    .auth-logo { font-size: 2rem; font-weight: 700; color: var(--nb-primary); letter-spacing: -1px; }
+    .auth-logo span { color: var(--nb-gold); }
+    .nb-input { border: 1.5px solid var(--nb-border); border-radius: 10px; padding: .65rem 1rem; background: var(--nb-bg); color: var(--nb-text); width: 100%; font-family: inherit; font-size: .9rem; transition: border-color .2s; outline: none; }
+    .nb-input:focus { border-color: var(--nb-accent); box-shadow: 0 0 0 3px rgba(29,111,164,.15); }
+    [data-theme="dark"] .nb-input { background: #0d1117; }
+
+    /* ===== LAYOUT ===== */
+    #app { display: flex; min-height: 100vh; }
+    .sidebar { width: var(--nb-sidebar-w); background: var(--nb-sidebar-bg); color: var(--nb-sidebar-text); position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto; z-index: 1000; display: flex; flex-direction: column; transition: transform .3s; }
+    .sidebar-header { padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,.1); }
+    .sidebar-logo { font-size: 1.4rem; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
+    .sidebar-logo span { color: var(--nb-gold); }
+    .sidebar-user { padding: 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,.1); }
+    .sidebar-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--nb-gold); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .9rem; color: var(--nb-primary); }
+    .sidebar nav { flex: 1; padding: .75rem 0; }
+    .nav-section { padding: .25rem 1.5rem; font-size: .65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,.4); margin-top: .5rem; }
+    .nav-item { display: flex; align-items: center; gap: .75rem; padding: .65rem 1.5rem; font-size: .88rem; color: var(--nb-sidebar-text); cursor: pointer; transition: all .2s; border-left: 3px solid transparent; }
+    .nav-item:hover { background: rgba(255,255,255,.07); color: #fff; }
+    .nav-item.active { background: rgba(255,255,255,.12); color: #fff; border-left-color: var(--nb-gold); font-weight: 600; }
+    .nav-item i { font-size: 1.05rem; width: 20px; }
+    .admin-badge { background: var(--nb-gold); color: var(--nb-primary); font-size: .6rem; font-weight: 700; padding: 1px 6px; border-radius: 20px; text-transform: uppercase; margin-left: auto; }
+    .main-content { margin-left: var(--nb-sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+    .topbar { background: var(--nb-card); border-bottom: 1px solid var(--nb-border); padding: .75rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .topbar-title { font-size: 1.1rem; font-weight: 600; }
+    .page-content { padding: 2rem; flex: 1; }
+    @media (max-width: 992px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .main-content { margin-left: 0; }
+      .topbar { padding: .75rem 1rem; }
+      .page-content { padding: 1rem; }
+    }
+
+    /* ===== CARDS ===== */
+    .nb-card { background: var(--nb-card); border: 1px solid var(--nb-border); border-radius: 14px; padding: 1.5rem; transition: box-shadow .2s; }
+    .nb-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.08); }
+    .stat-card { background: linear-gradient(135deg, var(--nb-primary), var(--nb-accent)); color: #fff; border-radius: 14px; padding: 1.5rem; }
+    .stat-card.gold { background: linear-gradient(135deg, #7c5a1e, var(--nb-gold)); }
+    .stat-card.green { background: linear-gradient(135deg, #064e3b, var(--nb-success)); }
+    .stat-card.red { background: linear-gradient(135deg, #7f1d1d, var(--nb-danger)); }
+    .stat-value { font-size: 1.8rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+    .stat-label { font-size: .8rem; opacity: .8; margin-top: .25rem; }
+
+    /* ===== BANK CARD ===== */
+    .bank-card { border-radius: 16px; padding: 1.5rem; color: #fff; position: relative; overflow: hidden; min-height: 180px; cursor: pointer; transition: transform .2s; }
+    .bank-card:hover { transform: translateY(-3px); }
+    .bank-card.blue { background: linear-gradient(135deg, #0f2d52, #1d6fa4); }
+    .bank-card.dark { background: linear-gradient(135deg, #1a1a2e, #16213e); }
+    .bank-card.gold { background: linear-gradient(135deg, #7c5a1e, #c9a84c); }
+    .bank-card::after { content:''; position:absolute; width:250px; height:250px; border-radius:50%; background:rgba(255,255,255,.06); bottom:-80px; right:-80px; }
+    .bank-card::before { content:''; position:absolute; width:150px; height:150px; border-radius:50%; background:rgba(255,255,255,.04); top:-50px; left:50px; }
+    .card-chip { width: 40px; height: 30px; border-radius: 5px; background: var(--nb-gold); margin-bottom: 1rem; }
+    .card-number { font-family: 'JetBrains Mono', monospace; font-size: .95rem; letter-spacing: 2px; }
+    .card-name { font-size: .75rem; opacity: .8; text-transform: uppercase; letter-spacing: 1px; }
+
+    /* ===== TABLE ===== */
+    .nb-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .nb-table th { background: var(--nb-bg); padding: .75rem 1rem; font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; color: var(--nb-muted); border-bottom: 2px solid var(--nb-border); }
+    .nb-table td { padding: .75rem 1rem; font-size: .88rem; border-bottom: 1px solid var(--nb-border); vertical-align: middle; }
+    .nb-table tr:last-child td { border-bottom: none; }
+    .nb-table tbody tr:hover td { background: var(--nb-light-accent); }
+    .nb-table .amount-pos { color: var(--nb-success); font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+    .nb-table .amount-neg { color: var(--nb-danger); font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+
+    /* ===== BADGES ===== */
+    .badge-status { padding: 3px 10px; border-radius: 20px; font-size: .72rem; font-weight: 600; display: inline-block; }
+    .badge-active { background: #d1fae5; color: #065f46; }
+    .badge-frozen { background: #dbeafe; color: #1e40af; }
+    .badge-pending { background: #fef3c7; color: #92400e; }
+    .badge-closed { background: #fee2e2; color: #991b1b; }
+    [data-theme="dark"] .badge-active { background: #064e3b; color: #6ee7b7; }
+    [data-theme="dark"] .badge-frozen { background: #1e3a5f; color: #93c5fd; }
+    [data-theme="dark"] .badge-pending { background: #451a03; color: #fbbf24; }
+
+    /* ===== BUTTONS ===== */
+    .btn-nb { padding: .55rem 1.2rem; border-radius: 10px; font-size: .88rem; font-weight: 500; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: .4rem; transition: all .2s; font-family: inherit; }
+    .btn-nb-primary { background: var(--nb-accent); color: #fff; }
+    .btn-nb-primary:hover { background: var(--nb-primary); }
+    .btn-nb-outline { background: transparent; border: 1.5px solid var(--nb-border); color: var(--nb-text); }
+    .btn-nb-outline:hover { border-color: var(--nb-accent); color: var(--nb-accent); }
+    .btn-nb-danger { background: var(--nb-danger); color: #fff; }
+    .btn-nb-success { background: var(--nb-success); color: #fff; }
+    .btn-nb-gold { background: var(--nb-gold); color: var(--nb-primary); }
+    .btn-nb-sm { padding: .3rem .7rem; font-size: .78rem; }
+
+    /* ===== MODAL ===== */
+    .nb-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 9998; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+    .nb-modal { background: var(--nb-card); border-radius: 16px; padding: 2rem; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; position: relative; z-index: 9999; animation: modalIn .2s ease; }
+    @keyframes modalIn { from { opacity:0; transform: scale(.95) translateY(10px); } to { opacity:1; transform: scale(1) translateY(0); } }
+    .nb-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .nb-modal-title { font-size: 1.1rem; font-weight: 700; }
+    .nb-modal-close { background: var(--nb-bg); border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--nb-muted); font-size: 1rem; }
+    .nb-modal-close:hover { background: var(--nb-border); }
+
+    /* ===== TOAST ===== */
+    #toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 99999; display: flex; flex-direction: column; gap: .5rem; }
+    .toast-item { background: var(--nb-card); border-radius: 12px; padding: .75rem 1.2rem; box-shadow: 0 8px 25px rgba(0,0,0,.15); display: flex; align-items: center; gap: .75rem; font-size: .88rem; min-width: 260px; animation: toastIn .3s ease; border-left: 4px solid var(--nb-accent); }
+    .toast-item.success { border-left-color: var(--nb-success); }
+    .toast-item.error { border-left-color: var(--nb-danger); }
+    .toast-item.warning { border-left-color: var(--nb-warning); }
+    @keyframes toastIn { from { opacity:0; transform: translateX(30px); } to { opacity:1; transform: translateX(0); } }
+
+    /* ===== MISC ===== */
+    .progress-bar-custom { height: 6px; border-radius: 3px; background: var(--nb-border); overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--nb-accent), var(--nb-gold)); transition: width .5s ease; }
+    .search-bar { border: 1.5px solid var(--nb-border); border-radius: 10px; padding: .5rem 1rem .5rem 2.5rem; background: var(--nb-bg); color: var(--nb-text); font-family: inherit; font-size: .88rem; width: 100%; outline: none; transition: border-color .2s; }
+    .search-bar:focus { border-color: var(--nb-accent); }
+    .search-wrap { position: relative; }
+    .search-wrap i { position: absolute; left: .8rem; top: 50%; transform: translateY(-50%); color: var(--nb-muted); pointer-events: none; }
+    .tab-nav { display: flex; gap: .25rem; border-bottom: 2px solid var(--nb-border); margin-bottom: 1.5rem; }
+    .tab-btn { padding: .6rem 1.2rem; font-size: .88rem; font-weight: 500; border: none; background: none; color: var(--nb-muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; font-family: inherit; transition: all .2s; }
+    .tab-btn.active { color: var(--nb-accent); border-bottom-color: var(--nb-accent); font-weight: 600; }
+    .empty-state { text-align: center; padding: 3rem; color: var(--nb-muted); }
+    .empty-state i { font-size: 3rem; margin-bottom: 1rem; display: block; }
+    canvas { max-width: 100%; }
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 999; }
+    @media (max-width:992px) { .sidebar-overlay.active { display: block; } }
+    label { font-size: .85rem; font-weight: 500; margin-bottom: .3rem; display: block; color: var(--nb-muted); }
+    select.nb-input option { background: var(--nb-card); }
+    .form-group { margin-bottom: 1rem; }
+    .admin-section { background: linear-gradient(90deg, #2d1b00, #7c5a1e); border-radius: 10px; padding: .75rem 1.25rem; margin-bottom: 1rem; display: flex; align-items: center; gap: .75rem; color: #fff; }
+    .notification-dot { width: 8px; height: 8px; background: var(--nb-danger); border-radius: 50%; position: absolute; top: 2px; right: 2px; }
+    .divider { border: none; border-top: 1px solid var(--nb-border); margin: 1.5rem 0; }
+    .chip { display: inline-flex; align-items: center; gap: .3rem; padding: .3rem .7rem; border-radius: 20px; font-size: .75rem; font-weight: 500; background: var(--nb-light-accent); color: var(--nb-accent); }
+    .loan-progress { margin: .5rem 0; }
+    .topbar-actions { display: flex; align-items: center; gap: .75rem; }
+    .icon-btn { width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--nb-border); background: var(--nb-bg); cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative; color: var(--nb-text); transition: all .2s; }
+    .icon-btn:hover { border-color: var(--nb-accent); color: var(--nb-accent); }
+  </style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen">
+  <div class="auth-card" id="auth-card">
+    <div class="auth-logo mb-1">Nexa<span>Bank</span></div>
+    <p style="color:var(--nb-muted);font-size:.85rem;margin-bottom:1.5rem;">Your secure digital bank</p>
+    <div id="auth-form-container"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none;">
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header d-flex align-items-center justify-content-between">
+      <div class="sidebar-logo">Nexa<span>Bank</span></div>
+      <button class="icon-btn d-lg-none" style="background:transparent;border:none;color:rgba(255,255,255,.7);" onclick="toggleSidebar()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="sidebar-user d-flex align-items-center gap-2">
+      <div class="sidebar-avatar" id="sidebar-avatar">JD</div>
+      <div>
+        <div style="font-size:.88rem;font-weight:600;color:#fff;" id="sidebar-name">John Doe</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.5);" id="sidebar-role">Customer</div>
+      </div>
+    </div>
+    <nav id="sidebar-nav"></nav>
+    <div style="padding:1rem 1.5rem;border-top:1px solid rgba(255,255,255,.1);">
+      <div class="nav-item" onclick="logout()" style="border-left:none;"><i class="bi bi-box-arrow-right"></i> Logout</div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <div class="topbar">
+      <div class="d-flex align-items-center gap-3">
+        <button class="icon-btn d-lg-none" onclick="toggleSidebar()"><i class="bi bi-list fs-5"></i></button>
+        <div class="topbar-title" id="topbar-title">Dashboard</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-btn" onclick="showNotifications()" title="Notifications">
+          <i class="bi bi-bell"></i>
+          <div class="notification-dot" id="notif-dot" style="display:none;"></div>
+        </button>
+        <button class="icon-btn" onclick="toggleTheme()" title="Toggle Theme" id="theme-btn">
+          <i class="bi bi-moon"></i>
+        </button>
+        <div class="sidebar-avatar" style="cursor:pointer;" onclick="navigate('profile')" id="topbar-avatar">JD</div>
+      </div>
+    </div>
+    <div class="page-content" id="page-content"></div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<div id="modal-container"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+// ============================================================
+// DATABASE (localStorage simulation)
+// ============================================================
+const DB = {
+  get(key) { try { return JSON.parse(localStorage.getItem('nb_' + key)) || null; } catch { return null; } },
+  set(key, val) { localStorage.setItem('nb_' + key, JSON.stringify(val)); },
+  seed() {
+    if (DB.get('seeded')) return;
+    const users = [
+      { id:'u1', name:'John Doe', email:'john@nexabank.com', password:'pass123', role:'customer', status:'active', phone:'+1-555-0101', address:'123 Main St, NY', dob:'1990-05-15', joined:'2024-01-10', failedLogins:0 },
+      { id:'u2', name:'Jane Smith', email:'jane@nexabank.com', password:'pass123', role:'customer', status:'active', phone:'+1-555-0102', address:'456 Oak Ave, CA', dob:'1988-09-22', joined:'2024-02-14', failedLogins:0 },
+      { id:'u3', name:'Admin User', email:'admin@nexabank.com', password:'admin123', role:'superadmin', status:'active', phone:'+1-555-0199', address:'789 Corp Blvd', dob:'1985-01-01', joined:'2023-01-01', failedLogins:0 },
+      { id:'u4', name:'Bob Wilson', email:'bob@nexabank.com', password:'pass123', role:'customer', status:'frozen', phone:'+1-555-0103', address:'321 Pine Rd', dob:'1992-07-30', joined:'2024-03-01', failedLogins:0 },
+      { id:'u5', name:'Alice Chen', email:'alice@nexabank.com', password:'pass123', role:'teller', status:'active', phone:'+1-555-0104', address:'654 Elm St', dob:'1995-11-12', joined:'2024-04-01', failedLogins:0 },
+    ];
+    const accounts = [
+      { id:'a1', userId:'u1', type:'Checking', balance:12450.75, iban:'GB29NWBK60161331926819', swift:'NXBKGB21', status:'active', limit:10000, createdAt:'2024-01-10' },
+      { id:'a2', userId:'u1', type:'Savings', balance:35200.00, iban:'GB29NWBK60161331926820', swift:'NXBKGB21', status:'active', limit:50000, createdAt:'2024-01-10' },
+      { id:'a3', userId:'u2', type:'Checking', balance:8920.50, iban:'GB29NWBK60161331926821', swift:'NXBKGB21', status:'active', limit:10000, createdAt:'2024-02-14' },
+      { id:'a4', userId:'u4', type:'Checking', balance:3200.00, iban:'GB29NWBK60161331926822', swift:'NXBKGB21', status:'frozen', limit:5000, createdAt:'2024-03-01' },
+      { id:'a5', userId:'u1', type:'Fixed Deposit', balance:50000.00, iban:'GB29NWBK60161331926823', swift:'NXBKGB21', status:'active', limit:0, createdAt:'2024-01-15' },
+    ];
+    const txns = [
+      { id:'t1', fromId:'a1', toId:'a3', amount:500, type:'transfer', category:'Transfer', desc:'Monthly rent split', status:'completed', ts:'2026-02-28T10:30:00Z' },
+      { id:'t2', fromId:'a3', toId:'a1', amount:200, type:'transfer', category:'Transfer', desc:'Dinner refund', status:'completed', ts:'2026-02-27T14:00:00Z' },
+      { id:'t3', fromId:'a1', toId:null, amount:89.99, type:'payment', category:'Utilities', desc:'Electricity bill', status:'completed', ts:'2026-02-26T09:00:00Z' },
+      { id:'t4', fromId:'a1', toId:null, amount:15.50, type:'payment', category:'Food', desc:'Grocery store', status:'completed', ts:'2026-02-25T12:00:00Z' },
+      { id:'t5', fromId:'a1', toId:null, amount:299.00, type:'payment', category:'Shopping', desc:'Amazon order', status:'completed', ts:'2026-02-24T16:00:00Z' },
+      { id:'t6', fromId:null, toId:'a1', amount:3500.00, type:'credit', category:'Salary', desc:'Monthly salary', status:'completed', ts:'2026-02-01T08:00:00Z' },
+      { id:'t7', fromId:'a2', toId:'a1', amount:1000, type:'transfer', category:'Transfer', desc:'Savings withdrawal', status:'completed', ts:'2026-01-30T11:00:00Z' },
+      { id:'t8', fromId:'a1', toId:null, amount:55.00, type:'payment', category:'Entertainment', desc:'Netflix + Spotify', status:'completed', ts:'2026-01-28T20:00:00Z' },
+      { id:'t9', fromId:null, toId:'a2', amount:500, type:'credit', category:'Interest', desc:'Savings interest', status:'completed', ts:'2026-01-01T00:00:00Z' },
+      { id:'t10', fromId:'a1', toId:null, amount:120.00, type:'payment', category:'Transport', desc:'Fuel & parking', status:'completed', ts:'2026-02-20T07:30:00Z' },
+    ];
+    const cards = [
+      { id:'c1', accountId:'a1', userId:'u1', type:'Debit', maskedNumber:'**** **** **** 4521', expiry:'12/28', status:'active', dailyLimit:2000, monthlyLimit:10000 },
+      { id:'c2', accountId:'a2', userId:'u1', type:'Credit', maskedNumber:'**** **** **** 7843', expiry:'06/27', status:'active', dailyLimit:5000, monthlyLimit:20000, creditLimit:10000, used:2340 },
+      { id:'c3', accountId:'a3', userId:'u2', type:'Debit', maskedNumber:'**** **** **** 1234', expiry:'03/26', status:'active', dailyLimit:1500, monthlyLimit:8000 },
+    ];
+    const loans = [
+      { id:'l1', userId:'u1', type:'Personal', amount:15000, rate:5.5, term:24, paid:6000, status:'active', appliedAt:'2025-08-01', nextPayment:'2026-03-01', monthlyPayment:660 },
+      { id:'l2', userId:'u2', type:'Auto', amount:25000, rate:4.8, term:60, paid:5000, status:'active', appliedAt:'2025-06-15', nextPayment:'2026-03-15', monthlyPayment:471 },
+      { id:'l3', userId:'u4', type:'Mortgage', amount:250000, rate:3.5, term:360, paid:10000, status:'pending', appliedAt:'2026-02-01', nextPayment:'—', monthlyPayment:1122 },
+    ];
+    const notifications = [
+      { id:'n1', userId:'u1', message:'Your transfer of $500 was successful.', type:'success', read:false, ts:'2026-02-28T10:31:00Z' },
+      { id:'n2', userId:'u1', message:'New login detected from Chrome on Windows.', type:'warning', read:false, ts:'2026-02-28T08:00:00Z' },
+      { id:'n3', userId:'u1', message:'Your monthly statement is ready.', type:'info', read:true, ts:'2026-02-01T09:00:00Z' },
+    ];
+    const payees = [
+      { id:'p1', userId:'u1', name:'Jane Smith', account:'GB29NWBK60161331926821', bank:'NexaBank', category:'Personal' },
+      { id:'p2', userId:'u1', name:'Electric Co.', account:'US12345678901234', bank:'Chase', category:'Utilities' },
+    ];
+    const auditLog = [
+      { id:'al1', adminId:'u3', action:'FREEZE_ACCOUNT', entity:'account', entityId:'a4', detail:'Suspicious activity', ts:'2026-02-20T10:00:00Z' },
+    ];
+    DB.set('users', users);
+    DB.set('accounts', accounts);
+    DB.set('transactions', txns);
+    DB.set('cards', cards);
+    DB.set('loans', loans);
+    DB.set('notifications', notifications);
+    DB.set('payees', payees);
+    DB.set('auditLog', auditLog);
+    DB.set('seeded', true);
+  },
+  users: {
+    getAll() { return DB.get('users') || []; },
+    getById(id) { return DB.users.getAll().find(u => u.id === id); },
+    getByEmail(email) { return DB.users.getAll().find(u => u.email === email); },
+    create(user) { const all = DB.users.getAll(); all.push(user); DB.set('users', all); },
+    update(id, data) { const all = DB.users.getAll(); const i = all.findIndex(u => u.id === id); if (i > -1) { all[i] = {...all[i], ...data}; DB.set('users', all); } },
+    delete(id) { DB.set('users', DB.users.getAll().filter(u => u.id !== id)); },
+  },
+  accounts: {
+    getAll() { return DB.get('accounts') || []; },
+    getByUser(uid) { return DB.accounts.getAll().filter(a => a.userId === uid); },
+    getById(id) { return DB.accounts.getAll().find(a => a.id === id); },
+    create(a) { const all = DB.accounts.getAll(); all.push(a); DB.set('accounts', all); },
+    update(id, data) { const all = DB.accounts.getAll(); const i = all.findIndex(a => a.id === id); if (i > -1) { all[i] = {...all[i], ...data}; DB.set('accounts', all); } },
+    delete(id) { DB.set('accounts', DB.accounts.getAll().filter(a => a.id !== id)); },
+  },
+  transactions: {
+    getAll() { return DB.get('transactions') || []; },
+    getByAccount(aid) { return DB.transactions.getAll().filter(t => t.fromId === aid || t.toId === aid).sort((a,b) => new Date(b.ts) - new Date(a.ts)); },
+    getByUser(uid) { const accs = DB.accounts.getByUser(uid).map(a=>a.id); return DB.transactions.getAll().filter(t => accs.includes(t.fromId)||accs.includes(t.toId)).sort((a,b) => new Date(b.ts) - new Date(a.ts)); },
+    create(t) { const all = DB.transactions.getAll(); all.push(t); DB.set('transactions', all); },
+    update(id, data) { const all = DB.transactions.getAll(); const i = all.findIndex(t => t.id === id); if (i > -1) { all[i] = {...all[i], ...data}; DB.set('transactions', all); } },
+    delete(id) { DB.set('transactions', DB.transactions.getAll().filter(t => t.id !== id)); },
+  },
+  cards: {
+    getAll() { return DB.get('cards') || []; },
+    getByUser(uid) { return DB.cards.getAll().filter(c => c.userId === uid); },
+    getById(id) { return DB.cards.getAll().find(c => c.id === id); },
+    create(c) { const all = DB.cards.getAll(); all.push(c); DB.set('cards', all); },
+    update(id, data) { const all = DB.cards.getAll(); const i = all.findIndex(c => c.id === id); if (i > -1) { all[i] = {...all[i], ...data}; DB.set('cards', all); } },
+    delete(id) { DB.set('cards', DB.cards.getAll().filter(c => c.id !== id)); },
+  },
+  loans: {
+    getAll() { return DB.get('loans') || []; },
+    getByUser(uid) { return DB.loans.getAll().filter(l => l.userId === uid); },
+    getById(id) { return DB.loans.getAll().find(l => l.id === id); },
+    create(l) { const all = DB.loans.getAll(); all.push(l); DB.set('loans', all); },
+    update(id, data) { const all = DB.loans.getAll(); const i = all.findIndex(l => l.id === id); if (i > -1) { all[i] = {...all[i], ...data}; DB.set('loans', all); } },
+    delete(id) { DB.set('loans', DB.loans.getAll().filter(l => l.id !== id)); },
+  },
+  notifications: {
+    getByUser(uid) { return DB.get('notifications')?.filter(n=>n.userId===uid)||[]; },
+    add(n) { const all = DB.get('notifications')||[]; all.push(n); DB.set('notifications', all); },
+    markRead(id) { const all = DB.get('notifications')||[]; const i = all.findIndex(n=>n.id===id); if(i>-1){all[i].read=true;} DB.set('notifications',all); },
+    markAllRead(uid) { const all = DB.get('notifications')||[]; all.forEach(n=>{if(n.userId===uid)n.read=true;}); DB.set('notifications',all); },
+  },
+  payees: {
+    getByUser(uid) { return DB.get('payees')?.filter(p=>p.userId===uid)||[]; },
+    create(p) { const all = DB.get('payees')||[]; all.push(p); DB.set('payees', all); },
+    delete(id) { DB.set('payees', (DB.get('payees')||[]).filter(p=>p.id!==id)); },
+  },
+  auditLog: {
+    getAll() { return DB.get('auditLog')||[]; },
+    add(entry) { const all = DB.auditLog.getAll(); all.push(entry); DB.set('auditLog', all); },
+  }
+};
+
+// ============================================================
+// STATE & AUTH
+// ============================================================
+let STATE = { user: null, page: 'dashboard' };
+
+function login(email, password) {
+  const user = DB.users.getByEmail(email);
+  if (!user) return { ok: false, msg: 'User not found' };
+  if (user.status === 'frozen') return { ok: false, msg: 'Account is frozen. Contact support.' };
+  if (user.failedLogins >= 5) return { ok: false, msg: 'Account locked. Too many failed attempts.' };
+  if (user.password !== password) {
+    DB.users.update(user.id, { failedLogins: (user.failedLogins||0)+1 });
+    return { ok: false, msg: 'Invalid password' };
+  }
+  DB.users.update(user.id, { failedLogins: 0 });
+  STATE.user = user;
+  sessionStorage.setItem('nb_session', user.id);
+  return { ok: true };
+}
+
+function logout() {
+  STATE.user = null;
+  sessionStorage.removeItem('nb_session');
+  location.reload();
+}
+
+function isAdmin() { return STATE.user && ['admin','superadmin','teller'].includes(STATE.user.role); }
+function isSuperAdmin() { return STATE.user && STATE.user.role === 'superadmin'; }
+
+function restoreSession() {
+  const uid = sessionStorage.getItem('nb_session');
+  if (uid) { STATE.user = DB.users.getById(uid); return !!STATE.user; }
+  return false;
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function fmt(n) { return '$' + Number(n).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+function fmtDate(ts) { return new Date(ts).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}); }
+function uid() { return Math.random().toString(36).substr(2,9); }
+function toast(msg, type='info') {
+  const icons = {success:'check-circle-fill',error:'x-circle-fill',warning:'exclamation-triangle-fill',info:'info-circle-fill'};
+  const colors = {success:'var(--nb-success)',error:'var(--nb-danger)',warning:'var(--nb-warning)',info:'var(--nb-accent)'};
+  const el = document.createElement('div');
+  el.className = 'toast-item ' + type;
+  el.innerHTML = `<i class="bi bi-${icons[type]||'info-circle-fill'}" style="color:${colors[type]||colors.info};font-size:1.1rem;"></i><span>${msg}</span>`;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+function showModal(title, html, footer='') {
+  closeModal();
+  const el = document.createElement('div');
+  el.id = 'active-modal';
+  el.className = 'nb-modal-overlay';
+  el.innerHTML = `<div class="nb-modal"><div class="nb-modal-header"><div class="nb-modal-title">${title}</div><button class="nb-modal-close" onclick="closeModal()"><i class="bi bi-x"></i></button></div><div id="modal-body">${html}</div>${footer?'<div class="mt-3">'+footer+'</div>':''}</div>`;
+  el.addEventListener('click', e => { if(e.target===el) closeModal(); });
+  document.getElementById('modal-container').appendChild(el);
+}
+function closeModal() { const m = document.getElementById('active-modal'); if(m) m.remove(); }
+function logAudit(action, entity, entityId, detail='') {
+  if (!STATE.user) return;
+  DB.auditLog.add({ id:'al'+uid(), adminId:STATE.user.id, action, entity, entityId, detail, ts:new Date().toISOString() });
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+const PAGES_CUSTOMER = [
+  { id:'dashboard', label:'Dashboard', icon:'speedometer2', section:'MAIN' },
+  { id:'accounts', label:'Accounts', icon:'wallet2', section:'MAIN' },
+  { id:'transfers', label:'Transfers', icon:'arrow-left-right', section:'BANKING' },
+  { id:'history', label:'Transactions', icon:'clock-history', section:'BANKING' },
+  { id:'cards', label:'Cards', icon:'credit-card', section:'BANKING' },
+  { id:'loans', label:'Loans', icon:'bank', section:'BANKING' },
+  { id:'bills', label:'Bill Pay', icon:'receipt', section:'BANKING' },
+  { id:'profile', label:'Profile', icon:'person', section:'ACCOUNT' },
+];
+const PAGES_ADMIN = [
+  { id:'admin-dashboard', label:'Admin Overview', icon:'graph-up-arrow', section:'ADMIN', badge:'GOD' },
+  { id:'admin-users', label:'User Management', icon:'people', section:'ADMIN' },
+  { id:'admin-accounts', label:'Accounts', icon:'wallet2', section:'ADMIN' },
+  { id:'admin-transactions', label:'Transactions', icon:'arrow-down-up', section:'ADMIN' },
+  { id:'admin-loans', label:'Loans', icon:'bank', section:'ADMIN' },
+  { id:'admin-cards', label:'Cards', icon:'credit-card', section:'ADMIN' },
+  { id:'admin-reports', label:'Reports', icon:'bar-chart', section:'ADMIN' },
+  { id:'admin-config', label:'System Config', icon:'gear', section:'ADMIN' },
+  { id:'admin-audit', label:'Audit Log', icon:'shield-check', section:'ADMIN' },
+];
+
+function buildNav() {
+  const user = STATE.user;
+  let pages = [...PAGES_CUSTOMER];
+  if (isAdmin()) pages = [...pages, ...PAGES_ADMIN];
+  let html = '';
+  let lastSection = '';
+  pages.forEach(p => {
+    if (p.section !== lastSection) { html += `<div class="nav-section">${p.section}</div>`; lastSection = p.section; }
+    html += `<div class="nav-item ${STATE.page===p.id?'active':''}" onclick="navigate('${p.id}')"><i class="bi bi-${p.icon}"></i>${p.label}${p.badge?`<span class="admin-badge">${p.badge}</span>`:''}</div>`;
+  });
+  document.getElementById('sidebar-nav').innerHTML = html;
+}
+
+function navigate(page) {
+  STATE.page = page;
+  document.getElementById('topbar-title').textContent = [...PAGES_CUSTOMER,...PAGES_ADMIN].find(p=>p.id===page)?.label||page;
+  buildNav();
+  renderPage(page);
+  if (window.innerWidth < 992) toggleSidebar(false);
+}
+
+function toggleSidebar(force) {
+  const s = document.getElementById('sidebar');
+  const o = document.getElementById('sidebar-overlay');
+  const open = force !== undefined ? force : !s.classList.contains('open');
+  s.classList.toggle('open', open);
+  o.classList.toggle('active', open);
+}
+document.getElementById('sidebar-overlay')?.addEventListener('click', () => toggleSidebar(false));
+
+function updateTopbarUser() {
+  const u = STATE.user;
+  const initials = u.name.split(' ').map(n=>n[0]).join('').toUpperCase();
+  document.getElementById('sidebar-avatar').textContent = initials;
+  document.getElementById('topbar-avatar').textContent = initials;
+  document.getElementById('sidebar-name').textContent = u.name;
+  document.getElementById('sidebar-role').textContent = u.role.charAt(0).toUpperCase()+u.role.slice(1);
+  updateNotifDot();
+}
+
+function updateNotifDot() {
+  const unread = DB.notifications.getByUser(STATE.user.id).filter(n=>!n.read).length;
+  document.getElementById('notif-dot').style.display = unread > 0 ? 'block' : 'none';
+}
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const dark = html.dataset.theme === 'dark';
+  html.dataset.theme = dark ? 'light' : 'dark';
+  document.getElementById('theme-btn').innerHTML = dark ? '<i class="bi bi-moon"></i>' : '<i class="bi bi-sun"></i>';
+  localStorage.setItem('nb_theme', html.dataset.theme);
+}
+
+// ============================================================
+// AUTH FORMS
+// ============================================================
+function renderAuthForm(type='login') {
+  const c = document.getElementById('auth-form-container');
+  if (type === 'login') {
+    c.innerHTML = `
+      <div class="form-group"><label>Email Address</label><input class="nb-input" id="a-email" type="email" placeholder="you@example.com" value="john@nexabank.com"/></div>
+      <div class="form-group"><label>Password</label><input class="nb-input" id="a-pass" type="password" placeholder="••••••••" value="pass123"/></div>
+      <div class="d-flex justify-content-between align-items-center mb-3" style="font-size:.82rem;">
+        <label style="display:inline-flex;align-items:center;gap:.3rem;cursor:pointer;color:var(--nb-text);"><input type="checkbox"> Remember me</label>
+        <a href="#" style="color:var(--nb-accent);">Forgot password?</a>
+      </div>
+      <button class="btn-nb btn-nb-primary w-100 justify-content-center" style="padding:.75rem;" onclick="doLogin()"><i class="bi bi-box-arrow-in-right"></i> Sign In</button>
+      <div class="text-center mt-3" style="font-size:.82rem;color:var(--nb-muted);">No account? <a href="#" style="color:var(--nb-accent);" onclick="renderAuthForm('register')">Create one</a></div>
+      <div class="mt-3 p-3 rounded-3" style="background:var(--nb-light-accent);font-size:.78rem;color:var(--nb-muted);">
+        <strong>Demo Accounts:</strong><br>
+        Customer: john@nexabank.com / pass123<br>
+        Admin: admin@nexabank.com / admin123
+      </div>`;
+  } else {
+    c.innerHTML = `
+      <div class="row g-2">
+        <div class="col-6 form-group"><label>First Name</label><input class="nb-input" id="r-fname" placeholder="John"></div>
+        <div class="col-6 form-group"><label>Last Name</label><input class="nb-input" id="r-lname" placeholder="Doe"></div>
+      </div>
+      <div class="form-group"><label>Email</label><input class="nb-input" id="r-email" type="email" placeholder="you@email.com"></div>
+      <div class="form-group"><label>Date of Birth</label><input class="nb-input" id="r-dob" type="date"></div>
+      <div class="form-group"><label>Phone</label><input class="nb-input" id="r-phone" placeholder="+1-555-0100"></div>
+      <div class="form-group"><label>Password</label><input class="nb-input" id="r-pass" type="password" placeholder="min 8 chars"></div>
+      <div class="form-group"><label>Confirm Password</label><input class="nb-input" id="r-pass2" type="password" placeholder="repeat password"></div>
+      <button class="btn-nb btn-nb-primary w-100 justify-content-center" style="padding:.75rem;" onclick="doRegister()"><i class="bi bi-person-plus"></i> Create Account</button>
+      <div class="text-center mt-3" style="font-size:.82rem;color:var(--nb-muted);">Have an account? <a href="#" style="color:var(--nb-accent);" onclick="renderAuthForm('login')">Sign in</a></div>`;
+  }
+}
+
+function doLogin() {
+  const email = document.getElementById('a-email').value.trim();
+  const pass = document.getElementById('a-pass').value;
+  const result = login(email, pass);
+  if (result.ok) { bootApp(); }
+  else { toast(result.msg, 'error'); }
+}
+
+function doRegister() {
+  const fname = document.getElementById('r-fname').value.trim();
+  const lname = document.getElementById('r-lname').value.trim();
+  const email = document.getElementById('r-email').value.trim();
+  const pass = document.getElementById('r-pass').value;
+  const pass2 = document.getElementById('r-pass2').value;
+  if (!fname||!lname||!email) return toast('Please fill all fields', 'error');
+  if (pass !== pass2) return toast('Passwords do not match', 'error');
+  if (pass.length < 6) return toast('Password must be 6+ characters', 'error');
+  if (DB.users.getByEmail(email)) return toast('Email already registered', 'error');
+  const id = 'u' + uid();
+  const user = { id, name:`${fname} ${lname}`, email, password:pass, role:'customer', status:'active', phone:document.getElementById('r-phone').value, dob:document.getElementById('r-dob').value, address:'', joined:new Date().toISOString().slice(0,10), failedLogins:0 };
+  DB.users.create(user);
+  DB.accounts.create({ id:'a'+uid(), userId:id, type:'Checking', balance:0, iban:'GB29NWBK'+Math.floor(Math.random()*1e14), swift:'NXBKGB21', status:'active', limit:5000, createdAt:new Date().toISOString().slice(0,10) });
+  login(email, pass);
+  bootApp();
+  toast('Welcome to NexaBank!', 'success');
+}
+
+// ============================================================
+// BOOT
+// ============================================================
+function bootApp() {
+  DB.seed();
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  updateTopbarUser();
+  buildNav();
+  const startPage = isAdmin() ? 'admin-dashboard' : 'dashboard';
+  navigate(startPage);
+  const saved = localStorage.getItem('nb_theme');
+  if (saved === 'dark') { document.documentElement.dataset.theme = 'dark'; document.getElementById('theme-btn').innerHTML = '<i class="bi bi-sun"></i>'; }
+}
+
+function showNotifications() {
+  const notifs = DB.notifications.getByUser(STATE.user.id);
+  DB.notifications.markAllRead(STATE.user.id);
+  updateNotifDot();
+  const rows = notifs.length ? notifs.map(n=>`
+    <div class="d-flex gap-2 mb-3 pb-3" style="border-bottom:1px solid var(--nb-border);">
+      <div style="width:36px;height:36px;border-radius:50%;background:${n.type==='success'?'#d1fae5':n.type==='warning'?'#fef3c7':'#dbeafe'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <i class="bi bi-${n.type==='success'?'check-circle':n.type==='warning'?'exclamation-triangle':'info-circle'}" style="color:${n.type==='success'?'var(--nb-success)':n.type==='warning'?'var(--nb-warning)':'var(--nb-accent)'};"></i>
+      </div>
+      <div><div style="font-size:.88rem;">${n.message}</div><div style="font-size:.75rem;color:var(--nb-muted);">${fmtDate(n.ts)}</div></div>
+    </div>`).join('') : '<div class="empty-state"><i class="bi bi-bell-slash"></i>No notifications</div>';
+  showModal('Notifications', rows);
+}
+
+// ============================================================
+// PAGE RENDERER
+// ============================================================
+function renderPage(page) {
+  const el = document.getElementById('page-content');
+  const pages = { dashboard:renderDashboard, accounts:renderAccounts, transfers:renderTransfers, history:renderHistory, cards:renderCards, loans:renderLoans, bills:renderBills, profile:renderProfile, 'admin-dashboard':renderAdminDashboard, 'admin-users':renderAdminUsers, 'admin-accounts':renderAdminAccounts, 'admin-transactions':renderAdminTransactions, 'admin-loans':renderAdminLoans, 'admin-cards':renderAdminCards, 'admin-reports':renderAdminReports, 'admin-config':renderAdminConfig, 'admin-audit':renderAdminAudit };
+  if (pages[page]) { pages[page](el); } else { el.innerHTML = '<div class="empty-state"><i class="bi bi-question-circle"></i>Page not found</div>'; }
+}
+
+// ============================================================
+// CUSTOMER PAGES
+// ============================================================
+function renderDashboard(el) {
+  const user = STATE.user;
+  const accounts = DB.accounts.getByUser(user.id);
+  const txns = DB.transactions.getByUser(user.id).slice(0,6);
+  const totalBal = accounts.reduce((s,a)=>s+(a.status==='active'?a.balance:0), 0);
+  const income = txns.filter(t=>t.toId && accounts.map(a=>a.id).includes(t.toId)).reduce((s,t)=>s+t.amount,0);
+  const expenses = txns.filter(t=>t.fromId && accounts.map(a=>a.id).includes(t.fromId) && t.type!=='transfer').reduce((s,t)=>s+t.amount,0);
+  const accCards = accounts.map(a=>`
+    <div class="col-12 col-md-4">
+      <div class="nb-card" style="cursor:pointer;" onclick="navigate('accounts')">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div><div style="font-size:.78rem;color:var(--nb-muted);">${a.type}</div><div class="mono" style="font-size:1.3rem;font-weight:700;">${fmt(a.balance)}</div></div>
+          <span class="badge-status badge-${a.status}">${a.status}</span>
+        </div>
+        <div style="font-size:.72rem;color:var(--nb-muted);">${a.iban}</div>
+      </div>
+    </div>`).join('');
+  const txRows = txns.map(t=>{
+    const myAccIds = accounts.map(a=>a.id);
+    const isDebit = myAccIds.includes(t.fromId) && t.type!=='credit';
+    return `<tr>
+      <td><div style="font-size:.88rem;font-weight:500;">${t.desc}</div><div style="font-size:.72rem;color:var(--nb-muted);">${t.category} • ${fmtDate(t.ts)}</div></td>
+      <td><span class="${isDebit?'amount-neg':'amount-pos'}">${isDebit?'-':'+'}${fmt(t.amount)}</span></td>
+      <td><span class="badge-status badge-${t.status}">${t.status}</span></td>
+    </tr>`;}).join('');
+  el.innerHTML = `
+    <div class="row g-3 mb-4">
+      <div class="col-12 col-sm-6 col-xl-3"><div class="stat-card"><div class="stat-label"><i class="bi bi-wallet2 me-1"></i>Total Balance</div><div class="stat-value">${fmt(totalBal)}</div></div></div>
+      <div class="col-12 col-sm-6 col-xl-3"><div class="stat-card green"><div class="stat-label"><i class="bi bi-arrow-down-circle me-1"></i>Income (Recent)</div><div class="stat-value">${fmt(income)}</div></div></div>
+      <div class="col-12 col-sm-6 col-xl-3"><div class="stat-card red"><div class="stat-label"><i class="bi bi-arrow-up-circle me-1"></i>Expenses (Recent)</div><div class="stat-value">${fmt(expenses)}</div></div></div>
+      <div class="col-12 col-sm-6 col-xl-3"><div class="stat-card gold"><div class="stat-label"><i class="bi bi-bank me-1"></i>Active Accounts</div><div class="stat-value">${accounts.filter(a=>a.status==='active').length}</div></div></div>
+    </div>
+    <div class="d-flex flex-wrap gap-2 mb-4">
+      <button class="btn-nb btn-nb-primary" onclick="navigate('transfers')"><i class="bi bi-arrow-left-right"></i> Transfer</button>
+      <button class="btn-nb btn-nb-outline" onclick="navigate('bills')"><i class="bi bi-receipt"></i> Pay Bills</button>
+      <button class="btn-nb btn-nb-outline" onclick="navigate('loans')"><i class="bi bi-bank"></i> Apply Loan</button>
+      <button class="btn-nb btn-nb-outline" onclick="navigate('cards')"><i class="bi bi-credit-card"></i> Cards</button>
+    </div>
+    <div class="row g-3 mb-4">${accCards}</div>
+    <div class="row g-3">
+      <div class="col-12 col-lg-8">
+        <div class="nb-card">
+          <div class="d-flex justify-content-between align-items-center mb-3"><h6 class="mb-0 fw-semibold">Recent Transactions</h6><button class="btn-nb btn-nb-outline btn-nb-sm" onclick="navigate('history')">View All</button></div>
+          <div style="overflow-x:auto;"><table class="nb-table"><thead><tr><th>Description</th><th>Amount</th><th>Status</th></tr></thead><tbody>${txRows||'<tr><td colspan="3" class="text-center text-muted py-4">No transactions</td></tr>'}</tbody></table></div>
+        </div>
+      </div>
+      <div class="col-12 col-lg-4">
+        <div class="nb-card"><h6 class="mb-3 fw-semibold">Spending by Category</h6><canvas id="spending-chart" height="200"></canvas></div>
+      </div>
+    </div>`;
+  // Chart
+  const cats = {}; txns.filter(t=>t.type==='payment').forEach(t=>{ cats[t.category]=(cats[t.category]||0)+t.amount; });
+  if (Object.keys(cats).length > 0) {
+    setTimeout(()=>{
+      const ctx = document.getElementById('spending-chart');
+      if(ctx) new Chart(ctx, { type:'doughnut', data:{ labels:Object.keys(cats), datasets:[{data:Object.values(cats),backgroundColor:['#1d6fa4','#c9a84c','#12b76a','#f04438','#7c3aed','#f79009'],borderWidth:0}]}, options:{plugins:{legend:{position:'bottom',labels:{font:{family:'Poppins',size:11},boxWidth:10}}},cutout:'65%'}});
+    },50);
+  }
+}
+
+function renderAccounts(el) {
+  const accounts = DB.accounts.getByUser(STATE.user.id);
+  const colorClass = ['blue','dark','gold'];
+  const cards = accounts.map((a,i)=>`
+    <div class="col-12 col-md-6 col-xl-4">
+      <div class="bank-card ${colorClass[i%3]}">
+        <div class="card-chip"></div>
+        <div style="position:relative;z-index:1;">
+          <div class="card-number mb-3">${a.iban.replace(/(.{4})/g,'$1 ').trim()}</div>
+          <div class="d-flex justify-content-between align-items-end">
+            <div><div class="card-name">${STATE.user.name}</div><div style="font-size:.7rem;opacity:.7;">${a.type}</div></div>
+            <div class="text-end"><div style="font-size:1.3rem;font-weight:700;">${fmt(a.balance)}</div><span class="badge-status badge-${a.status}" style="font-size:.65rem;">${a.status}</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="nb-card mt-3">
+        <div class="row g-2" style="font-size:.82rem;">
+          <div class="col-6"><div style="color:var(--nb-muted);">IBAN</div><div class="mono" style="font-size:.78rem;">${a.iban}</div></div>
+          <div class="col-6"><div style="color:var(--nb-muted);">SWIFT</div><div class="mono">${a.swift}</div></div>
+          <div class="col-6"><div style="color:var(--nb-muted);">Transfer Limit</div><div class="mono">${fmt(a.limit||0)}/day</div></div>
+          <div class="col-6"><div style="color:var(--nb-muted);">Opened</div><div>${a.createdAt}</div></div>
+        </div>
+        <hr class="divider">
+        <div class="d-flex gap-2">
+          <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="navigate('history')"><i class="bi bi-clock-history"></i> History</button>
+          <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="downloadStatement('${a.id}')"><i class="bi bi-download"></i> Statement</button>
+          ${a.status==='active'&&a.type!=='Fixed Deposit'?`<button class="btn-nb btn-nb-danger btn-nb-sm" onclick="closeAccountConfirm('${a.id}')"><i class="bi bi-x-circle"></i> Close</button>`:''}
+        </div>
+      </div>
+    </div>`).join('');
+  el.innerHTML = `
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h5 class="mb-0 fw-semibold">My Accounts</h5>
+      <button class="btn-nb btn-nb-primary" onclick="openNewAccountModal()"><i class="bi bi-plus-lg"></i> Open Account</button>
+    </div>
+    <div class="row g-4">${cards||'<div class="col-12"><div class="empty-state"><i class="bi bi-wallet2"></i>No accounts yet</div></div>'}</div>`;
+}
+
+function closeAccountConfirm(id) {
+  showModal('Close Account', `<p>Are you sure you want to close this account? Any remaining balance will be transferred to your primary account.</p>`, `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-danger" onclick="doCloseAccount('${id}')">Close Account</button></div>`);
+}
+function doCloseAccount(id) {
+  DB.accounts.update(id, { status:'closed' });
+  toast('Account closed successfully.', 'success');
+  closeModal();
+  navigate('accounts');
+}
+function downloadStatement(accountId) {
+  const txns = DB.transactions.getByAccount(accountId);
+  const csv = ['Date,Description,Category,Amount,Type', ...txns.map(t=>`${t.ts},${t.desc},${t.category},${t.amount},${t.type}`)].join('\n');
+  const a = document.createElement('a'); a.href = 'data:text/csv,' + encodeURIComponent(csv); a.download = 'statement.csv'; a.click();
+  toast('Statement downloaded', 'success');
+}
+function openNewAccountModal() {
+  showModal('Open New Account', `
+    <div class="form-group"><label>Account Type</label>
+      <select class="nb-input" id="new-acc-type"><option>Savings</option><option>Fixed Deposit</option></select>
+    </div>
+    <div class="form-group"><label>Initial Deposit</label><input class="nb-input" id="new-acc-deposit" type="number" placeholder="0.00" min="0"></div>`,
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="doOpenAccount()"><i class="bi bi-plus"></i> Open Account</button></div>`
+  );
+}
+function doOpenAccount() {
+  const type = document.getElementById('new-acc-type').value;
+  const deposit = parseFloat(document.getElementById('new-acc-deposit').value)||0;
+  DB.accounts.create({ id:'a'+uid(), userId:STATE.user.id, type, balance:deposit, iban:'GB29NWBK'+Math.floor(Math.random()*1e14), swift:'NXBKGB21', status:'active', limit:5000, createdAt:new Date().toISOString().slice(0,10) });
+  toast(`${type} account opened!`, 'success');
+  closeModal();
+  navigate('accounts');
+}
+
+function renderTransfers(el) {
+  const accounts = DB.accounts.getByUser(STATE.user.id).filter(a=>a.status==='active');
+  const payees = DB.payees.getByUser(STATE.user.id);
+  const fromOpts = accounts.map(a=>`<option value="${a.id}">${a.type} — ${fmt(a.balance)}</option>`).join('');
+  el.innerHTML = `
+    <div class="row g-4">
+      <div class="col-12 col-lg-7">
+        <div class="nb-card">
+          <h6 class="fw-semibold mb-3">New Transfer</h6>
+          <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTransferTab(this,'internal')">Internal</button>
+            <button class="tab-btn" onclick="switchTransferTab(this,'external')">To Someone</button>
+            <button class="tab-btn" onclick="switchTransferTab(this,'international')">International</button>
+          </div>
+          <div id="transfer-tab-content">
+            <div class="form-group"><label>From Account</label><select class="nb-input" id="t-from">${fromOpts}</select></div>
+            <div id="transfer-to-internal">
+              <div class="form-group"><label>To Account</label><select class="nb-input" id="t-to-internal">${fromOpts}</select></div>
+            </div>
+            <div id="transfer-to-external" style="display:none;">
+              <div class="form-group"><label>Recipient Account / IBAN</label><input class="nb-input" id="t-to-iban" placeholder="GB29 NWBK 6016..."></div>
+              <div class="form-group"><label>Recipient Name</label><input class="nb-input" id="t-to-name" placeholder="John Doe"></div>
+              <div class="form-group"><label>Bank Name</label><input class="nb-input" id="t-to-bank" placeholder="NexaBank"></div>
+            </div>
+            <div id="transfer-to-intl" style="display:none;">
+              <div class="form-group"><label>SWIFT/BIC Code</label><input class="nb-input" id="t-swift" placeholder="BOFAUS3N"></div>
+              <div class="form-group"><label>Beneficiary IBAN</label><input class="nb-input" id="t-intl-iban" placeholder="DE89 3704 0044..."></div>
+              <div class="form-group"><label>Beneficiary Name</label><input class="nb-input" id="t-intl-name" placeholder="Hans Mueller"></div>
+              <div class="form-group"><label>Country</label><input class="nb-input" id="t-intl-country" placeholder="Germany"></div>
+            </div>
+            <div class="row g-2">
+              <div class="col-8"><div class="form-group"><label>Amount</label><input class="nb-input" id="t-amount" type="number" placeholder="0.00" min="0.01"></div></div>
+              <div class="col-4"><div class="form-group"><label>Currency</label><select class="nb-input" id="t-currency"><option>USD</option><option>EUR</option><option>GBP</option></select></div></div>
+            </div>
+            <div class="form-group"><label>Description / Reference</label><input class="nb-input" id="t-desc" placeholder="What's this for?"></div>
+            <button class="btn-nb btn-nb-primary w-100 justify-content-center" style="padding:.7rem;" onclick="initiateTransfer()"><i class="bi bi-send"></i> Review Transfer</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-lg-5">
+        <div class="nb-card mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0 fw-semibold">Saved Payees</h6>
+            <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="addPayeeModal()"><i class="bi bi-plus"></i> Add</button>
+          </div>
+          ${payees.length?payees.map(p=>`<div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px solid var(--nb-border);">
+            <div><div style="font-size:.88rem;font-weight:500;">${p.name}</div><div style="font-size:.75rem;color:var(--nb-muted);">${p.bank} • ${p.account.slice(-4)}</div></div>
+            <button class="btn-nb btn-nb-danger btn-nb-sm" onclick="deletePayee('${p.id}')"><i class="bi bi-trash"></i></button>
+          </div>`).join(''):'<div style="color:var(--nb-muted);font-size:.85rem;text-align:center;padding:1rem;">No saved payees</div>'}
+        </div>
+        <div class="nb-card">
+          <h6 class="fw-semibold mb-3">Exchange Rates</h6>
+          <div style="font-size:.85rem;">
+            ${[['EUR','0.9215'],['GBP','0.7892'],['JPY','149.72'],['CAD','1.3610']].map(([c,r])=>`<div class="d-flex justify-content-between py-1" style="border-bottom:1px solid var(--nb-border);"><span>USD → ${c}</span><span class="mono fw-semibold">${r}</span></div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+let transferMode = 'internal';
+function switchTransferTab(btn, mode) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  transferMode = mode;
+  document.getElementById('transfer-to-internal').style.display = mode==='internal'?'block':'none';
+  document.getElementById('transfer-to-external').style.display = mode==='external'?'block':'none';
+  document.getElementById('transfer-to-intl').style.display = mode==='international'?'block':'none';
+}
+function initiateTransfer() {
+  const amount = parseFloat(document.getElementById('t-amount').value);
+  const fromId = document.getElementById('t-from').value;
+  const desc = document.getElementById('t-desc').value || 'Transfer';
+  const currency = document.getElementById('t-currency').value;
+  if (!amount || amount <= 0) return toast('Enter a valid amount', 'error');
+  const fromAcc = DB.accounts.getById(fromId);
+  if (fromAcc.balance < amount) return toast('Insufficient funds', 'error');
+  // OTP confirm
+  showModal('Confirm Transfer', `
+    <div style="text-align:center;padding:1rem 0;">
+      <div style="font-size:2rem;font-weight:700;color:var(--nb-accent);">${currency} ${fmt(amount)}</div>
+      <div style="color:var(--nb-muted);margin:.5rem 0;">${desc}</div>
+      <p style="font-size:.85rem;">Enter your OTP to confirm:</p>
+      <input class="nb-input" id="otp-input" placeholder="Enter 6-digit OTP" style="max-width:200px;margin:0 auto;text-align:center;font-size:1.2rem;letter-spacing:4px;" maxlength="6">
+      <p style="font-size:.78rem;color:var(--nb-muted);margin-top:.5rem;">Demo OTP: <strong>123456</strong></p>
+    </div>`,
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="confirmTransfer('${fromId}',${amount},'${desc}')"><i class="bi bi-check2"></i> Confirm</button></div>`
+  );
+}
+function confirmTransfer(fromId, amount, desc) {
+  const otp = document.getElementById('otp-input').value;
+  if (otp !== '123456') return toast('Invalid OTP', 'error');
+  const fromAcc = DB.accounts.getById(fromId);
+  DB.accounts.update(fromId, { balance: fromAcc.balance - amount });
+  let toId = null;
+  if (transferMode === 'internal') {
+    toId = document.getElementById('t-to-internal')?.value;
+    if (toId) { const toAcc = DB.accounts.getById(toId); DB.accounts.update(toId, { balance: toAcc.balance + amount }); }
+  }
+  DB.transactions.create({ id:'t'+uid(), fromId, toId, amount, type:'transfer', category:'Transfer', desc, status:'completed', ts:new Date().toISOString() });
+  DB.notifications.add({ id:'n'+uid(), userId:STATE.user.id, message:`Transfer of ${fmt(amount)} was successful.`, type:'success', read:false, ts:new Date().toISOString() });
+  toast('Transfer successful!', 'success');
+  closeModal();
+  navigate('history');
+}
+function addPayeeModal() {
+  showModal('Add Payee', `
+    <div class="form-group"><label>Payee Name</label><input class="nb-input" id="py-name" placeholder="Full Name"></div>
+    <div class="form-group"><label>Account / IBAN</label><input class="nb-input" id="py-acc" placeholder="GB29NWBK..."></div>
+    <div class="form-group"><label>Bank</label><input class="nb-input" id="py-bank" placeholder="NexaBank"></div>
+    <div class="form-group"><label>Category</label><select class="nb-input" id="py-cat"><option>Personal</option><option>Business</option><option>Utilities</option></select></div>`,
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="savePayee()">Save Payee</button></div>`
+  );
+}
+function savePayee() {
+  const name = document.getElementById('py-name').value.trim();
+  const acc = document.getElementById('py-acc').value.trim();
+  if (!name || !acc) return toast('Name and account required', 'error');
+  DB.payees.create({ id:'p'+uid(), userId:STATE.user.id, name, account:acc, bank:document.getElementById('py-bank').value||'External', category:document.getElementById('py-cat').value });
+  toast('Payee saved!', 'success');
+  closeModal();
+  navigate('transfers');
+}
+function deletePayee(id) { DB.payees.delete(id); toast('Payee removed', 'success'); navigate('transfers'); }
+
+function renderHistory(el) {
+  const txns = DB.transactions.getByUser(STATE.user.id);
+  const myAccIds = DB.accounts.getByUser(STATE.user.id).map(a=>a.id);
+  const rows = txns.map(t=>{
+    const isDebit = myAccIds.includes(t.fromId) && t.type!=='credit';
+    return `<tr>
+      <td><div class="d-flex align-items-center gap-2">
+        <div style="width:36px;height:36px;border-radius:50%;background:${isDebit?'#fee2e2':'#d1fae5'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="bi bi-arrow-${isDebit?'up':'down'}-circle" style="color:${isDebit?'var(--nb-danger)':'var(--nb-success)'};"></i>
+        </div>
+        <div><div style="font-weight:500;">${t.desc}</div><div style="font-size:.75rem;color:var(--nb-muted);">${t.category}</div></div>
+      </div></td>
+      <td style="font-size:.78rem;color:var(--nb-muted);">${fmtDate(t.ts)}</td>
+      <td><span class="${isDebit?'amount-neg':'amount-pos'}">${isDebit?'-':'+'}${fmt(t.amount)}</span></td>
+      <td><span class="badge-status badge-${t.status}">${t.status}</span></td>
+      <td><button class="btn-nb btn-nb-outline btn-nb-sm" onclick="viewTxn('${t.id}')"><i class="bi bi-eye"></i></button></td>
+    </tr>`;}).join('');
+  el.innerHTML = `
+    <div class="nb-card">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <h6 class="mb-0 fw-semibold">All Transactions</h6>
+        <div class="d-flex gap-2 flex-wrap">
+          <div class="search-wrap"><i class="bi bi-search"></i><input class="search-bar" placeholder="Search..." oninput="filterTxns(this.value)" style="width:200px;"></div>
+          <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="exportTxns()"><i class="bi bi-download"></i> Export</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto;"><table class="nb-table" id="txn-table"><thead><tr><th>Description</th><th>Date</th><th>Amount</th><th>Status</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="5" class="text-center text-muted py-4">No transactions</td></tr>'}</tbody></table></div>
+    </div>`;
+}
+function viewTxn(id) {
+  const t = DB.transactions.getAll().find(tx=>tx.id===id);
+  if (!t) return;
+  showModal('Transaction Details', `
+    <div style="font-size:.88rem;">
+      <div class="d-flex justify-content-between py-2 border-bottom"><span style="color:var(--nb-muted);">ID</span><span class="mono">${t.id}</span></div>
+      <div class="d-flex justify-content-between py-2 border-bottom"><span style="color:var(--nb-muted);">Description</span><span>${t.desc}</span></div>
+      <div class="d-flex justify-content-between py-2 border-bottom"><span style="color:var(--nb-muted);">Category</span><span>${t.category}</span></div>
+      <div class="d-flex justify-content-between py-2 border-bottom"><span style="color:var(--nb-muted);">Amount</span><span class="mono fw-bold">${fmt(t.amount)}</span></div>
+      <div class="d-flex justify-content-between py-2 border-bottom"><span style="color:var(--nb-muted);">Type</span><span>${t.type}</span></div>
+      <div class="d-flex justify-content-between py-2 border-bottom"><span style="color:var(--nb-muted);">Status</span><span class="badge-status badge-${t.status}">${t.status}</span></div>
+      <div class="d-flex justify-content-between py-2"><span style="color:var(--nb-muted);">Date</span><span>${new Date(t.ts).toLocaleString()}</span></div>
+    </div>`
+  );
+}
+function filterTxns(q) {
+  const rows = document.querySelectorAll('#txn-table tbody tr');
+  rows.forEach(r => { r.style.display = r.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none'; });
+}
+function exportTxns() {
+  const txns = DB.transactions.getByUser(STATE.user.id);
+  const csv = ['Date,Description,Category,Amount,Type,Status', ...txns.map(t=>`${t.ts},"${t.desc}",${t.category},${t.amount},${t.type},${t.status}`)].join('\n');
+  const a = document.createElement('a'); a.href = 'data:text/csv,' + encodeURIComponent(csv); a.download = 'transactions.csv'; a.click();
+}
+
+function renderCards(el) {
+  const cards = DB.cards.getByUser(STATE.user.id);
+  const colorClass = ['blue','dark','gold'];
+  const cardHtml = cards.map((c,i)=>`
+    <div class="col-12 col-md-6">
+      <div class="bank-card ${colorClass[i%3]} mb-3">
+        <div class="card-chip"></div>
+        <div style="position:relative;z-index:1;">
+          <div class="card-number mb-2">${c.maskedNumber}</div>
+          <div class="d-flex justify-content-between align-items-end">
+            <div><div class="card-name">${STATE.user.name}</div><div style="font-size:.7rem;opacity:.7;">VALID THRU ${c.expiry}</div></div>
+            <div class="text-end"><div style="font-weight:700;font-size:1.1rem;">${c.type}</div><span class="badge-status badge-${c.status}" style="font-size:.65rem;">${c.status}</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="nb-card">
+        <div class="row g-2 mb-3" style="font-size:.82rem;">
+          <div class="col-6"><div style="color:var(--nb-muted);">Daily Limit</div><div class="mono fw-bold">${fmt(c.dailyLimit)}</div></div>
+          <div class="col-6"><div style="color:var(--nb-muted);">Monthly Limit</div><div class="mono fw-bold">${fmt(c.monthlyLimit)}</div></div>
+          ${c.creditLimit?`<div class="col-6"><div style="color:var(--nb-muted);">Credit Limit</div><div class="mono">${fmt(c.creditLimit)}</div></div><div class="col-6"><div style="color:var(--nb-muted);">Used</div><div class="mono">${fmt(c.used||0)}</div></div>`:''}
+        </div>
+        ${c.creditLimit?`<div class="loan-progress"><div style="font-size:.75rem;color:var(--nb-muted);margin-bottom:.3rem;">Utilization ${Math.round((c.used/c.creditLimit)*100)}%</div><div class="progress-bar-custom"><div class="progress-fill" style="width:${Math.round((c.used/c.creditLimit)*100)}%;"></div></div></div>`:''}
+        <div class="d-flex gap-2 flex-wrap mt-2">
+          <button class="btn-nb ${c.status==='active'?'btn-nb-outline':'btn-nb-success'} btn-nb-sm" onclick="toggleCard('${c.id}')"><i class="bi bi-${c.status==='active'?'snow':'check2'}"></i> ${c.status==='active'?'Freeze':'Unfreeze'}</button>
+          <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="setCardLimitModal('${c.id}')"><i class="bi bi-sliders"></i> Limits</button>
+          <button class="btn-nb btn-nb-danger btn-nb-sm" onclick="reportCard('${c.id}')"><i class="bi bi-flag"></i> Report Lost</button>
+        </div>
+      </div>
+    </div>`).join('');
+  el.innerHTML = `
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h5 class="mb-0 fw-semibold">My Cards</h5>
+      <button class="btn-nb btn-nb-primary" onclick="requestCardModal()"><i class="bi bi-plus-lg"></i> Request Card</button>
+    </div>
+    <div class="row g-4">${cardHtml||'<div class="col"><div class="empty-state"><i class="bi bi-credit-card-2-front"></i>No cards</div></div>'}</div>`;
+}
+function toggleCard(id) {
+  const c = DB.cards.getById(id);
+  const ns = c.status==='active'?'frozen':'active';
+  DB.cards.update(id, {status:ns});
+  toast(`Card ${ns}`, ns==='frozen'?'warning':'success');
+  navigate('cards');
+}
+function reportCard(id) {
+  DB.cards.update(id, {status:'blocked'});
+  toast('Card reported as lost. A new card will be issued.', 'warning');
+  navigate('cards');
+}
+function setCardLimitModal(id) {
+  const c = DB.cards.getById(id);
+  showModal('Set Card Limits', `
+    <div class="form-group"><label>Daily Limit ($)</label><input class="nb-input" id="cl-daily" type="number" value="${c.dailyLimit}"></div>
+    <div class="form-group"><label>Monthly Limit ($)</label><input class="nb-input" id="cl-monthly" type="number" value="${c.monthlyLimit}"></div>`,
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="saveCardLimits('${id}')">Save</button></div>`
+  );
+}
+function saveCardLimits(id) {
+  DB.cards.update(id, { dailyLimit: parseFloat(document.getElementById('cl-daily').value), monthlyLimit: parseFloat(document.getElementById('cl-monthly').value) });
+  toast('Card limits updated', 'success');
+  closeModal();
+  navigate('cards');
+}
+function requestCardModal() {
+  const accounts = DB.accounts.getByUser(STATE.user.id).filter(a=>a.status==='active');
+  showModal('Request New Card', `
+    <div class="form-group"><label>Account</label><select class="nb-input" id="nc-acc">${accounts.map(a=>`<option value="${a.id}">${a.type} — ${fmt(a.balance)}</option>`).join('')}</select></div>
+    <div class="form-group"><label>Card Type</label><select class="nb-input" id="nc-type"><option>Debit</option><option>Virtual</option></select></div>`,
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="doRequestCard()">Request Card</button></div>`
+  );
+}
+function doRequestCard() {
+  const num = '**** **** **** ' + Math.floor(1000+Math.random()*9000);
+  DB.cards.create({ id:'c'+uid(), accountId:document.getElementById('nc-acc').value, userId:STATE.user.id, type:document.getElementById('nc-type').value, maskedNumber:num, expiry:'12/29', status:'active', dailyLimit:1500, monthlyLimit:7500 });
+  toast('Card requested! Processing in 3-5 business days.', 'success');
+  closeModal();
+  navigate('cards');
+}
+
+function renderLoans(el) {
+  const loans = DB.loans.getByUser(STATE.user.id);
+  const loanRows = loans.map(l=>`
+    <div class="nb-card mb-3">
+      <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+        <div><div class="d-flex align-items-center gap-2"><h6 class="mb-0">${l.type} Loan</h6><span class="badge-status badge-${l.status}">${l.status}</span></div>
+          <div style="font-size:.8rem;color:var(--nb-muted);">Applied: ${fmtDate(l.appliedAt)}</div>
+        </div>
+        <div class="text-end"><div class="mono fw-bold fs-5">${fmt(l.amount)}</div><div style="font-size:.78rem;color:var(--nb-muted);">${l.rate}% APR • ${l.term} months</div></div>
+      </div>
+      <div class="row g-3 mb-3" style="font-size:.82rem;">
+        <div class="col-6 col-md-3"><div style="color:var(--nb-muted);">Paid</div><div class="mono">${fmt(l.paid)}</div></div>
+        <div class="col-6 col-md-3"><div style="color:var(--nb-muted);">Remaining</div><div class="mono">${fmt(l.amount-l.paid)}</div></div>
+        <div class="col-6 col-md-3"><div style="color:var(--nb-muted);">Monthly</div><div class="mono">${fmt(l.monthlyPayment)}</div></div>
+        <div class="col-6 col-md-3"><div style="color:var(--nb-muted);">Next Payment</div><div>${l.nextPayment}</div></div>
+      </div>
+      <div class="loan-progress"><div style="font-size:.75rem;color:var(--nb-muted);margin-bottom:.3rem;">Progress: ${Math.round((l.paid/l.amount)*100)}% paid</div><div class="progress-bar-custom"><div class="progress-fill" style="width:${Math.round((l.paid/l.amount)*100)}%;"></div></div></div>
+      ${l.status==='active'?`<div class="mt-3"><button class="btn-nb btn-nb-outline btn-nb-sm" onclick="earlyRepay('${l.id}')"><i class="bi bi-cash-stack"></i> Early Repayment</button></div>`:''}
+    </div>`).join('');
+  el.innerHTML = `
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h5 class="mb-0 fw-semibold">Loans & Credit</h5>
+      <button class="btn-nb btn-nb-primary" onclick="applyLoanModal()"><i class="bi bi-plus-lg"></i> Apply for Loan</button>
+    </div>
+    ${loanRows||'<div class="empty-state"><i class="bi bi-bank2"></i>No active loans</div>'}
+    <div class="nb-card mt-3">
+      <h6 class="fw-semibold mb-3">Loan Calculator</h6>
+      <div class="row g-3">
+        <div class="col-md-4"><label>Loan Amount ($)</label><input class="nb-input" id="lc-amount" type="number" value="10000" oninput="calcLoan()"></div>
+        <div class="col-md-4"><label>Interest Rate (%)</label><input class="nb-input" id="lc-rate" type="number" value="5.5" step="0.1" oninput="calcLoan()"></div>
+        <div class="col-md-4"><label>Term (months)</label><input class="nb-input" id="lc-term" type="number" value="24" oninput="calcLoan()"></div>
+      </div>
+      <div class="row g-3 mt-1" id="loan-calc-result">
+        <div class="col-md-4"><div class="nb-card" style="text-align:center;"><div style="color:var(--nb-muted);font-size:.78rem;">Monthly Payment</div><div class="mono fw-bold" id="lc-monthly" style="font-size:1.5rem;color:var(--nb-accent);"></div></div></div>
+        <div class="col-md-4"><div class="nb-card" style="text-align:center;"><div style="color:var(--nb-muted);font-size:.78rem;">Total Payment</div><div class="mono fw-bold" id="lc-total" style="font-size:1.5rem;"></div></div></div>
+        <div class="col-md-4"><div class="nb-card" style="text-align:center;"><div style="color:var(--nb-muted);font-size:.78rem;">Total Interest</div><div class="mono fw-bold" id="lc-interest" style="font-size:1.5rem;color:var(--nb-danger);"></div></div></div>
+      </div>
+    </div>`;
+  calcLoan();
+}
+function calcLoan() {
+  const p = parseFloat(document.getElementById('lc-amount')?.value)||0;
+  const r = (parseFloat(document.getElementById('lc-rate')?.value)||0)/100/12;
+  const n = parseInt(document.getElementById('lc-term')?.value)||1;
+  const m = r>0 ? p*(r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1) : p/n;
+  const total = m*n;
+  if (document.getElementById('lc-monthly')) {
+    document.getElementById('lc-monthly').textContent = fmt(m);
+    document.getElementById('lc-total').textContent = fmt(total);
+    document.getElementById('lc-interest').textContent = fmt(total-p);
+  }
+}
+function applyLoanModal() {
+  showModal('Apply for Loan', `
+    <div class="form-group"><label>Loan Type</label><select class="nb-input" id="al-type"><option>Personal</option><option>Auto</option><option>Mortgage</option><option>Business</option></select></div>
+    <div class="form-group"><label>Amount</label><input class="nb-input" id="al-amount" type="number" placeholder="e.g. 10000"></div>
+    <div class="form-group"><label>Preferred Term (months)</label><input class="nb-input" id="al-term" type="number" placeholder="e.g. 24"></div>
+    <div class="form-group"><label>Purpose</label><input class="nb-input" id="al-purpose" placeholder="What is this loan for?"></div>`,
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="submitLoan()">Submit Application</button></div>`
+  );
+}
+function submitLoan() {
+  const amount = parseFloat(document.getElementById('al-amount').value);
+  const term = parseInt(document.getElementById('al-term').value);
+  if (!amount||!term) return toast('Fill in all fields', 'error');
+  const rate = 5.5;
+  const r = rate/100/12;
+  const monthly = r>0 ? amount*(r*Math.pow(1+r,term))/(Math.pow(1+r,term)-1) : amount/term;
+  DB.loans.create({ id:'l'+uid(), userId:STATE.user.id, type:document.getElementById('al-type').value, amount, rate, term, paid:0, status:'pending', appliedAt:new Date().toISOString().slice(0,10), nextPayment:'—', monthlyPayment:Math.round(monthly*100)/100 });
+  toast('Loan application submitted! Review within 2-3 business days.', 'success');
+  closeModal();
+  navigate('loans');
+}
+function earlyRepay(id) {
+  const l = DB.loans.getById(id);
+  showModal('Early Repayment', `<p>Make a payment towards your ${l.type} Loan (remaining: ${fmt(l.amount-l.paid)})</p><div class="form-group"><label>Payment Amount</label><input class="nb-input" id="ep-amount" type="number" value="${l.monthlyPayment}"></div>`,
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-success" onclick="processPayment('${id}')">Pay Now</button></div>`
+  );
+}
+function processPayment(id) {
+  const amount = parseFloat(document.getElementById('ep-amount').value);
+  const l = DB.loans.getById(id);
+  const newPaid = l.paid + amount;
+  DB.loans.update(id, { paid: newPaid, status: newPaid >= l.amount ? 'paid' : 'active' });
+  toast('Payment processed!', 'success');
+  closeModal();
+  navigate('loans');
+}
+
+function renderBills(el) {
+  const payees = DB.payees.getByUser(STATE.user.id);
+  const accounts = DB.accounts.getByUser(STATE.user.id).filter(a=>a.status==='active');
+  el.innerHTML = `
+    <div class="row g-4">
+      <div class="col-12 col-lg-7">
+        <div class="nb-card">
+          <h6 class="fw-semibold mb-4">Pay a Bill</h6>
+          <div class="form-group"><label>Payment Category</label>
+            <select class="nb-input" id="bill-cat">
+              <option>Electricity</option><option>Water</option><option>Internet</option><option>Gas</option><option>Phone</option><option>Insurance</option><option>Subscription</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Provider / Payee</label><input class="nb-input" id="bill-provider" placeholder="Provider name or account number"></div>
+          <div class="form-group"><label>From Account</label><select class="nb-input" id="bill-from">${accounts.map(a=>`<option value="${a.id}">${a.type} — ${fmt(a.balance)}</option>`).join('')}</select></div>
+          <div class="form-group"><label>Amount ($)</label><input class="nb-input" id="bill-amount" type="number" placeholder="0.00"></div>
+          <div class="form-group"><label>Schedule (Optional)</label><input class="nb-input" id="bill-schedule" type="date"></div>
+          <button class="btn-nb btn-nb-primary" onclick="payBill()"><i class="bi bi-receipt"></i> Pay Bill</button>
+        </div>
+      </div>
+      <div class="col-12 col-lg-5">
+        <div class="nb-card">
+          <h6 class="fw-semibold mb-3">Quick Pay</h6>
+          <div class="row g-2">
+            ${['Electricity','Water','Internet','Gas','Phone','TV'].map(b=>`
+              <div class="col-4"><button class="btn-nb btn-nb-outline w-100 justify-content-center flex-column py-3" style="gap:.3rem;" onclick="quickBill('${b}')">
+                <i class="bi bi-${b==='Electricity'?'lightning':b==='Water'?'droplet':b==='Internet'?'wifi':b==='Gas'?'fire':b==='Phone'?'phone':'tv'}" style="font-size:1.3rem;"></i>
+                <span style="font-size:.75rem;">${b}</span>
+              </button></div>`).join('')}
+          </div>
+        </div>
+        <div class="nb-card mt-3">
+          <h6 class="fw-semibold mb-3">Saved Payees</h6>
+          ${payees.map(p=>`<div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px solid var(--nb-border);">
+            <div style="font-size:.85rem;"><strong>${p.name}</strong><br><span style="color:var(--nb-muted);">${p.category}</span></div>
+            <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="payToPayee('${p.id}')">Pay</button>
+          </div>`).join('')||'<div style="color:var(--nb-muted);font-size:.85rem;">No saved payees</div>'}
+        </div>
+      </div>
+    </div>`;
+}
+function payBill() {
+  const amount = parseFloat(document.getElementById('bill-amount').value);
+  if (!amount||amount<=0) return toast('Enter valid amount', 'error');
+  const fromId = document.getElementById('bill-from').value;
+  const acc = DB.accounts.getById(fromId);
+  if (acc.balance < amount) return toast('Insufficient funds','error');
+  DB.accounts.update(fromId, {balance:acc.balance-amount});
+  DB.transactions.create({id:'t'+uid(),fromId,toId:null,amount,type:'payment',category:document.getElementById('bill-cat').value,desc:document.getElementById('bill-provider').value||'Bill Payment',status:'completed',ts:new Date().toISOString()});
+  toast('Bill paid successfully!','success');
+  navigate('history');
+}
+function quickBill(cat) {
+  document.getElementById('bill-cat').value = cat;
+  document.getElementById('bill-provider').value = cat + ' Provider';
+  document.getElementById('bill-amount').focus();
+}
+function payToPayee(id) {
+  const p = DB.payees.getById ? DB.payees.getById(id) : (DB.get('payees')||[]).find(px=>px.id===id);
+  if (p) { document.getElementById('bill-provider').value = p.name; }
+}
+
+function renderProfile(el) {
+  const u = STATE.user;
+  el.innerHTML = `
+    <div class="row g-4">
+      <div class="col-12 col-lg-4">
+        <div class="nb-card text-center">
+          <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--nb-primary),var(--nb-accent));margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;color:#fff;">${u.name.split(' ').map(n=>n[0]).join('')}</div>
+          <h5 class="fw-semibold mb-1">${u.name}</h5>
+          <div style="color:var(--nb-muted);font-size:.85rem;">${u.email}</div>
+          <div class="mt-2"><span class="chip"><i class="bi bi-shield-check"></i> ${u.role}</span></div>
+          <hr class="divider">
+          <div class="text-start" style="font-size:.85rem;">
+            <div class="d-flex justify-content-between py-1"><span style="color:var(--nb-muted);">Member since</span><span>${u.joined}</span></div>
+            <div class="d-flex justify-content-between py-1"><span style="color:var(--nb-muted);">Accounts</span><span>${DB.accounts.getByUser(u.id).length}</span></div>
+            <div class="d-flex justify-content-between py-1"><span style="color:var(--nb-muted);">Cards</span><span>${DB.cards.getByUser(u.id).length}</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-lg-8">
+        <div class="nb-card mb-3">
+          <h6 class="fw-semibold mb-3">Personal Information</h6>
+          <div class="row g-3">
+            <div class="col-md-6 form-group"><label>Full Name</label><input class="nb-input" id="p-name" value="${u.name}"></div>
+            <div class="col-md-6 form-group"><label>Email</label><input class="nb-input" id="p-email" value="${u.email}" type="email"></div>
+            <div class="col-md-6 form-group"><label>Phone</label><input class="nb-input" id="p-phone" value="${u.phone||''}"></div>
+            <div class="col-md-6 form-group"><label>Date of Birth</label><input class="nb-input" id="p-dob" value="${u.dob||''}" type="date"></div>
+            <div class="col-12 form-group"><label>Address</label><input class="nb-input" id="p-addr" value="${u.address||''}"></div>
+          </div>
+          <button class="btn-nb btn-nb-primary mt-2" onclick="saveProfile()"><i class="bi bi-check2"></i> Save Changes</button>
+        </div>
+        <div class="nb-card">
+          <h6 class="fw-semibold mb-3">Change Password</h6>
+          <div class="row g-3">
+            <div class="col-md-4 form-group"><label>Current Password</label><input class="nb-input" id="p-cur-pass" type="password"></div>
+            <div class="col-md-4 form-group"><label>New Password</label><input class="nb-input" id="p-new-pass" type="password"></div>
+            <div class="col-md-4 form-group"><label>Confirm New</label><input class="nb-input" id="p-con-pass" type="password"></div>
+          </div>
+          <button class="btn-nb btn-nb-outline mt-2" onclick="changePassword()"><i class="bi bi-lock"></i> Update Password</button>
+        </div>
+      </div>
+    </div>`;
+}
+function saveProfile() {
+  DB.users.update(STATE.user.id, { name:document.getElementById('p-name').value, email:document.getElementById('p-email').value, phone:document.getElementById('p-phone').value, dob:document.getElementById('p-dob').value, address:document.getElementById('p-addr').value });
+  STATE.user = DB.users.getById(STATE.user.id);
+  updateTopbarUser();
+  toast('Profile updated!', 'success');
+}
+function changePassword() {
+  const cur = document.getElementById('p-cur-pass').value;
+  const nw = document.getElementById('p-new-pass').value;
+  const cn = document.getElementById('p-con-pass').value;
+  if (cur !== STATE.user.password) return toast('Current password incorrect', 'error');
+  if (nw !== cn) return toast('Passwords do not match', 'error');
+  if (nw.length < 6) return toast('Password must be 6+ chars', 'error');
+  DB.users.update(STATE.user.id, { password: nw });
+  STATE.user.password = nw;
+  toast('Password updated!', 'success');
+}
+
+// ============================================================
+// ADMIN PAGES
+// ============================================================
+function adminGuard(el) {
+  if (!isAdmin()) { el.innerHTML = '<div class="empty-state"><i class="bi bi-shield-exclamation"></i>Access Denied</div>'; return false; }
+  return true;
+}
+
+function renderAdminDashboard(el) {
+  if (!adminGuard(el)) return;
+  const users = DB.users.getAll();
+  const accounts = DB.accounts.getAll();
+  const txns = DB.transactions.getAll();
+  const loans = DB.loans.getAll();
+  const totalAum = accounts.reduce((s,a)=>s+a.balance,0);
+  const volume = txns.reduce((s,t)=>s+t.amount,0);
+  el.innerHTML = `
+    <div class="admin-section mb-4"><i class="bi bi-lightning-charge-fill" style="color:var(--nb-gold);font-size:1.2rem;"></i><div><strong>Admin Mode Active</strong> — Full system access enabled</div></div>
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-xl-3"><div class="stat-card"><div class="stat-label"><i class="bi bi-people me-1"></i>Total Users</div><div class="stat-value">${users.length}</div></div></div>
+      <div class="col-6 col-xl-3"><div class="stat-card gold"><div class="stat-label"><i class="bi bi-bank me-1"></i>Total AUM</div><div class="stat-value">${fmt(totalAum)}</div></div></div>
+      <div class="col-6 col-xl-3"><div class="stat-card green"><div class="stat-label"><i class="bi bi-arrow-down-up me-1"></i>Txn Volume</div><div class="stat-value">${fmt(volume)}</div></div></div>
+      <div class="col-6 col-xl-3"><div class="stat-card red"><div class="stat-label"><i class="bi bi-exclamation-triangle me-1"></i>Frozen Accs</div><div class="stat-value">${accounts.filter(a=>a.status==='frozen').length}</div></div></div>
+    </div>
+    <div class="row g-3 mb-4">
+      <div class="col-12 col-lg-8"><div class="nb-card"><h6 class="fw-semibold mb-3">Transaction Volume (Simulation)</h6><canvas id="admin-txn-chart" height="120"></canvas></div></div>
+      <div class="col-12 col-lg-4"><div class="nb-card"><h6 class="fw-semibold mb-3">Account Types</h6><canvas id="admin-acc-chart" height="180"></canvas></div></div>
+    </div>
+    <div class="row g-3">
+      <div class="col-12 col-lg-6"><div class="nb-card"><h6 class="fw-semibold mb-3">Recent Users</h6>
+        <table class="nb-table"><thead><tr><th>Name</th><th>Role</th><th>Status</th></tr></thead><tbody>
+          ${users.slice(0,5).map(u=>`<tr><td><div style="font-weight:500;">${u.name}</div><div style="font-size:.72rem;color:var(--nb-muted);">${u.email}</div></td><td>${u.role}</td><td><span class="badge-status badge-${u.status}">${u.status}</span></td></tr>`).join('')}
+        </tbody></table>
+        <button class="btn-nb btn-nb-outline btn-nb-sm mt-2" onclick="navigate('admin-users')">Manage Users →</button>
+      </div></div>
+      <div class="col-12 col-lg-6"><div class="nb-card"><h6 class="fw-semibold mb-3">Pending Loans</h6>
+        ${loans.filter(l=>l.status==='pending').map(l=>`
+          <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px solid var(--nb-border);">
+            <div><div style="font-weight:500;">${l.type} Loan — ${fmt(l.amount)}</div><div style="font-size:.75rem;color:var(--nb-muted);">${DB.users.getById(l.userId)?.name||'Unknown'}</div></div>
+            <div class="d-flex gap-1"><button class="btn-nb btn-nb-success btn-nb-sm" onclick="approveLoan('${l.id}')"><i class="bi bi-check2"></i></button><button class="btn-nb btn-nb-danger btn-nb-sm" onclick="rejectLoan('${l.id}')"><i class="bi bi-x"></i></button></div>
+          </div>`).join('')||'<div style="color:var(--nb-muted);font-size:.85rem;">No pending loans</div>'}
+      </div></div>
+    </div>`;
+  setTimeout(()=>{
+    const months = ['Sep','Oct','Nov','Dec','Jan','Feb'];
+    const ctx1 = document.getElementById('admin-txn-chart');
+    if (ctx1) new Chart(ctx1, {type:'bar', data:{labels:months,datasets:[{label:'Volume',data:[45000,62000,58000,78000,55000,volume],backgroundColor:'rgba(29,111,164,.7)',borderRadius:6,borderSkipped:false}]},options:{plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>'$'+v.toLocaleString()}}}}});
+    const accTypes = {};
+    DB.accounts.getAll().forEach(a=>{accTypes[a.type]=(accTypes[a.type]||0)+1;});
+    const ctx2 = document.getElementById('admin-acc-chart');
+    if (ctx2) new Chart(ctx2, {type:'doughnut', data:{labels:Object.keys(accTypes),datasets:[{data:Object.values(accTypes),backgroundColor:['#1d6fa4','#c9a84c','#12b76a'],borderWidth:0}]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:11}}}},cutout:'60%'}});
+  },50);
+}
+function approveLoan(id) { DB.loans.update(id,{status:'active',nextPayment:new Date(Date.now()+30*86400000).toISOString().slice(0,10)}); logAudit('APPROVE_LOAN','loan',id); toast('Loan approved!','success'); renderPage('admin-dashboard'); }
+function rejectLoan(id) { DB.loans.update(id,{status:'rejected'}); logAudit('REJECT_LOAN','loan',id); toast('Loan rejected','warning'); renderPage('admin-dashboard'); }
+
+function renderAdminUsers(el) {
+  if (!adminGuard(el)) return;
+  const users = DB.users.getAll();
+  const rows = users.map(u=>`<tr>
+    <td><div style="font-weight:500;">${u.name}</div><div style="font-size:.72rem;color:var(--nb-muted);">${u.email}</div></td>
+    <td>${u.role}</td>
+    <td>${u.phone||'—'}</td>
+    <td>${u.joined||'—'}</td>
+    <td><span class="badge-status badge-${u.status}">${u.status}</span></td>
+    <td>
+      <div class="d-flex gap-1">
+        <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="adminEditUser('${u.id}')" title="Edit"><i class="bi bi-pencil"></i></button>
+        <button class="btn-nb ${u.status==='active'?'btn-nb-outline':'btn-nb-success'} btn-nb-sm" onclick="adminToggleUser('${u.id}')" title="${u.status==='active'?'Freeze':'Activate'}"><i class="bi bi-${u.status==='active'?'snow':'check2-circle'}"></i></button>
+        ${u.role!=='superadmin'?`<button class="btn-nb btn-nb-danger btn-nb-sm" onclick="adminDeleteUser('${u.id}')" title="Delete"><i class="bi bi-trash"></i></button>`:''}
+      </div>
+    </td>
+  </tr>`).join('');
+  el.innerHTML = `
+    <div class="admin-section mb-3"><i class="bi bi-people-fill" style="color:var(--nb-gold);"></i><div><strong>User Management</strong> — Full CRUD operations</div></div>
+    <div class="nb-card">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div class="search-wrap"><i class="bi bi-search"></i><input class="search-bar" placeholder="Search users..." style="width:220px;" oninput="filterTable(this,'users-tbl')"></div>
+        <button class="btn-nb btn-nb-primary" onclick="adminAddUserModal()"><i class="bi bi-person-plus"></i> Add User</button>
+      </div>
+      <div style="overflow-x:auto;"><table class="nb-table" id="users-tbl"><thead><tr><th>Name</th><th>Role</th><th>Phone</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>
+    </div>`;
+}
+function filterTable(input, tableId) {
+  const q = input.value.toLowerCase();
+  document.querySelectorAll(`#${tableId} tbody tr`).forEach(r => r.style.display = r.textContent.toLowerCase().includes(q)?'':'none');
+}
+function adminAddUserModal() {
+  showModal('Add New User', `
+    <div class="row g-2">
+      <div class="col-6 form-group"><label>First Name</label><input class="nb-input" id="au-fname"></div>
+      <div class="col-6 form-group"><label>Last Name</label><input class="nb-input" id="au-lname"></div>
+    </div>
+    <div class="form-group"><label>Email</label><input class="nb-input" id="au-email" type="email"></div>
+    <div class="form-group"><label>Password</label><input class="nb-input" id="au-pass" type="password"></div>
+    <div class="form-group"><label>Role</label><select class="nb-input" id="au-role"><option>customer</option><option>teller</option><option>admin</option></select></div>
+    <div class="form-group"><label>Status</label><select class="nb-input" id="au-status"><option>active</option><option>frozen</option></select></div>`,
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="adminSaveNewUser()">Create User</button></div>`
+  );
+}
+function adminSaveNewUser() {
+  const fname = document.getElementById('au-fname').value.trim();
+  const lname = document.getElementById('au-lname').value.trim();
+  const email = document.getElementById('au-email').value.trim();
+  const pass = document.getElementById('au-pass').value;
+  if (!fname||!email||!pass) return toast('Fill required fields','error');
+  if (DB.users.getByEmail(email)) return toast('Email exists','error');
+  const id = 'u'+uid();
+  DB.users.create({id,name:`${fname} ${lname}`,email,password:pass,role:document.getElementById('au-role').value,status:document.getElementById('au-status').value,phone:'',address:'',dob:'',joined:new Date().toISOString().slice(0,10),failedLogins:0});
+  logAudit('CREATE_USER','user',id);
+  toast('User created!','success');
+  closeModal();
+  navigate('admin-users');
+}
+function adminEditUser(id) {
+  const u = DB.users.getById(id);
+  showModal('Edit User: ' + u.name, `
+    <div class="form-group"><label>Full Name</label><input class="nb-input" id="eu-name" value="${u.name}"></div>
+    <div class="form-group"><label>Email</label><input class="nb-input" id="eu-email" value="${u.email}" type="email"></div>
+    <div class="form-group"><label>Phone</label><input class="nb-input" id="eu-phone" value="${u.phone||''}"></div>
+    <div class="form-group"><label>Address</label><input class="nb-input" id="eu-addr" value="${u.address||''}"></div>
+    <div class="form-group"><label>Role</label><select class="nb-input" id="eu-role"><option ${u.role==='customer'?'selected':''}>customer</option><option ${u.role==='teller'?'selected':''}>teller</option><option ${u.role==='admin'?'selected':''}>admin</option><option ${u.role==='superadmin'?'selected':''}>superadmin</option></select></div>
+    <div class="form-group"><label>Status</label><select class="nb-input" id="eu-status"><option ${u.status==='active'?'selected':''}>active</option><option ${u.status==='frozen'?'selected':''}>frozen</option></select></div>`,
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="adminUpdateUser('${id}')">Save Changes</button></div>`
+  );
+}
+function adminUpdateUser(id) {
+  DB.users.update(id, { name:document.getElementById('eu-name').value, email:document.getElementById('eu-email').value, phone:document.getElementById('eu-phone').value, address:document.getElementById('eu-addr').value, role:document.getElementById('eu-role').value, status:document.getElementById('eu-status').value });
+  logAudit('UPDATE_USER','user',id);
+  toast('User updated','success');
+  closeModal();
+  navigate('admin-users');
+}
+function adminToggleUser(id) {
+  const u = DB.users.getById(id);
+  const ns = u.status==='active'?'frozen':'active';
+  DB.users.update(id,{status:ns});
+  logAudit(ns==='frozen'?'FREEZE_USER':'ACTIVATE_USER','user',id);
+  toast(`User ${ns}`,'warning');
+  navigate('admin-users');
+}
+function adminDeleteUser(id) {
+  if (!confirm('Delete this user? This cannot be undone.')) return;
+  DB.users.delete(id);
+  DB.set('accounts', DB.accounts.getAll().filter(a=>a.userId!==id));
+  logAudit('DELETE_USER','user',id);
+  toast('User deleted','success');
+  navigate('admin-users');
+}
+
+function renderAdminAccounts(el) {
+  if (!adminGuard(el)) return;
+  const accounts = DB.accounts.getAll();
+  const rows = accounts.map(a=>{
+    const owner = DB.users.getById(a.userId);
+    return `<tr>
+      <td class="mono" style="font-size:.78rem;">${a.id}</td>
+      <td><div style="font-weight:500;">${owner?.name||'?'}</div><div style="font-size:.72rem;color:var(--nb-muted);">${owner?.email||''}</div></td>
+      <td>${a.type}</td>
+      <td class="mono">${fmt(a.balance)}</td>
+      <td><span class="badge-status badge-${a.status}">${a.status}</span></td>
+      <td>
+        <div class="d-flex gap-1">
+          <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="adminAdjustBalance('${a.id}')" title="Adjust Balance"><i class="bi bi-currency-dollar"></i></button>
+          <button class="btn-nb ${a.status==='active'?'btn-nb-outline':'btn-nb-success'} btn-nb-sm" onclick="adminToggleAccount('${a.id}')" title="${a.status==='active'?'Freeze':'Unfreeze'}"><i class="bi bi-${a.status==='active'?'snow':'check2-circle'}"></i></button>
+          <button class="btn-nb btn-nb-danger btn-nb-sm" onclick="adminDeleteAccount('${a.id}')" title="Delete"><i class="bi bi-trash"></i></button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+  el.innerHTML = `
+    <div class="admin-section mb-3"><i class="bi bi-wallet2" style="color:var(--nb-gold);"></i><div><strong>Account Management</strong> — Full CRUD</div></div>
+    <div class="nb-card">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div class="search-wrap"><i class="bi bi-search"></i><input class="search-bar" placeholder="Search accounts..." style="width:220px;" oninput="filterTable(this,'accs-tbl')"></div>
+        <button class="btn-nb btn-nb-primary" onclick="adminCreateAccountModal()"><i class="bi bi-plus-lg"></i> Create Account</button>
+      </div>
+      <div style="overflow-x:auto;"><table class="nb-table" id="accs-tbl"><thead><tr><th>ID</th><th>Owner</th><th>Type</th><th>Balance</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>
+    </div>`;
+}
+function adminAdjustBalance(id) {
+  const a = DB.accounts.getById(id);
+  showModal('Adjust Balance — ' + a.type, `
+    <p style="font-size:.85rem;">Current balance: <strong class="mono">${fmt(a.balance)}</strong></p>
+    <div class="form-group"><label>Adjustment Type</label><select class="nb-input" id="adj-type"><option value="credit">Credit (+)</option><option value="debit">Debit (-)</option><option value="set">Set to Amount</option></select></div>
+    <div class="form-group"><label>Amount ($)</label><input class="nb-input" id="adj-amount" type="number" placeholder="0.00"></div>
+    <div class="form-group"><label>Reason</label><input class="nb-input" id="adj-reason" placeholder="Reason for adjustment"></div>`,
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-gold" onclick="doAdjustBalance('${id}')">Apply Adjustment</button></div>`
+  );
+}
+function doAdjustBalance(id) {
+  const a = DB.accounts.getById(id);
+  const type = document.getElementById('adj-type').value;
+  const amount = parseFloat(document.getElementById('adj-amount').value);
+  const reason = document.getElementById('adj-reason').value||'Admin adjustment';
+  if (!amount) return toast('Enter amount','error');
+  let newBal = a.balance;
+  if (type==='credit') newBal += amount;
+  else if (type==='debit') newBal -= amount;
+  else newBal = amount;
+  DB.accounts.update(id, {balance: Math.max(0, newBal)});
+  DB.transactions.create({id:'t'+uid(),fromId:type==='debit'?id:null,toId:type==='credit'?id:null,amount,type:'adjustment',category:'Admin',desc:reason,status:'completed',ts:new Date().toISOString()});
+  logAudit('ADJUST_BALANCE','account',id,reason);
+  toast('Balance adjusted!','success');
+  closeModal();
+  navigate('admin-accounts');
+}
+function adminToggleAccount(id) {
+  const a = DB.accounts.getById(id);
+  const ns = a.status==='active'?'frozen':'active';
+  DB.accounts.update(id,{status:ns});
+  logAudit(ns==='frozen'?'FREEZE_ACCOUNT':'UNFREEZE_ACCOUNT','account',id);
+  toast(`Account ${ns}`,'warning');
+  navigate('admin-accounts');
+}
+function adminDeleteAccount(id) {
+  if (!confirm('Delete this account permanently?')) return;
+  DB.accounts.delete(id);
+  logAudit('DELETE_ACCOUNT','account',id);
+  toast('Account deleted','success');
+  navigate('admin-accounts');
+}
+function adminCreateAccountModal() {
+  const users = DB.users.getAll();
+  showModal('Create Account', `
+    <div class="form-group"><label>User</label><select class="nb-input" id="ca-user">${users.map(u=>`<option value="${u.id}">${u.name}</option>`).join('')}</select></div>
+    <div class="form-group"><label>Account Type</label><select class="nb-input" id="ca-type"><option>Checking</option><option>Savings</option><option>Fixed Deposit</option></select></div>
+    <div class="form-group"><label>Initial Balance</label><input class="nb-input" id="ca-bal" type="number" value="0"></div>
+    <div class="form-group"><label>Status</label><select class="nb-input" id="ca-status"><option>active</option><option>frozen</option></select></div>`,
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="adminSaveAccount()">Create</button></div>`
+  );
+}
+function adminSaveAccount() {
+  const id = 'a'+uid();
+  DB.accounts.create({id,userId:document.getElementById('ca-user').value,type:document.getElementById('ca-type').value,balance:parseFloat(document.getElementById('ca-bal').value)||0,iban:'GB29NWBK'+Math.floor(Math.random()*1e14),swift:'NXBKGB21',status:document.getElementById('ca-status').value,limit:5000,createdAt:new Date().toISOString().slice(0,10)});
+  logAudit('CREATE_ACCOUNT','account',id);
+  toast('Account created!','success');
+  closeModal();
+  navigate('admin-accounts');
+}
+
+function renderAdminTransactions(el) {
+  if (!adminGuard(el)) return;
+  const txns = DB.transactions.getAll().sort((a,b)=>new Date(b.ts)-new Date(a.ts));
+  const rows = txns.map(t=>`<tr>
+    <td class="mono" style="font-size:.72rem;">${t.id}</td>
+    <td><div style="font-weight:500;">${t.desc}</div><div style="font-size:.72rem;color:var(--nb-muted);">${t.category}</div></td>
+    <td class="mono">${fmt(t.amount)}</td>
+    <td>${t.type}</td>
+    <td>${fmtDate(t.ts)}</td>
+    <td><span class="badge-status badge-${t.status}">${t.status}</span></td>
+    <td>
+      <div class="d-flex gap-1">
+        <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="adminEditTxn('${t.id}')" title="Edit"><i class="bi bi-pencil"></i></button>
+        <button class="btn-nb btn-nb-danger btn-nb-sm" onclick="adminDeleteTxn('${t.id}')" title="Void"><i class="bi bi-x-circle"></i></button>
+      </div>
+    </td>
+  </tr>`).join('');
+  el.innerHTML = `
+    <div class="admin-section mb-3"><i class="bi bi-arrow-down-up" style="color:var(--nb-gold);"></i><div><strong>Transaction Management</strong> — View, Edit, Void all transactions</div></div>
+    <div class="nb-card">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div class="search-wrap"><i class="bi bi-search"></i><input class="search-bar" placeholder="Search transactions..." style="width:220px;" oninput="filterTable(this,'txns-tbl')"></div>
+        <div class="d-flex gap-2"><button class="btn-nb btn-nb-primary" onclick="adminCreateTxnModal()"><i class="bi bi-plus-lg"></i> Manual Entry</button>
+        <button class="btn-nb btn-nb-outline" onclick="exportAllTxns()"><i class="bi bi-download"></i> Export</button></div>
+      </div>
+      <div style="overflow-x:auto;"><table class="nb-table" id="txns-tbl"><thead><tr><th>ID</th><th>Description</th><th>Amount</th><th>Type</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>
+    </div>`;
+}
+function adminCreateTxnModal() {
+  const accounts = DB.accounts.getAll();
+  const accOpts = accounts.map(a=>{const u=DB.users.getById(a.userId);return `<option value="${a.id}">${a.type} — ${u?.name||'?'}</option>`;}).join('');
+  showModal('Manual Transaction', `
+    <div class="form-group"><label>From Account (leave blank for credit)</label><select class="nb-input" id="mt-from"><option value="">— None —</option>${accOpts}</select></div>
+    <div class="form-group"><label>To Account (leave blank for debit)</label><select class="nb-input" id="mt-to"><option value="">— None —</option>${accOpts}</select></div>
+    <div class="form-group"><label>Amount ($)</label><input class="nb-input" id="mt-amount" type="number"></div>
+    <div class="form-group"><label>Category</label><select class="nb-input" id="mt-cat"><option>Adjustment</option><option>Transfer</option><option>Fee</option><option>Refund</option><option>Interest</option></select></div>
+    <div class="form-group"><label>Description</label><input class="nb-input" id="mt-desc" placeholder="Reason / notes"></div>`,
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="adminSaveTxn()">Create</button></div>`
+  );
+}
+function adminSaveTxn() {
+  const amount = parseFloat(document.getElementById('mt-amount').value);
+  if (!amount) return toast('Enter amount','error');
+  const fromId = document.getElementById('mt-from').value||null;
+  const toId = document.getElementById('mt-to').value||null;
+  if (fromId) { const a=DB.accounts.getById(fromId); DB.accounts.update(fromId,{balance:Math.max(0,a.balance-amount)}); }
+  if (toId) { const a=DB.accounts.getById(toId); DB.accounts.update(toId,{balance:a.balance+amount}); }
+  const id='t'+uid();
+  DB.transactions.create({id,fromId,toId,amount,type:'adjustment',category:document.getElementById('mt-cat').value,desc:document.getElementById('mt-desc').value||'Admin entry',status:'completed',ts:new Date().toISOString()});
+  logAudit('CREATE_TRANSACTION','transaction',id);
+  toast('Transaction created!','success');
+  closeModal();
+  navigate('admin-transactions');
+}
+function adminEditTxn(id) {
+  const t = DB.transactions.getAll().find(tx=>tx.id===id);
+  showModal('Edit Transaction', `
+    <div class="form-group"><label>Description</label><input class="nb-input" id="et-desc" value="${t.desc}"></div>
+    <div class="form-group"><label>Category</label><input class="nb-input" id="et-cat" value="${t.category}"></div>
+    <div class="form-group"><label>Status</label><select class="nb-input" id="et-status"><option ${t.status==='completed'?'selected':''}>completed</option><option ${t.status==='pending'?'selected':''}>pending</option><option ${t.status==='reversed'?'selected':''}>reversed</option></select></div>`,
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="adminUpdateTxn('${id}')">Save</button></div>`
+  );
+}
+function adminUpdateTxn(id) {
+  DB.transactions.update(id,{desc:document.getElementById('et-desc').value,category:document.getElementById('et-cat').value,status:document.getElementById('et-status').value});
+  logAudit('UPDATE_TRANSACTION','transaction',id);
+  toast('Transaction updated','success');
+  closeModal();
+  navigate('admin-transactions');
+}
+function adminDeleteTxn(id) {
+  if (!confirm('Void this transaction?')) return;
+  DB.transactions.update(id,{status:'voided'});
+  logAudit('VOID_TRANSACTION','transaction',id);
+  toast('Transaction voided','warning');
+  navigate('admin-transactions');
+}
+function exportAllTxns() {
+  const txns = DB.transactions.getAll();
+  const csv = ['ID,Date,Description,Category,Amount,Type,Status',...txns.map(t=>`${t.id},${t.ts},"${t.desc}",${t.category},${t.amount},${t.type},${t.status}`)].join('\n');
+  const a = document.createElement('a'); a.href='data:text/csv,'+encodeURIComponent(csv); a.download='all-transactions.csv'; a.click();
+}
+
+function renderAdminLoans(el) {
+  if (!adminGuard(el)) return;
+  const loans = DB.loans.getAll();
+  const rows = loans.map(l=>{
+    const u = DB.users.getById(l.userId);
+    return `<tr>
+      <td><div style="font-weight:500;">${u?.name||'?'}</div><div style="font-size:.72rem;color:var(--nb-muted);">${u?.email||''}</div></td>
+      <td>${l.type}</td>
+      <td class="mono">${fmt(l.amount)}</td>
+      <td>${l.rate}%</td>
+      <td>${l.term}mo</td>
+      <td class="mono">${fmt(l.monthlyPayment)}</td>
+      <td><span class="badge-status badge-${l.status}">${l.status}</span></td>
+      <td>
+        <div class="d-flex gap-1">
+          <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="adminEditLoan('${l.id}')" title="Edit"><i class="bi bi-pencil"></i></button>
+          ${l.status==='pending'?`<button class="btn-nb btn-nb-success btn-nb-sm" onclick="approveLoan('${l.id}')"><i class="bi bi-check2"></i></button><button class="btn-nb btn-nb-danger btn-nb-sm" onclick="rejectLoan('${l.id}')"><i class="bi bi-x"></i></button>`:''}
+          <button class="btn-nb btn-nb-danger btn-nb-sm" onclick="adminDeleteLoan('${l.id}')" title="Cancel"><i class="bi bi-trash"></i></button>
+        </div>
+      </td>
+    </tr>`;}).join('');
+  el.innerHTML = `
+    <div class="admin-section mb-3"><i class="bi bi-bank" style="color:var(--nb-gold);"></i><div><strong>Loan Management</strong> — Approve, reject, edit all loans</div></div>
+    <div class="nb-card">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="search-wrap"><i class="bi bi-search"></i><input class="search-bar" placeholder="Search loans..." style="width:220px;" oninput="filterTable(this,'loans-tbl')"></div>
+        <button class="btn-nb btn-nb-primary" onclick="adminCreateLoanModal()"><i class="bi bi-plus-lg"></i> Issue Loan</button>
+      </div>
+      <div style="overflow-x:auto;"><table class="nb-table" id="loans-tbl"><thead><tr><th>Customer</th><th>Type</th><th>Amount</th><th>Rate</th><th>Term</th><th>Monthly</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>
+    </div>`;
+}
+function adminEditLoan(id) {
+  const l = DB.loans.getById(id);
+  showModal('Edit Loan', `
+    <div class="form-group"><label>Interest Rate (%)</label><input class="nb-input" id="el-rate" type="number" step="0.1" value="${l.rate}"></div>
+    <div class="form-group"><label>Term (months)</label><input class="nb-input" id="el-term" type="number" value="${l.term}"></div>
+    <div class="form-group"><label>Status</label><select class="nb-input" id="el-status"><option ${l.status==='active'?'selected':''}>active</option><option ${l.status==='pending'?'selected':''}>pending</option><option ${l.status==='paid'?'selected':''}>paid</option><option ${l.status==='rejected'?'selected':''}>rejected</option></select></div>`,
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="adminUpdateLoan('${id}')">Save</button></div>`
+  );
+}
+function adminUpdateLoan(id) {
+  DB.loans.update(id,{rate:parseFloat(document.getElementById('el-rate').value),term:parseInt(document.getElementById('el-term').value),status:document.getElementById('el-status').value});
+  logAudit('UPDATE_LOAN','loan',id);
+  toast('Loan updated','success');
+  closeModal();
+  navigate('admin-loans');
+}
+function adminDeleteLoan(id) {
+  if (!confirm('Cancel/delete this loan?')) return;
+  DB.loans.delete(id);
+  logAudit('DELETE_LOAN','loan',id);
+  toast('Loan deleted','success');
+  navigate('admin-loans');
+}
+function adminCreateLoanModal() {
+  const users = DB.users.getAll();
+  showModal('Issue Loan', `
+    <div class="form-group"><label>Customer</label><select class="nb-input" id="il-user">${users.map(u=>`<option value="${u.id}">${u.name}</option>`).join('')}</select></div>
+    <div class="form-group"><label>Type</label><select class="nb-input" id="il-type"><option>Personal</option><option>Auto</option><option>Mortgage</option><option>Business</option></select></div>
+    <div class="form-group"><label>Amount ($)</label><input class="nb-input" id="il-amount" type="number"></div>
+    <div class="form-group"><label>Rate (%)</label><input class="nb-input" id="il-rate" type="number" step="0.1" value="5.5"></div>
+    <div class="form-group"><label>Term (months)</label><input class="nb-input" id="il-term" type="number" value="24"></div>`,
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="adminIssueLoan()">Issue Loan</button></div>`
+  );
+}
+function adminIssueLoan() {
+  const amount = parseFloat(document.getElementById('il-amount').value);
+  const rate = parseFloat(document.getElementById('il-rate').value);
+  const term = parseInt(document.getElementById('il-term').value);
+  if (!amount) return toast('Enter amount','error');
+  const r = rate/100/12;
+  const monthly = r>0 ? amount*(r*Math.pow(1+r,term))/(Math.pow(1+r,term)-1) : amount/term;
+  const id='l'+uid();
+  DB.loans.create({id,userId:document.getElementById('il-user').value,type:document.getElementById('il-type').value,amount,rate,term,paid:0,status:'active',appliedAt:new Date().toISOString().slice(0,10),nextPayment:new Date(Date.now()+30*86400000).toISOString().slice(0,10),monthlyPayment:Math.round(monthly*100)/100});
+  logAudit('ISSUE_LOAN','loan',id);
+  toast('Loan issued!','success');
+  closeModal();
+  navigate('admin-loans');
+}
+
+function renderAdminCards(el) {
+  if (!adminGuard(el)) return;
+  const cards = DB.cards.getAll();
+  const rows = cards.map(c=>{
+    const u = DB.users.getById(c.userId);
+    return `<tr>
+      <td class="mono">${c.maskedNumber}</td>
+      <td><div style="font-weight:500;">${u?.name||'?'}</div></td>
+      <td>${c.type}</td>
+      <td>${c.expiry}</td>
+      <td class="mono">${fmt(c.dailyLimit)}</td>
+      <td><span class="badge-status badge-${c.status}">${c.status}</span></td>
+      <td>
+        <div class="d-flex gap-1">
+          <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="adminEditCardModal('${c.id}')"><i class="bi bi-pencil"></i></button>
+          <button class="btn-nb ${c.status==='active'?'btn-nb-outline':'btn-nb-success'} btn-nb-sm" onclick="adminToggleCard('${c.id}')"><i class="bi bi-${c.status==='active'?'snow':'check2-circle'}"></i></button>
+          <button class="btn-nb btn-nb-danger btn-nb-sm" onclick="adminCancelCard('${c.id}')"><i class="bi bi-x-octagon"></i></button>
+        </div>
+      </td>
+    </tr>`;}).join('');
+  el.innerHTML = `
+    <div class="admin-section mb-3"><i class="bi bi-credit-card" style="color:var(--nb-gold);"></i><div><strong>Card Management</strong> — Full CRUD on all cards</div></div>
+    <div class="nb-card">
+      <div style="overflow-x:auto;"><table class="nb-table"><thead><tr><th>Card Number</th><th>Owner</th><th>Type</th><th>Expiry</th><th>Daily Limit</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>
+    </div>`;
+}
+function adminToggleCard(id) {
+  const c = DB.cards.getById(id);
+  const ns = c.status==='active'?'frozen':'active';
+  DB.cards.update(id,{status:ns});
+  logAudit(ns==='frozen'?'FREEZE_CARD':'UNFREEZE_CARD','card',id);
+  toast(`Card ${ns}`,'warning');
+  navigate('admin-cards');
+}
+function adminCancelCard(id) {
+  if (!confirm('Permanently cancel this card?')) return;
+  DB.cards.update(id,{status:'cancelled'});
+  logAudit('CANCEL_CARD','card',id);
+  toast('Card cancelled','warning');
+  navigate('admin-cards');
+}
+function adminEditCardModal(id) {
+  const c = DB.cards.getById(id);
+  showModal('Edit Card Limits', `
+    <div class="form-group"><label>Daily Limit ($)</label><input class="nb-input" id="ac-daily" type="number" value="${c.dailyLimit}"></div>
+    <div class="form-group"><label>Monthly Limit ($)</label><input class="nb-input" id="ac-monthly" type="number" value="${c.monthlyLimit}"></div>
+    <div class="form-group"><label>Status</label><select class="nb-input" id="ac-status"><option ${c.status==='active'?'selected':''}>active</option><option ${c.status==='frozen'?'selected':''}>frozen</option><option ${c.status==='cancelled'?'selected':''}>cancelled</option></select></div>`,
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="adminUpdateCard('${id}')">Save</button></div>`
+  );
+}
+function adminUpdateCard(id) {
+  DB.cards.update(id,{dailyLimit:parseFloat(document.getElementById('ac-daily').value),monthlyLimit:parseFloat(document.getElementById('ac-monthly').value),status:document.getElementById('ac-status').value});
+  logAudit('UPDATE_CARD','card',id);
+  toast('Card updated','success');
+  closeModal();
+  navigate('admin-cards');
+}
+
+function renderAdminReports(el) {
+  if (!adminGuard(el)) return;
+  const txns = DB.transactions.getAll();
+  const users = DB.users.getAll();
+  const loans = DB.loans.getAll();
+  const totalRevenue = txns.filter(t=>t.category==='Fee'||t.category==='Interest').reduce((s,t)=>s+t.amount,0);
+  el.innerHTML = `
+    <div class="admin-section mb-3"><i class="bi bi-bar-chart" style="color:var(--nb-gold);"></i><div><strong>Reports & Analytics</strong></div></div>
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-xl-3"><div class="stat-card"><div class="stat-label">Total Transactions</div><div class="stat-value">${txns.length}</div></div></div>
+      <div class="col-6 col-xl-3"><div class="stat-card gold"><div class="stat-label">Total Users</div><div class="stat-value">${users.length}</div></div></div>
+      <div class="col-6 col-xl-3"><div class="stat-card green"><div class="stat-label">Active Loans</div><div class="stat-value">${loans.filter(l=>l.status==='active').length}</div></div></div>
+      <div class="col-6 col-xl-3"><div class="stat-card red"><div class="stat-label">Pending Reviews</div><div class="stat-value">${loans.filter(l=>l.status==='pending').length}</div></div></div>
+    </div>
+    <div class="row g-3">
+      <div class="col-12 col-lg-8"><div class="nb-card"><h6 class="fw-semibold mb-3">Monthly Transaction Summary</h6><canvas id="monthly-chart" height="150"></canvas></div></div>
+      <div class="col-12 col-lg-4"><div class="nb-card"><h6 class="fw-semibold mb-3">Transaction Types</h6><canvas id="type-chart" height="200"></canvas></div></div>
+    </div>
+    <div class="row g-3 mt-0">
+      <div class="col-12"><div class="nb-card">
+        <div class="d-flex justify-content-between align-items-center mb-3"><h6 class="fw-semibold mb-0">User Status Distribution</h6><button class="btn-nb btn-nb-outline btn-nb-sm" onclick="exportReport()"><i class="bi bi-download"></i> Export</button></div>
+        <div class="row g-3">
+          ${['active','frozen','pending'].map(s=>{const count=users.filter(u=>u.status===s).length;const pct=Math.round(count/users.length*100)||0;return `<div class="col-12 col-md-4"><div style="font-size:.85rem;margin-bottom:.3rem;">${s.charAt(0).toUpperCase()+s.slice(1)} Users <strong>${count}</strong> (${pct}%)</div><div class="progress-bar-custom"><div class="progress-fill" style="width:${pct}%;"></div></div></div>`;}).join('')}
+        </div>
+      </div></div>
+    </div>`;
+  setTimeout(()=>{
+    const months = ['Sep','Oct','Nov','Dec','Jan','Feb'];
+    const ctx1 = document.getElementById('monthly-chart');
+    if(ctx1) new Chart(ctx1, {type:'line',data:{labels:months,datasets:[{label:'Payments',data:[12,8,15,11,9,txns.filter(t=>t.type==='payment').length],borderColor:'#1d6fa4',fill:true,backgroundColor:'rgba(29,111,164,.1)',tension:.4},{label:'Transfers',data:[5,7,6,9,8,txns.filter(t=>t.type==='transfer').length],borderColor:'#c9a84c',fill:true,backgroundColor:'rgba(201,168,76,.1)',tension:.4}]},options:{plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true}}}});
+    const types = {};
+    txns.forEach(t=>{types[t.type]=(types[t.type]||0)+1;});
+    const ctx2 = document.getElementById('type-chart');
+    if(ctx2) new Chart(ctx2, {type:'doughnut',data:{labels:Object.keys(types),datasets:[{data:Object.values(types),backgroundColor:['#1d6fa4','#c9a84c','#12b76a','#f04438'],borderWidth:0}]},options:{plugins:{legend:{position:'bottom',labels:{font:{size:11}}}},cutout:'60%'}});
+  },50);
+}
+function exportReport() {
+  const users = DB.users.getAll();
+  const csv = ['Name,Email,Role,Status,Joined',...users.map(u=>`${u.name},${u.email},${u.role},${u.status},${u.joined}`)].join('\n');
+  const a = document.createElement('a'); a.href='data:text/csv,'+encodeURIComponent(csv); a.download='user-report.csv'; a.click();
+}
+
+function renderAdminConfig(el) {
+  if (!adminGuard(el)) return;
+  el.innerHTML = `
+    <div class="admin-section mb-3"><i class="bi bi-gear" style="color:var(--nb-gold);"></i><div><strong>System Configuration</strong></div></div>
+    <div class="row g-4">
+      <div class="col-12 col-lg-6">
+        <div class="nb-card">
+          <h6 class="fw-semibold mb-3">Interest Rates</h6>
+          ${[['Savings Account','3.50'],['Fixed Deposit','5.00'],['Personal Loan','8.00'],['Mortgage','4.50'],['Auto Loan','6.00']].map(([n,v])=>`
+            <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px solid var(--nb-border);">
+              <div style="font-size:.88rem;">${n}</div>
+              <div class="d-flex align-items-center gap-2"><input class="nb-input" style="width:80px;text-align:center;" type="number" step="0.01" value="${v}"><span style="font-size:.85rem;">%</span></div>
+            </div>`).join('')}
+          <button class="btn-nb btn-nb-primary mt-3" onclick="toast('Rates saved!','success')">Save Rates</button>
+        </div>
+        <div class="nb-card mt-3">
+          <h6 class="fw-semibold mb-3">Transfer Limits</h6>
+          ${[['Daily Customer Limit','10,000'],['Monthly Customer Limit','50,000'],['International Limit','25,000'],['Teller Daily','100,000']].map(([n,v])=>`
+            <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px solid var(--nb-border);">
+              <div style="font-size:.88rem;">${n}</div>
+              <div class="d-flex align-items-center gap-2"><span style="font-size:.85rem;">$</span><input class="nb-input" style="width:110px;text-align:right;" type="text" value="${v}"></div>
+            </div>`).join('')}
+          <button class="btn-nb btn-nb-primary mt-3" onclick="toast('Limits saved!','success')">Save Limits</button>
+        </div>
+      </div>
+      <div class="col-12 col-lg-6">
+        <div class="nb-card mb-3">
+          <h6 class="fw-semibold mb-3">System Controls</h6>
+          <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px solid var(--nb-border);">
+            <div><div style="font-weight:500;">Maintenance Mode</div><div style="font-size:.78rem;color:var(--nb-muted);">Locks all customer logins</div></div>
+            <button class="btn-nb btn-nb-outline" onclick="toast('Maintenance mode toggled','warning')">Toggle</button>
+          </div>
+          <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px solid var(--nb-border);">
+            <div><div style="font-weight:500;">New Registrations</div><div style="font-size:.78rem;color:var(--nb-muted);">Allow new account creation</div></div>
+            <button class="btn-nb btn-nb-success btn-nb-sm">Enabled</button>
+          </div>
+          <div class="d-flex justify-content-between align-items-center py-2">
+            <div><div style="font-weight:500;">2FA Enforcement</div><div style="font-size:.78rem;color:var(--nb-muted);">Require OTP for all transfers</div></div>
+            <button class="btn-nb btn-nb-success btn-nb-sm">Enabled</button>
+          </div>
+        </div>
+        <div class="nb-card mb-3">
+          <h6 class="fw-semibold mb-3">Broadcast Announcement</h6>
+          <div class="form-group"><label>Message</label><textarea class="nb-input" rows="3" placeholder="Type a system-wide announcement..."></textarea></div>
+          <div class="form-group"><label>Priority</label><select class="nb-input"><option>Info</option><option>Warning</option><option>Critical</option></select></div>
+          <button class="btn-nb btn-nb-primary" onclick="toast('Announcement broadcast to all users!','success')"><i class="bi bi-megaphone"></i> Broadcast</button>
+        </div>
+        <div class="nb-card">
+          <h6 class="fw-semibold mb-3">Danger Zone</h6>
+          <button class="btn-nb btn-nb-danger w-100 mb-2 justify-content-center" onclick="toast('Full backup initiated...','info')"><i class="bi bi-cloud-download"></i> Export Full Database</button>
+          <button class="btn-nb btn-nb-outline w-100 justify-content-center" onclick="if(confirm('Reset ALL demo data?')){localStorage.removeItem(\'nb_seeded\');DB.seed();toast(\'Data reset\',\'success\');}"><i class="bi bi-arrow-clockwise"></i> Reset Demo Data</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderAdminAudit(el) {
+  if (!adminGuard(el)) return;
+  const logs = DB.auditLog.getAll().reverse();
+  const rows = logs.map(l=>{
+    const admin = DB.users.getById(l.adminId);
+    return `<tr>
+      <td>${fmtDate(l.ts)}</td>
+      <td style="font-size:.8rem;">${new Date(l.ts).toLocaleTimeString()}</td>
+      <td><strong>${admin?.name||'?'}</strong></td>
+      <td><span class="chip" style="font-size:.72rem;">${l.action}</span></td>
+      <td style="font-size:.8rem;">${l.entity} / <span class="mono">${l.entityId}</span></td>
+      <td style="font-size:.82rem;">${l.detail||'—'}</td>
+    </tr>`;}).join('');
+  el.innerHTML = `
+    <div class="admin-section mb-3"><i class="bi bi-shield-check" style="color:var(--nb-gold);"></i><div><strong>Audit Log</strong> — All admin actions recorded</div></div>
+    <div class="nb-card">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="search-wrap"><i class="bi bi-search"></i><input class="search-bar" placeholder="Search audit log..." style="width:220px;" oninput="filterTable(this,'audit-tbl')"></div>
+        <span style="font-size:.82rem;color:var(--nb-muted);">${logs.length} entries</span>
+      </div>
+      <div style="overflow-x:auto;"><table class="nb-table" id="audit-tbl">
+        <thead><tr><th>Date</th><th>Time</th><th>Admin</th><th>Action</th><th>Target</th><th>Detail</th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="6" class="text-center py-4 text-muted">No audit entries yet</td></tr>'}</tbody>
+      </table></div>
+    </div>`;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+DB.seed();
+if (restoreSession()) {
+  bootApp();
+} else {
+  renderAuthForm('login');
+}
+</script>
+</body>
+</html>
