@@ -3,6 +3,32 @@
 // MAIN APP LOGIC
 // ============================================================
 
+const PAGES_CUSTOMER = [
+  { id:'dashboard', label:'Dashboard', icon:'speedometer2', section:'MAIN' },
+  { id:'accounts', label:'Accounts', icon:'wallet2', section:'MAIN' },
+  { id:'transfers', label:'Transfers', icon:'arrow-left-right', section:'BANKING' },
+  { id:'history', label:'Transactions', icon:'clock-history', section:'BANKING' },
+  { id:'cards', label:'Cards', icon:'credit-card', section:'BANKING' },
+  { id:'loans', label:'Loans', icon:'bank', section:'BANKING' },
+  { id:'bills', label:'Bill Pay', icon:'receipt', section:'BANKING' },
+  { id:'profile', label:'Profile', icon:'person', section:'ACCOUNT' },
+];
+
+function buildNav() {
+  const user = STATE.user;
+  if (!user) return;
+  let pages = [...PAGES_CUSTOMER];
+  // if (isAdmin()) pages = [...pages, ...PAGES_ADMIN]; // Admin separated
+  let html = '';
+  let lastSection = '';
+  pages.forEach(p => {
+    if (p.section !== lastSection) { html += `<div class="nav-section">${p.section}</div>`; lastSection = p.section; }
+    html += `<div class="nav-item ${STATE.page===p.id?'active':''}" onclick="navigate('${p.id}')"><i class="bi bi-${p.icon}"></i>${p.label}</div>`;
+  });
+  const el = document.getElementById('sidebar-nav');
+  if (el) el.innerHTML = html;
+}
+
 // Navigation & UI
 function toggleSidebar(force) {
   const s = document.getElementById('sidebar');
