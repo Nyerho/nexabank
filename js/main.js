@@ -70,13 +70,15 @@ function renderPage(page) {
     profile: renderProfile 
   };
 
-  if (pages[page]) { 
-    pages[page](el); 
-  } else { 
-    // Fallback if page not found or if it's an admin page and we are in customer view
-    // If it's an admin page, we should probably redirect or show access denied if this script is only for customers.
-    // However, for simplicity, we'll just show page not found.
-    el.innerHTML = '<div class="empty-state"><i class="bi bi-question-circle"></i>Page not found</div>'; 
+  try {
+    if (pages[page]) { 
+      pages[page](el); 
+    } else { 
+      el.innerHTML = '<div class="empty-state"><i class="bi bi-question-circle"></i>Page not found</div>'; 
+    }
+  } catch (err) {
+    console.error('Render error:', err);
+    el.innerHTML = `<div class="alert alert-danger">Error rendering page: ${err.message}</div>`;
   }
 }
 
@@ -138,6 +140,7 @@ function showNotifications() {
 
 function renderDashboard(el) {
   const user = STATE.user;
+  if (!user) { location.href = 'app.html'; return; }
   const accounts = DB.accounts.getByUser(user.id);
   const txns = DB.transactions.getByUser(user.id).slice(0,6);
   const totalBal = accounts.reduce((s,a)=>s+(a.status==='active'?a.balance:0), 0);

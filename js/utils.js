@@ -1,5 +1,5 @@
-function fmt(n) { return '$' + Number(n).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}); }
-function fmtDate(ts) { return new Date(ts).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}); }
+function fmt(n) { return '$' + Number(n||0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+function fmtDate(ts) { if(!ts) return 'N/A'; try { return new Date(ts).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}); } catch { return 'Invalid Date'; } }
 function uid() { return Math.random().toString(36).substr(2,9); }
 
 function toast(msg, type='info') {

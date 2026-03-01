@@ -96,7 +96,12 @@ function doRegister() {
   const user = { id, name:`${fname} ${lname}`, email, password:pass, role:'customer', status:'active', phone:document.getElementById('r-phone').value, dob:document.getElementById('r-dob').value, address:'', joined:new Date().toISOString().slice(0,10), failedLogins:0 };
   DB.users.create(user);
   DB.accounts.create({ id:'a'+uid(), userId:id, type:'Checking', balance:0, iban:'GB29NWBK'+Math.floor(Math.random()*1e14), swift:'NXBKGB21', status:'active', limit:5000, createdAt:new Date().toISOString().slice(0,10) });
-  login(email, pass);
-  bootApp();
-  toast('Welcome to NexaBank!', 'success');
+  const res = login(email, pass);
+  if (res.ok) {
+    bootApp();
+    toast('Welcome to NexaBank!', 'success');
+  } else {
+    toast('Registration successful but login failed. Please sign in.', 'warning');
+    renderAuthForm('login');
+  }
 }
