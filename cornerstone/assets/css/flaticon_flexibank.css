@@ -1,0 +1,95 @@
+/*!
+*    ______ _       _   _
+*    |  ____| |     | | (_)
+*    | |__  | | __ _| |_ _  ___ ___  _ __
+*    |  __| | |/ _` | __| |/ __/ _ \| '_ \
+*    | |    | | (_| | |_| | (_| (_) | | | |
+*    |_|    |_|\__,_|\__|_|\___\___/|_| |_|
+*
+*         https://www.flaticon.com
+*/
+
+@font-face {
+    font-family: "flaticon_flexibank";
+    src: url("../fonts/flaticon_flexibank%EF%B9%968e956bd10ab82df756eccf21dfd64b3a.woff2") format("woff2")
+}
+
+i[class^="flaticon-"]:before,
+i[class*=" flaticon-"]:before {
+    font-family: flaticon_flexibank !important;
+    font-style: normal;
+    font-weight: normal !important;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.flaticon-down-arrow:before {
+    content: "\f101";
+}
+
+.flaticon-next:before {
+    content: "\f102";
+}
+
+.flaticon-right-arrow:before {
+    content: "\f103";
+}
+
+.flaticon-down-arrow-1:before {
+    content: "\f104";
+}
+
+.flaticon-sparkle:before {
+    content: "\f105";
+}
+
+.flaticon-play-store:before {
+    content: "\f106";
+}
+
+.flaticon-apple:before {
+    content: "\f107";
+}
+
+.flaticon-chart-up:before {
+    content: "\f108";
+}
+
+.flaticon-chevron:before {
+    content: "\f109";
+}
+
+.flaticon-facebook:before {
+    content: "\f10a";
+}
+
+.flaticon-twitter:before {
+    content: "\f10b";
+}
+
+.flaticon-instagram-logo:before {
+    content: "\f10c";
+}
+
+.flaticon-youtube:before {
+    content: "\f10d";
+}
+
+.flaticon-vimeo:before {
+    content: "\f10e";
+}
+
+.flaticon-mobile-data:before {
+    content: "\f10f";
+}
+
+.flaticon-right-arrow-1:before {
+    content: "\f110";
+}
+
+.flaticon-star:before {
+    content: "\f111";
+}

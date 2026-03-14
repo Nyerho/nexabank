@@ -1,0 +1,1266 @@
+/* Responsive Css */
+
+@media only screen and (max-width: 1799px) {
+    .header-upper .upper-inner .left-column {
+        gap: 30px;
+    }
+    .header-upper .upper-inner .left-column .logo-box:before {
+        display: none;
+    }
+}
+
+@media only screen and (max-width: 1699px) {
+    .main-header .logo-box {
+        margin-right: 30px;
+    }
+    .main-menu .navigation>li {
+        margin: 0px 15px;
+    }
+    .online-service .inner-container .left-content {
+        margin-left: 0px;
+    }
+    .header-upper .upper-inner .left-column .logo-box {
+        margin-right: 0px;
+    }
+    .header-upper .upper-inner .left-column .notification-box {
+        display: none;
+    }
+    .header-upper .upper-inner .right-column:before {
+        display: none;
+    }
+    .main-footer .footer-bottom .bottom-top .list-item li:before {
+        display: none;
+    }
+}
+
+@media only screen and (max-width: 1649px) {
+    .header-style-three .outer-container,
+    .banner-style-three {
+        padding-left: 60px;
+        padding-right: 60px;
+    }
+}
+
+@media only screen and (max-width: 1599px) {
+    .main-header .menu-right-content .btn-box {
+        display: none;
+    }
+    .apps-section .image-layer {
+        display: none;
+    }
+    .header-style-three .menu-right-content .btn-box {
+        display: inline-block;
+    }
+}
+
+@media only screen and (max-width: 1399px) {
+    .main-header .menu-right-content .support-box {
+        display: none;
+    }
+    .main-header .menu-right-content .search-box {
+        padding-right: 0px;
+    }
+    .main-header .menu-right-content .search-box:before {
+        display: none;
+    }
+    .header-top .info-list li.looking-box {
+        padding: 17px 15px;
+    }
+    .header-top .option-list li {
+        margin-right: 25px;
+    }
+    .header-style-two .menu-right-content li.looking-box {
+        display: none;
+    }
+    .header-top-two .outer-container {
+        padding: 0px;
+    }
+    .main-header .header-top .outer-container {
+        padding: 0px;
+    }
+    .main-header .header-lower .outer-container {
+        padding: 0px 15px;
+    }
+    .banner-style-three {
+        padding: 0px;
+    }
+}
+
+@media only screen and (max-width: 1299px) {
+    .header-style-three .menu-right-content .btn-box {
+        display: none;
+    }
+    .header-style-three .menu-right-content li.notification-box {
+        margin: 0px;
+    }
+    .header-style-four .right-column .social-links {
+        display: none;
+    }
+}
+
+@media only screen and (max-width: 1200px) {
+    .main-menu,
+    .sticky-header,
+    .main-header.style-one .outer-container:before {
+        display: none !important;
+    }
+    .menu-area .mobile-nav-toggler {
+        display: block;
+        padding: 10px;
+    }
+    .header-style-four .menu-area {
+        display: block;
+    }
+    .megamenu ul li:first-child {
+        display: none;
+    }
+    .online-service .inner-container .left-content {
+        display: block;
+    }
+    .online-service .left-content .info-box {
+        margin-bottom: 20px;
+    }
+    .header-top .info-list li.looking-box {
+        display: none;
+    }
+    .header-top .top-inner {
+        padding: 16px 30px;
+    }
+    .main-header .header-lower {
+        padding: 15px;
+    }
+    .banner-section .banner-carousel .owl-nav,
+    .banner-section .banner-carousel .owl-dots {
+        display: none;
+    }
+    .banner-section .outer-container {
+        padding: 0px 60px;
+    }
+    .banking-service .content-box .inner-box {
+        padding-right: 0px;
+    }
+    .banking-service .content-box .inner-box .inner {
+        position: relative;
+        width: 100%;
+        margin-top: 30px;
+    }
+    .custom-banking .tabs-box .support-image {
+        display: none;
+    }
+    .custom-banking .content-box .inner-box .single-item {
+        padding-left: 0px;
+    }
+    .custom-banking .content-box .inner-box .single-item:before {
+        display: none;
+    }
+    .main-footer .footer-bottom .bottom-inner {
+        display: block;
+        text-align: center;
+    }
+    .main-footer .footer-bottom .social-box .social-links {
+        justify-content: center;
+    }
+    .main-footer .footer-bottom .footer-logo .logo {
+        padding: 15px 0px;
+        margin-bottom: 0px;
+    }
+    .main-footer .footer-bottom .footer-nav li:last-child {
+        display: inline-block;
+        text-align: left;
+    }
+    .header-top-two .bar-box {
+        display: none;
+    }
+    .header-style-two .header-lower {
+        padding: 0px;
+    }
+    .header-style-two .header-lower .outer-box {
+        padding: 15px 0px;
+    }
+    .banner-style-two .owl-dots,
+    .custom-banking-two .dots-style-one .owl-dots,
+    .secure-growth-two .owl-nav {
+        display: none;
+    }
+    .big-text {
+        display: none !important;
+    }
+    .apps-section .content-box,
+    .awards-section .content-box {
+        padding-left: 0px;
+    }
+    .awards-section .owl-nav {
+        display: none;
+    }
+    .clients-section .inner-container {
+        padding: 0px 30px;
+    }
+    .banner-style-three .inner-box .content-box,
+    .banner-style-three .inner-box .image-box {
+        float: none;
+        width: 100%;
+    }
+    .footer-style-three .footer-widget:before,
+    .footer-style-three .language-box:before,
+    .header-style-four .left-column .sidebar-menu .side-menu-btn {
+        display: none;
+    }
+    .testimonial-style-two {
+        padding-top: 0px;
+    }
+    .header-style-four .outer-box {
+        padding: 0px;
+    }
+    .header-style-four .header-lower {
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+    }
+    .header-style-four .left-column .search-box,
+    .header-style-four .left-column .sidebar-menu:before,
+    .header-style-four .right-column .location-box,
+    .investment-block-one .image-box,
+    .footer-style-four .subscribe-widget .image-box {
+        display: none;
+    }
+    .secure-growth-two .image-layer {
+        right: 0px;
+    }
+    .performance-section .content-box {
+        margin-right: 0px;
+    }
+    .performance-section .progress-content {
+        margin-left: 0px;
+    }
+    .cards-section .inner-container .upper-content .card-image {
+        display: none;
+    }
+    .testimonial-style-two.pt_120 {
+        padding-top: 120px;
+    }
+    .blog-sidebar {
+        margin-left: 0px;
+    }
+}
+
+@media only screen and (min-width: 768px) {
+    .main-menu .navigation>li>ul,
+    .main-menu .navigation>li>ul>li>ul,
+    .main-menu .navigation>li>.megamenu {
+        display: block !important;
+        visibility: hidden;
+        opacity: 0;
+    }
+}
+
+@media only screen and (max-width: 991px) {
+    .header-top .top-inner {
+        display: block;
+    }
+    .header-top .info-list,
+    .header-top .right-column {
+        justify-content: center;
+    }
+    .header-top .info-list li,
+    .header-top .option-list {
+        padding-right: 0px;
+    }
+    .header-top .info-list li:before,
+    .header-top .option-list:before {
+        display: none;
+    }
+    .online-service .right-content {
+        margin-top: 0px;
+    }
+    .banking-service .image-box {
+        margin-right: 0px;
+        margin-bottom: 30px;
+    }
+    .secure-growth .owl-nav {
+        display: none;
+    }
+    .custom-banking .title-box {
+        display: block;
+    }
+    .custom-banking .title-box .support-box {
+        padding-left: 0px;
+        margin-top: 20px;
+    }
+    .custom-banking .title-box .support-box:before {
+        display: none;
+    }
+    .custom-banking .content-box {
+        padding-left: 40px;
+    }
+    .funfact-section .funfact-block-one {
+        width: 50%;
+    }
+    .calculator-section .tab-btns .tab-btn {
+        width: 33.333%;
+    }
+    .calculator-section .image-layer {
+        display: none;
+    }
+    .creditcard-section .card-inner {
+        margin-right: 0px;
+        margin-bottom: 30px;
+    }
+    .creditcard-section .content-box .inner-box .text-box p {
+        max-width: 100%;
+    }
+    .creditcard-section .content-box .inner-box .form-inner .form-group {
+        max-width: 100%;
+    }
+    .locker-facility .content-box {
+        margin-top: 0px;
+        margin-bottom: 30px;
+    }
+    .news-section .owl-nav {
+        display: none;
+    }
+    .main-footer .widget-section:before {
+        display: none;
+    }
+    .main-footer .footer-widget {
+        margin-left: 0px;
+        margin-bottom: 30px;
+    }
+    .main-footer .footer-bottom .bottom-top {
+        margin: 0px;
+        padding-left: 30px;
+        padding-right: 30px;
+    }
+    .main-footer .widget-section {
+        padding-bottom: 100px;
+    }
+    .header-style-two {
+        padding: 0px 15px;
+    }
+    .header-top-two .service-list {
+        display: block;
+    }
+    .header-top-two .service-list li {
+        justify-content: center;
+    }
+    .header-upper .upper-inner {
+        display: block;
+    }
+    .main-header .outer-container {
+        padding-left: 0px;
+    }
+    .header-upper .upper-inner .left-column {
+        display: block;
+        text-align: center;
+    }
+    .header-upper .upper-inner .right-column .info-list li a {
+        background: transparent;
+    }
+    .header-upper .upper-inner .right-column .info-list li a span {
+        color: #fff;
+        opacity: 0.5;
+    }
+    .header-upper .upper-inner .right-column {
+        padding: 0px 15px;
+        justify-content: center;
+    }
+    .secure-growth-two .image-layer,
+    .exchange-section .owl-nav {
+        display: none;
+    }
+    .help-section .tab-btn-box .tab-btn:last-child {
+        padding-bottom: 19px;
+    }
+    .help-section .tab-btn-box {
+        margin-right: 0px;
+        margin-bottom: 30px;
+    }
+    .working-block-one {
+        margin-bottom: 30px;
+    }
+    .awards-section .content-box {
+        margin-top: 30px;
+    }
+    .clients-section .owl-dots,
+    .testimonial-section .owl-nav {
+        display: none;
+    }
+    .testimonial-section .inner-container {
+        padding: 0px 0px;
+    }
+    .testimonial-section .testimonial-content {
+        border: none;
+    }
+    .footer-style-two .footer-top .top-inner {
+        display: block;
+    }
+    .footer-style-two .footer-top .option-list {
+        padding: 15px 0px;
+        padding-bottom: 40px;
+    }
+    .footer-style-two .links-widget:before {
+        display: none;
+    }
+    .footer-style-two .footer-bottom .contact-info-box {
+        display: none;
+    }
+    .footer-style-two .widget-section {
+        padding-bottom: 80px;
+    }
+    .banner-style-three .content-box .rotate-box {
+        position: relative;
+        top: 0px;
+        right: 0px;
+        margin-bottom: 20px;
+    }
+    .banner-style-three .content-box {
+        padding: 50px 30px;
+    }
+    .banner-style-three .form-inner:before,
+    .banner-style-three .form-inner:after,
+    .banner-style-three .content-box:before,
+    .banner-style-three .content-box:after,
+    .footer-style-three .footer-top .footer-logo:before {
+        display: none;
+    }
+    .footer-style-three .footer-top .top-inner {
+        display: block;
+    }
+    .footer-style-three .footer-top .left-column {
+        display: block;
+        text-align: center;
+    }
+    .footer-style-three .footer-top .footer-logo {
+        padding: 0px;
+        margin: 0px;
+        margin-bottom: 20px;
+    }
+    .footer-style-three .footer-top .social-links,
+    .footer-style-three .language-box,
+    .footer-style-three .footer-bottom .bottom-inner .footer-nav {
+        justify-content: center;
+    }
+    .footer-style-three .language-box {
+        padding: 0px;
+    }
+    .footer-style-three .footer-widget {
+        margin-bottom: 30px;
+    }
+    .footer-style-three .widget-section {
+        padding-bottom: 70px;
+    }
+    .footer-style-three .footer-bottom .bottom-inner {
+        display: block;
+        text-align: center;
+    }
+    .banner-style-four .lower-content .single-item {
+        margin-bottom: 30px;
+    }
+    .banner-style-four {
+        padding-bottom: 70px;
+    }
+    .investment-section .outer-container {
+        padding: 0px;
+    }
+    .instant-section .content-box .accordion .acc-content .single-item a {
+        margin-bottom: 10px;
+    }
+    .instant-section .content-box .accordion .acc-content {
+        padding-bottom: 20px;
+    }
+    .instant-section .support-inner .support-icon {
+        display: none;
+    }
+    .instant-section .content-box {
+        margin-bottom: 30px;
+    }
+    .footer-style-four .widget-content {
+        margin-bottom: 30px;
+    }
+    .footer-style-four .footer-bottom .bottom-inner {
+        display: block;
+    }
+    .footer-style-four .footer-bottom .footer-logo {
+        justify-content: center;
+        margin-bottom: 15px;
+    }
+    .footer-style-four .footer-bottom .footer-menu {
+        justify-content: center;
+    }
+    .overview-section .content-box {
+        margin-bottom: 30px;
+    }
+    .documents-section .sec-title {
+        margin-bottom: 30px;
+    }
+    .documents-section .inner-container {
+        padding-left: 30px;
+        padding-right: 30px;
+    }
+    .performance-section .content-box {
+        margin-bottom: 30px;
+    }
+    .main-footer .footer-widget {
+        margin-right: 0px;
+    }
+    .main-footer .widget-section {
+        border-bottom: none;
+    }
+    .about-section .title-box .certified-box {
+        margin-bottom: 20px;
+    }
+    .chooseus-section .image-box {
+        margin-right: 0px;
+    }
+    .chooseus-section .content-box {
+        margin-top: 30px;
+    }
+    .search-popup .upper-box {
+        padding-left: 30px;
+        padding-right: 30px;
+    }
+    .team-details .image-box {
+        margin-right: 0px;
+    }
+    .team-details .content-box {
+        margin-top: 30px;
+    }
+    .careers-block-one .inner-box {
+        padding-right: 0px;
+    }
+    .careers-block-one .inner-box .btn-box {
+        position: relative;
+        padding-left: 0px;
+        border-left: none;
+    }
+    .careers-block-one .inner-box .title-box {
+        margin-right: 0px;
+    }
+    .careers-block-one .inner-box .info-box .info-list li:before {
+        display: none;
+    }
+    .career-sidebar {
+        margin-left: 0px;
+        margin-top: 30px;
+    }
+    .career-details-content .social-box .social-links {
+        gap: 20px;
+    }
+    .blog-sidebar {
+        margin-top: 40px;
+    }
+    .appointment-section .appointment-form {
+        max-width: 100%;
+    }
+    .branches-section .map-inner {
+        position: relative;
+        width: 100%;
+    }
+    .branches-section .content-box {
+        max-width: 100%;
+        margin-bottom: 70px;
+    }
+    .banner-style-three .inner-container {
+        padding-right: 0px;
+    }
+    .banner-style-three .form-inner {
+        position: relative;
+        width: 100%;
+    }
+}
+
+@media only screen and (max-width: 767px) {
+    .banner-section .outer-container {
+        padding: 0px 30px;
+    }
+    .banner-carousel .content-box h2 {
+        font-size: 50px;
+        line-height: 60px;
+    }
+    .banner-carousel .slide-item {
+        padding: 100px 0px;
+    }
+    .online-service .right-content .content-box {
+        margin-left: 0px;
+    }
+    .sec-pad {
+        padding: 63px 0px 70px 0px;
+    }
+    .sec-title h2 {
+        font-size: 36px;
+        line-height: 44px;
+    }
+    .secure-growth {
+        padding: 63px 0px;
+    }
+    .secure-growth .more-text {
+        padding-top: 0px;
+    }
+    .custom-banking .tabs-box .tab-btn-one {
+        position: relative;
+        left: 0px;
+        writing-mode: horizontal-tb;
+    }
+    .custom-banking .tabs-box .tab-btn-one .tab-btns li {
+        padding: 10px 26px;
+    }
+    .custom-banking .tabs-box .tab-btn-two {
+        margin-right: 0px;
+    }
+    .custom-banking .tabs-box {
+        margin-left: 0px;
+    }
+    .custom-banking .content-box .inner-box {
+        padding-right: 0px;
+    }
+    .custom-banking .content-box .inner-box .form-inner {
+        position: relative;
+        top: 0px;
+        margin-top: 30px;
+    }
+    .custom-banking .content-box .inner-box .form-inner {
+        width: 100%;
+    }
+    .calculator-section .content-box .left-content .lower-text {
+        margin-bottom: 20px;
+    }
+    .calculator-section .content-box {
+        padding-left: 30px;
+        padding-right: 30px;
+    }
+    .calculator-section .content-box,
+    .calculator-section .content-box .left-content {
+        margin-right: 0px;
+    }
+    .locker-facility .content-box .inner-box .single-item {
+        margin-bottom: 20px;
+    }
+    .locker-facility .content-box .inner-box .single-column:last-child .single-item {
+        margin-bottom: 0px;
+    }
+    .calculator-section {
+        padding: 70px 0px;
+    }
+    .calculator-section .amount-box {
+        margin-left: 0px;
+    }
+    .locker-facility {
+        padding: 63px 0px 70px 0px;
+    }
+    .news-section {
+        padding: 63px 0px 40px 0px;
+    }
+    .main-footer .widget-section {
+        padding: 100px 0px 70px 0px;
+    }
+    .main-footer .footer-bottom .bottom-top .list-item {
+        display: block;
+    }
+    .main-footer .footer-bottom .bottom-top .list-item li {
+        margin-bottom: 15px;
+    }
+    .main-footer .footer-bottom .bottom-top {
+        padding-bottom: 5px;
+    }
+    .header-top-two {
+        display: none;
+    }
+    .header-upper .upper-inner .right-column .info-list {
+        display: block;
+    }
+    .header-upper .upper-inner .right-column .info-list li a:before {
+        display: none;
+    }
+    .banner-style-two .banner-carousel .slide-item {
+        padding: 150px 0px 100px 0px;
+    }
+    .custom-banking-two,
+    .exchange-section,
+    .working-section {
+        padding: 63px 0px;
+    }
+    .sec-pad-2 {
+        padding: 63px 0px 40px 0px;
+    }
+    .deals-section .newsletter-inner {
+        padding-left: 30px;
+        padding-right: 30px;
+    }
+    .deals-section .newsletter-inner .icon-box {
+        position: relative;
+        left: 0px;
+        top: 0px;
+        margin-bottom: 20px;
+    }
+    .awards-section {
+        padding: 63px 0px 70px 0px;
+    }
+    .testimonial-section {
+        padding: 70px 0px;
+    }
+    .footer-style-two .footer-top .support-box {
+        width: 100%;
+    }
+    .footer-style-two .footer-bottom .bottom-inner {
+        display: block;
+        text-align: center;
+    }
+    .footer-style-two .footer-bottom .bottom-inner .footer-nav {
+        justify-content: center;
+    }
+    .custom-banking .content-box .title-box h2 {
+        font-size: 30px;
+        line-height: 38px;
+    }
+    .testimonial-style-two.pb_90 {
+        padding-bottom: 40px !important;
+    }
+    .header-style-four .left-column {
+        display: none;
+    }
+    .header-style-four .header-lower {
+        justify-content: space-between;
+    }
+    .banner-style-four .upper-content h2 {
+        font-size: 50px;
+        line-height: 58px;
+    }
+    .banner-style-four {
+        padding-top: 95px;
+    }
+    .investment-block-one,
+    .investment-block-two .inner-box {
+        padding-left: 30px;
+        padding-right: 30px;
+    }
+    .footer-style-four .footer-bottom .footer-menu {
+        gap: 20px;
+    }
+    .page-title {
+        padding-top: 90px;
+    }
+    .page-title h1 {
+        margin-bottom: 50px;
+        font-size: 50px;
+        line-height: 58px;
+    }
+    .custom-banking-two.pb_90 {
+        padding-bottom: 40px !important;
+    }
+    .features-section {
+        padding: 63px 0px 35px 0px;
+    }
+    .performance-section {
+        padding: 63px 0px 85px 0px;
+    }
+    .sec-pad-3 {
+        padding: 70px 0px 40px 0px !important;
+    }
+    .cards-section {
+        padding: 70px 0px 63px 0px;
+    }
+    .cards-section .inner-container .upper-content {
+        padding-left: 30px;
+        padding-right: 30px;
+    }
+    .cards-section .lower-content {
+        display: block;
+        padding: 30px;
+    }
+    .cards-section .lower-content .more-text h5 {
+        margin-bottom: 15px;
+    }
+    .cards-block-one .inner-box {
+        padding-left: 0px;
+    }
+    .cards-block-one .inner-box .cards-column {
+        position: relative;
+        width: 100%;
+    }
+    .cards-block-one .inner-box .content-column {
+        padding-left: 30px;
+        padding-right: 30px;
+    }
+    .cards-style-two {
+        padding-bottom: 70px;
+    }
+    .cards-sidebar {
+        padding: 70px 0px;
+    }
+    .card-details-content {
+        padding: 0px;
+        margin: 0px;
+        border: none;
+    }
+    .about-section {
+        padding: 63px 0px 70px 0px;
+    }
+    .about-section .lower-content .left-content {
+        display: block;
+    }
+    .about-section .upper-content {
+        padding-bottom: 65px;
+    }
+    .team-details,
+    .career-details {
+        padding: 70px 0px;
+    }
+    .careers-section {
+        padding: 70px 0px 40px 0px;
+    }
+    .careers-block-one .inner-box .title-box {
+        display: block;
+    }
+    .careers-block-one .inner-box .title-box .author-box {
+        margin-bottom: 15px;
+    }
+    .careers-block-one .inner-box .info-box .info-list li {
+        width: 50%;
+        margin-bottom: 15px;
+    }
+    .testimonial-style-two.pt_120.pb_90 {
+        padding: 70px 0px 40px 0px !important;
+    }
+    .news-section.pt_120.pb_120,
+    .sidebar-page-container {
+        padding: 70px 0px;
+    }
+    .sidebar-page-container .news-block-one.style-two .inner-box {
+        padding-left: 0px;
+    }
+    .news-block-one.style-two .inner-box .image-box {
+        position: relative;
+    }
+    .page-title h2 br {
+        display: none;
+    }
+    .appointment-section {
+        padding: 70px 0px;
+    }
+    .cards-sidebar {
+        padding-top: 0px;
+    }
+    .branches-section {
+        padding: 70px 0px;
+    }
+    .card-details {
+        padding-top: 70px;
+    }
+    .card-details {
+        padding-bottom: 70px;
+    }
+}
+
+@media only screen and (max-width: 599px) {
+    .main-header .menu-right-content .search-box {
+        display: none;
+    }
+    .main-header .header-lower .outer-container {
+        padding: 0px;
+    }
+    .funfact-section .funfact-block-one {
+        width: 100%;
+    }
+    .funfact-block-one .inner-box {
+        border: none;
+    }
+    .calculator-section .tab-btns .tab-btn {
+        width: 50%;
+    }
+    .creditcard-section .card-inner {
+        padding-left: 40px;
+    }
+    .header-upper .upper-inner .right-column {
+        display: none;
+    }
+    .header-style-two .header-lower .outer-box {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    .news-block-one.style-two .inner-box {
+        padding-left: 0px;
+    }
+    .testimonial-section .testimonial-content {
+        padding-left: 30px;
+        padding-right: 30px;
+    }
+    .testimonial-section .testimonial-content .icon-box {
+        position: relative;
+        left: 0px;
+        top: 0px;
+        margin-bottom: 20px;
+    }
+    .footer-style-two .footer-top {
+        display: none;
+    }
+    .banner-style-three .content-box .sec-title h2 {
+        font-size: 40px;
+        line-height: 48px;
+    }
+    .banner-style-three .form-inner {
+        padding-left: 30px;
+        padding-right: 30px;
+    }
+    .footer-style-three .footer-top .social-links {
+        display: none;
+    }
+    .footer-style-three .widget-section {
+        padding-top: 70px;
+    }
+    .banner-style-four .upper-content h2 br {
+        display: none;
+    }
+    .banking-service .content-box {
+        margin-right: 0px;
+    }
+    .footer-style-four .footer-bottom .footer-menu {
+        display: block;
+    }
+    .footer-style-four .footer-bottom .footer-menu li {
+        margin: 0px 5px;
+    }
+    .cards-section .content-box .list-style-one li {
+        width: 100%;
+    }
+    .about-section .upper-content .content-box .inner-box {
+        padding-left: 150px;
+    }
+    .career-details-content .upper-box .btn-box {
+        position: relative;
+        top: 0px;
+        right: 0px;
+        margin-top: 15px;
+    }
+    .career-details-content .social-box .social-links {
+        display: block;
+    }
+    .career-details-content .social-box .social-links li {
+        display: inline-block;
+        margin-bottom: 5px;
+    }
+    .news-block-one .inner-box .content-box .lower-box .link-box {
+        display: block;
+    }
+    .news-block-one .inner-box .content-box .post-info {
+        display: block;
+    }
+    .news-block-one .inner-box .content-box .post-info li {
+        display: inline-block;
+    }
+    .blog-list-one .news-block-one .inner-box .content-box {
+        padding-left: 30px;
+        padding-right: 30px;
+    }
+    .page-title h2 {
+        font-size: 40px;
+        line-height: 50px;
+    }
+    .blog-details-content .author-box .social-links {
+        position: relative;
+        top: 0px;
+        right: 0px;
+        margin-top: 15px;
+    }
+    .blog-details-content .post-tag-option .tags-list {
+        display: block;
+    }
+    .blog-details-content .post-tag-option .tags-list li {
+        display: inline-block;
+        margin-right: 6px;
+        margin-bottom: 10px;
+    }
+    .blog-details-content .post-nav .single-btn h4 a br {
+        display: none;
+    }
+    .appointment-section .appointment-form {
+        padding-left: 30px;
+        padding-right: 30px;
+    }
+}
+
+@media only screen and (max-width: 499px) {
+    .mobile-menu {
+        width: 100%;
+    }
+    .header-top .info-list li {
+        margin-right: 10px;
+    }
+    .header-top .right-column {
+        display: block;
+    }
+    .header-top .top-inner {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    .header-top .option-list li {
+        margin-right: 15px;
+    }
+    .header-top .language-box {
+        justify-content: center;
+    }
+    .header-top .option-list {
+        margin-right: 0px;
+        justify-content: center;
+    }
+    .main-header .menu-right-content {
+        display: none;
+    }
+    .main-header .outer-box .menu-area {
+        justify-content: space-between;
+    }
+    .main-header .outer-box {
+        display: block;
+    }
+    .online-service .left-content .btn-box {
+        display: block;
+    }
+    .online-service .left-content .btn-box a.play-store {
+        margin-right: 0px;
+        margin-bottom: 20px;
+    }
+    .online-service .inner-container:before {
+        right: -15px;
+    }
+    .online-service .left-content .btn-box a {
+        justify-content: center;
+    }
+    .custom-banking .content-box {
+        padding-left: 15px;
+    }
+    .custom-banking .content-box .title-box {
+        padding-left: 0px;
+    }
+    .custom-banking .content-box .title-box .icon-box {
+        position: relative;
+        top: 0px;
+        margin-bottom: 20px;
+    }
+    .calculator-section .tab-btns .tab-btn {
+        width: 100%;
+    }
+    .main-footer .contact-widget .schedule-inner {
+        display: block;
+    }
+    .main-footer .contact-widget .schedule-inner .contact-info {
+        margin-bottom: 30px;
+    }
+    .main-footer .contact-widget .support-box h4 {
+        font-size: 16px;
+    }
+    .header-style-two .menu-right-content {
+        display: flex;
+    }
+    .header-style-two .header-lower .outer-box {
+        display: flex;
+    }
+    .header-style-two .menu-right-content li.phone-box a {
+        font-size: 12px;
+    }
+    .side-panel {
+        right: -15px;
+        width: 290px;
+    }
+    .banner-style-two .content-box .inner-box {
+        display: block;
+    }
+    .exchange-section .tab-btn-box .tab-btns {
+        display: block;
+    }
+    .exchange-section .tab-btn-box .tab-btns li {
+        display: block;
+        width: 100%;
+        margin-right: 0px;
+        margin-bottom: 10px;
+    }
+    .help-section .content-box {
+        padding-left: 30px;
+        padding-right: 30px;
+    }
+    .deals-block-one .inner-box .title-box {
+        padding-left: 0px;
+    }
+    .deals-block-one .inner-box .title-box .icon-box {
+        position: relative;
+        margin-bottom: 20px;
+    }
+    .deals-section .newsletter-inner .form-group {
+        padding-right: 0px;
+    }
+    .deals-section .newsletter-inner .form-group button[type='submit'] {
+        position: relative;
+        width: 100%;
+    }
+    .testimonial-section .testimonial-content .author-inner {
+        display: block;
+    }
+    .testimonial-section .testimonial-content .author-box {
+        margin-bottom: 15px;
+    }
+    .testimonial-section .customer-review {
+        display: block;
+        padding: 14px 25px;
+    }
+    .testimonial-section .customer-review .review-text {
+        padding-right: 0px;
+        margin-right: 0px;
+    }
+    .testimonial-section .customer-review .review-text:before {
+        display: none;
+    }
+    .banner-style-three .content-box {
+        padding: 50px 15px;
+    }
+    .banner-style-three .form-inner {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    .testimonial-block-one .inner-box .author-box {
+        padding-left: 0px;
+    }
+    .testimonial-block-one .inner-box .author-box .thumb-box {
+        position: relative;
+        top: 0px;
+        margin-bottom: 20px;
+    }
+    .header-style-four .right-column .login-box {
+        display: none;
+    }
+    .locker-facility .content-box .inner-box .single-item {
+        padding-right: 0px;
+        border: none;
+    }
+    .footer-style-four .subscribe-widget .form-inner .form-group input[type='email'] {
+        padding-right: 20px;
+    }
+    .footer-style-four .subscribe-widget .form-inner .form-group button[type='submit'] {
+        position: relative;
+        width: 100%;
+        margin-top: 10px;
+    }
+    .overview-section .content-box .btn-box {
+        display: block;
+    }
+    .overview-section .content-box .btn-box .theme-btn {
+        margin-bottom: 15px;
+    }
+    .overview-section .inner-box .inner-content:before,
+    .overview-section .inner-box .inner-content:after {
+        display: none;
+    }
+    .performance-section .content-box .inner-box {
+        display: block;
+    }
+    .performance-section .content-box .inner-box .single-item {
+        margin-bottom: 20px;
+    }
+    .performance-section .content-box .inner-box .single-item:last-child {
+        margin-bottom: 0px;
+    }
+    .main-footer .contact-widget .certified-box {
+        padding-left: 20px;
+    }
+    .main-footer .contact-widget .certified-box .image-box {
+        position: relative;
+        left: 0px;
+        top: 0px;
+        margin-bottom: 20px;
+    }
+    .page-title .bread-crumb {
+        display: block;
+    }
+    .page-title .bread-crumb li {
+        display: inline-block;
+        margin-right: 28px;
+    }
+    .about-section .title-box .certified-box,
+    .about-section .upper-content .content-box .inner-box {
+        padding-left: 0px;
+    }
+    .about-section .title-box .rotate-box,
+    .about-section .upper-content .content-box .inner-box .icon-box {
+        position: relative;
+        margin-bottom: 20px;
+    }
+    .about-section .title-box .certified-box h4 br {
+        display: none;
+    }
+    .chooseus-section .image-box {
+        padding-right: 0px;
+    }
+    .chooseus-section .image-box .chart-box {
+        position: relative;
+        top: 0px;
+        margin-top: 30px;
+        width: 100%;
+    }
+    .chooseus-section .image-box .chart-box .option-list {
+        justify-content: center;
+    }
+    .careers-block-one .inner-box .info-box .info-list li {
+        width: 100%;
+    }
+    .career-details-content .content-two .list-item li h5 {
+        width: 110px;
+    }
+    .news-block-one .inner-box .content-box .upper-box {
+        display: block;
+    }
+    .pagination li a {
+        width: 50px;
+        height: 50px;
+        line-height: 50px;
+    }
+    .news-block-one .inner-box .content-box .lower-box h2 {
+        font-size: 24px;
+        line-height: 32px;
+    }
+    .blog-sidebar .post-widget .post {
+        padding-left: 0px;
+    }
+    .blog-sidebar .post-widget .post .post-thumb {
+        position: relative;
+        top: 0px;
+        margin-bottom: 20px;
+    }
+    .blog-details-content .news-block-one .inner-box .upper-box .left-column {
+        display: block;
+    }
+    .blog-details-content .news-block-one .inner-box .upper-box .left-column .post-date,
+    .news-block-one .inner-box .content-box .upper-box .title-box {
+        margin-bottom: 10px;
+    }
+    .blog-details-content .content-one blockquote p {
+        padding-left: 0px;
+    }
+    .blog-details-content .content-one blockquote p img {
+        position: relative;
+        top: 0px;
+        margin-bottom: 20px;
+        display: block;
+    }
+    .blog-details-content .content-one blockquote .lower-box {
+        display: block;
+    }
+    .blog-details-content .author-box {
+        padding-left: 30px;
+    }
+    .blog-details-content .author-box .thumb-box {
+        position: relative;
+        left: 0px;
+        top: 0px;
+        margin-bottom: 20px;
+    }
+    .blog-details-content .comment-box .comment .title-box {
+        display: block;
+    }
+    .corporate-block-one .inner-box,
+    .contact-section .tabs-content {
+        padding-left: 30px;
+        padding-right: 30px;
+    }
+    .corporate-block-one .inner-box .icon-box {
+        position: relative;
+        left: 0px;
+        top: 0px;
+        margin-bottom: 20px;
+    }
+}

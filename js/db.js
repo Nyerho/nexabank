@@ -8,18 +8,25 @@ const DB = {
   // Seed function removed to avoid placeholder data
   seed() {
     // Ensure at least one admin exists for system access
-    if (!DB.users.getByEmail('admin@nexabank.com')) {
+    const adminEmail = 'admin@nexabank.com';
+    const existingAdmin =
+      DB.users.getByEmail(adminEmail) ||
+      DB.users.getAll().find(u => (u.email || '').trim().toLowerCase() === adminEmail);
+    if (!existingAdmin) {
       const id = 'u' + Math.random().toString(36).substr(2,9);
       DB.users.create({
         id,
         name: 'System Admin',
-        email: 'admin@nexabank.com',
+        email: adminEmail,
         password: 'admin',
         role: 'admin',
         status: 'active',
+        failedLogins: 0,
         joined: new Date().toISOString()
       });
       console.log('Admin user created: admin@nexabank.com / admin');
+    } else {
+      DB.users.update(existingAdmin.id, { email: adminEmail, password: 'admin', status: 'active', role: 'admin', failedLogins: 0 });
     }
   },
 

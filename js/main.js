@@ -168,57 +168,270 @@ function renderDashboard(el) {
   const user = STATE.user;
   if (!user) { location.href = 'app.html'; return; }
   const accounts = DB.accounts.getByUser(user.id);
-  const txns = DB.transactions.getByUser(user.id).slice(0,6);
+  const myAccIds = accounts.map(a=>a.id);
+  const txns = DB.transactions.getByUser(user.id).slice(0,12);
   const totalBal = accounts.reduce((s,a)=>s+(a.status==='active'?a.balance:0), 0);
-  const accCards = accounts.map(a=>`
-    <div class="col-12 col-md-4">
-      <div class="nb-card" style="cursor:pointer;" onclick="navigate('accounts')">
-        <div class="d-flex justify-content-between align-items-start mb-2">
-          <div><div style="font-size:.78rem;color:var(--nb-muted);">${a.type}</div><div class="mono" style="font-size:1.3rem;font-weight:700;">${fmt(a.balance)}</div></div>
-          <span class="badge-status badge-${a.status}">${a.status}</span>
+
+  const uniqueTypes = Array.from(new Set(accounts.map(a=>a.type)));
+  const tabs = ['All', ...uniqueTypes].map((t,i)=>`
+    <button class="dash-tab ${i===0?'active':''}" onclick="dashFilterCards('${t.replace(/'/g,"\\'")}', this)">${t}</button>
+  `).join('');
+
+  const cardColors = ['purple','blue','gold'];
+  const cardNodes = accounts.map((a,i)=>{
+    const typeKey = a.type || 'Other';
+    const masked = (a.iban || '').replace(/(.{4})/g,'$1 ').trim();
+    return `
+      <div class="dash-card ${cardColors[i%cardColors.length]}" data-type="${typeKey.replace(/"/g,'&quot;')}" onclick="navigate('accounts')">
+        <div class="d-flex justify-content-between align-items-start" style="position:relative;z-index:1;">
+          <div>
+            <div class="label">${typeKey}</div>
+            <div class="bal mono">${fmt(a.balance)}</div>
+          </div>
+          <span class="badge-status badge-${a.status}" style="align-self:flex-start;">${a.status}</span>
         </div>
-        <div style="font-size:.72rem;color:var(--nb-muted);">${a.iban}</div>
-      </div>
-    </div>`).join('');
-  const txRows = txns.map(t=>{
-    const myAccIds = accounts.map(a=>a.id);
-    const isDebit = myAccIds.includes(t.fromId) && t.type!=='credit';
-    return `<tr>
-      <td><div style="font-size:.88rem;font-weight:500;">${t.desc}</div><div style="font-size:.72rem;color:var(--nb-muted);">${t.category} • ${fmtDate(t.ts)}</div></td>
-      <td><span class="${isDebit?'amount-neg':'amount-pos'}">${isDebit?'-':'+'}${fmt(t.amount)}</span></td>
-      <td><span class="badge-status badge-${t.status}">${t.status}</span></td>
-    </tr>`;}).join('');
+        <div class="num mono" style="position:relative;z-index:1;">${masked || '—'}</div>
+        <div class="meta" style="position:relative;z-index:1;">
+          <div style="font-weight:700;opacity:.95;">${user.name}</div>
+          <div style="display:flex;align-items:center;gap:.5rem;">
+            <i class="bi bi-wifi" style="transform: rotate(90deg);opacity:.85;"></i>
+            <i class="bi bi-credit-card-2-front" style="opacity:.9;"></i>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  const txnItems = txns.map(t=>{
+    const isDebit = myAccIds.includes(t.fromId) && t.type !== 'credit';
+    const icon = dashTxnIcon(t);
+    const amountClass = isDebit ? 'neg' : 'pos';
+    const sign = isDebit ? '-' : '+';
+    return `
+      <div class="txn-item" data-q="${(t.desc+' '+t.category).toLowerCase().replace(/"/g,'&quot;')}">
+        <div class="d-flex align-items-center gap-2" style="min-width:0;">
+          <div class="txn-ico"><i class="bi bi-${icon}"></i></div>
+          <div class="txn-meta">
+            <div class="txn-desc">${t.desc}</div>
+            <div class="txn-sub">${t.category} • ${fmtDate(t.ts)}</div>
+          </div>
+        </div>
+        <div class="text-end" style="flex-shrink:0;">
+          <div class="txn-amt ${amountClass}">${sign}${fmt(t.amount)}</div>
+          <div style="margin-top:.15rem;"><span class="badge-status badge-${t.status}" style="font-size:.65rem;">${t.status}</span></div>
+        </div>
+      </div>`;
+  }).join('');
+
+  const monthLabel = new Date().toLocaleString(undefined, { month: 'long', year: 'numeric' });
+
   el.innerHTML = `
-    <div class="row g-3 mb-4">
-      <div class="col-12 col-sm-6"><div class="stat-card"><div class="stat-label"><i class="bi bi-wallet2 me-1"></i>Total Balance</div><div class="stat-value">${fmt(totalBal)}</div></div></div>
-      <div class="col-12 col-sm-6"><div class="stat-card gold"><div class="stat-label"><i class="bi bi-bank me-1"></i>Active Accounts</div><div class="stat-value">${accounts.filter(a=>a.status==='active').length}</div></div></div>
-    </div>
-    <div class="d-flex flex-wrap gap-2 mb-4">
-      <button class="btn-nb btn-nb-primary" onclick="navigate('transfers')"><i class="bi bi-arrow-left-right"></i> Transfer</button>
-      <button class="btn-nb btn-nb-outline" onclick="navigate('bills')"><i class="bi bi-receipt"></i> Pay Bills</button>
-      <button class="btn-nb btn-nb-outline" onclick="navigate('loans')"><i class="bi bi-bank"></i> Apply Loan</button>
-      <button class="btn-nb btn-nb-outline" onclick="navigate('cards')"><i class="bi bi-credit-card"></i> Cards</button>
-    </div>
-    <div class="row g-3 mb-4">${accCards}</div>
-    <div class="row g-3">
-      <div class="col-12 col-lg-8">
-        <div class="nb-card">
-          <div class="d-flex justify-content-between align-items-center mb-3"><h6 class="mb-0 fw-semibold">Recent Transactions</h6><button class="btn-nb btn-nb-outline btn-nb-sm" onclick="navigate('history')">View All</button></div>
-          <div style="overflow-x:auto;"><table class="nb-table"><thead><tr><th>Description</th><th>Amount</th><th>Status</th></tr></thead><tbody>${txRows||'<tr><td colspan="3" class="text-center text-muted py-4">No transactions</td></tr>'}</tbody></table></div>
+    <div class="dash-grid">
+      <div>
+        <div class="dash-panel">
+          <div class="dash-title-row">
+            <div>
+              <div class="dash-title">My cards</div>
+              <div class="dash-sub">Quick view of your balances and recent activity</div>
+            </div>
+            <div class="d-flex align-items-center gap-2" style="flex-wrap:wrap;justify-content:flex-end;">
+              <div class="search-wrap dash-search">
+                <i class="bi bi-search"></i>
+                <input class="search-bar" id="dash-search" placeholder="Search transactions..." oninput="dashFilterTxns(this.value)">
+              </div>
+              <button class="btn-nb btn-nb-primary btn-nb-sm" onclick="openNewAccountModal()"><i class="bi bi-plus-lg"></i></button>
+            </div>
+          </div>
+          <div class="dash-tabs">${tabs}</div>
+
+          <div class="dash-actions">
+            <button class="dash-icon-action" onclick="navigate('transfers')"><i class="bi bi-arrow-left-right"></i>Transfer</button>
+            <button class="dash-icon-action" onclick="navigate('bills')"><i class="bi bi-receipt"></i>Pay bills</button>
+            <button class="dash-icon-action" onclick="navigate('cards')"><i class="bi bi-credit-card"></i>Cards</button>
+            <button class="dash-icon-action" onclick="navigate('loans')"><i class="bi bi-bank"></i>Loans</button>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-12 col-sm-6">
+              <div class="stat-card">
+                <div class="stat-label"><i class="bi bi-wallet2 me-1"></i>Total Balance</div>
+                <div class="stat-value">${fmt(totalBal)}</div>
+              </div>
+            </div>
+            <div class="col-12 col-sm-6">
+              <div class="stat-card gold">
+                <div class="stat-label"><i class="bi bi-bank me-1"></i>Active Accounts</div>
+                <div class="stat-value">${accounts.filter(a=>a.status==='active').length}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="dash-cards" id="dash-cards">
+            ${cardNodes || `<div class="dash-mini" style="display:flex;align-items:center;justify-content:center;min-height:120px;"><div class="text-center" style="color:var(--nb-muted);"><div style="font-weight:800;">No accounts yet</div><div style="font-size:.8rem;margin-top:.25rem;">Open an account to get started.</div></div></div>`}
+          </div>
+
+          <div class="dash-analytics">
+            <div class="dash-mini">
+              <h6>Spending by category</h6>
+              <canvas id="dash-spend-chart" height="160"></canvas>
+              <div class="dash-legend" id="dash-legend"></div>
+            </div>
+            <div class="dash-mini">
+              <h6>Income vs expenses</h6>
+              <canvas id="dash-flow-chart" height="160"></canvas>
+              <div style="display:flex;justify-content:space-between;gap:1rem;margin-top:.75rem;font-size:.8rem;color:var(--nb-muted);">
+                <div><span class="dash-dot" style="background:var(--nb-success);"></span>Income</div>
+                <div><span class="dash-dot" style="background:var(--nb-danger);"></span>Expenses</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:1.1rem;">
+            <div class="dash-title-row" style="margin-bottom:.6rem;">
+              <div class="dash-title" style="font-size:1rem;">Offers</div>
+              <div class="dash-sub">Personalized for you</div>
+            </div>
+            <div class="dash-offers">
+              <div class="offer-card yellow">
+                <div class="t1">Credit</div>
+                <div class="t2">Pre-approved limit check</div>
+              </div>
+              <div class="offer-card teal">
+                <div class="t1">Debit Card</div>
+                <div class="t2">Virtual card in minutes</div>
+              </div>
+              <div class="offer-card violet">
+                <div class="t1">Package</div>
+                <div class="t2">Premium account services</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="col-12 col-lg-4">
-        <div class="nb-card"><h6 class="mb-3 fw-semibold">Spending by Category</h6><canvas id="spending-chart" height="200"></canvas></div>
+
+      <div>
+        <div class="dash-panel txn-panel">
+          <div class="txn-head">
+            <h6>Transactions</h6>
+            <div class="d-flex align-items-center gap-2">
+              <div class="dash-sub" style="white-space:nowrap;">${monthLabel}</div>
+              <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="navigate('history')">View all</button>
+            </div>
+          </div>
+          <div class="txn-list" id="dash-txn-list">
+            ${txnItems || `<div class="empty-state" style="padding:2rem 0;"><i class="bi bi-receipt-cutoff"></i>No transactions</div>`}
+          </div>
+        </div>
       </div>
     </div>`;
-  // Chart
-  const cats = {}; txns.filter(t=>t.type==='payment').forEach(t=>{ cats[t.category]=(cats[t.category]||0)+t.amount; });
-  if (Object.keys(cats).length > 0) {
-    setTimeout(()=>{
-      const ctx = document.getElementById('spending-chart');
-      if(ctx) new Chart(ctx, { type:'doughnut', data:{ labels:Object.keys(cats), datasets:[{data:Object.values(cats),backgroundColor:['#1d6fa4','#c9a84c','#12b76a','#f04438','#7c3aed','#f79009'],borderWidth:0}]}, options:{plugins:{legend:{position:'bottom',labels:{font:{family:'Poppins',size:11},boxWidth:10}}},cutout:'65%'}});
-    },50);
+
+  dashFilterCards('All');
+
+  const debitCats = {};
+  let income = 0;
+  let expenses = 0;
+  txns.forEach(t=>{
+    const isDebit = myAccIds.includes(t.fromId) && t.type !== 'credit';
+    const raw = typeof t.amount === 'string' ? parseFloat(t.amount.replace(/[^0-9.-]/g, '')) : Number(t.amount);
+    const amt = Number.isFinite(raw) ? Math.abs(raw) : 0;
+    if (!amt) return;
+    if (isDebit) {
+      expenses += amt;
+      const k = t.category || 'Other';
+      debitCats[k] = (debitCats[k] || 0) + amt;
+    } else if (myAccIds.includes(t.toId) || t.type === 'credit') {
+      income += amt;
+    }
+  });
+
+  if (window.__nbDashCharts) {
+    Object.values(window.__nbDashCharts).forEach(c => { try { c.destroy(); } catch(_) {} });
   }
+  window.__nbDashCharts = {};
+
+  setTimeout(()=>{
+    const spendCtx = document.getElementById('dash-spend-chart');
+    const flowCtx = document.getElementById('dash-flow-chart');
+    const legendEl = document.getElementById('dash-legend');
+
+    const spendPairs = Object.entries(debitCats)
+      .filter(([,v]) => Number.isFinite(v) && v > 0)
+      .sort((a,b) => b[1] - a[1])
+      .slice(0, 6);
+    const spendLabels = spendPairs.map(([k]) => k);
+    const spendValues = spendPairs.map(([,v]) => Math.round(v * 100) / 100);
+    const spendColors = ['#1d6fa4','#c9a84c','#12b76a','#f04438','#7c3aed','#f79009','#0f2d52','#14b8a6'].slice(0, spendLabels.length);
+
+    if (spendCtx) {
+      if (!window.Chart || !spendLabels.length) {
+        spendCtx.style.display = 'none';
+        if (legendEl) {
+          legendEl.innerHTML = `<div style="color:var(--nb-muted);font-size:.82rem;">No spending data yet. Pay a bill to see categories.</div>`;
+        }
+      } else {
+        spendCtx.style.display = '';
+        window.__nbDashCharts.spend = new Chart(spendCtx, {
+          type: 'doughnut',
+          data: { labels: spendLabels, datasets: [{ data: spendValues, backgroundColor: spendColors, borderWidth: 0 }] },
+          options: { plugins: { legend: { display: false } }, cutout: '70%' }
+        });
+        if (legendEl) {
+          const total = spendValues.reduce((s,v)=>s+v,0) || 1;
+          legendEl.innerHTML = spendLabels.map((l,idx)=>{
+            const pct = Math.round((spendValues[idx] / total) * 100);
+            return `<div class="dash-legend-item"><div><span class="dash-dot" style="background:${spendColors[idx]};"></span>${l}</div><div class="mono">${pct}%</div></div>`;
+          }).join('');
+        }
+      }
+    }
+
+    if (flowCtx && window.Chart) {
+      window.__nbDashCharts.flow = new Chart(flowCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Income', 'Expenses'],
+          datasets: [{ data: [Math.max(income, 0.01), Math.max(expenses, 0.01)], backgroundColor: ['#12b76a', '#f04438'], borderWidth: 0 }]
+        },
+        options: { plugins: { legend: { display: false } }, cutout: '72%' }
+      });
+    }
+  }, 50);
+}
+
+function dashFilterCards(type, btn) {
+  if (btn) {
+    document.querySelectorAll('.dash-tab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  } else {
+    const firstBtn = document.querySelector('.dash-tab');
+    if (firstBtn) {
+      document.querySelectorAll('.dash-tab').forEach(b=>b.classList.toggle('active', b.textContent.trim() === 'All'));
+    }
+  }
+  const cards = document.querySelectorAll('#dash-cards .dash-card');
+  cards.forEach(c=>{
+    const t = c.getAttribute('data-type') || 'Other';
+    c.style.display = (type === 'All' || t === type) ? '' : 'none';
+  });
+}
+
+function dashFilterTxns(q) {
+  const query = (q || '').trim().toLowerCase();
+  const items = document.querySelectorAll('#dash-txn-list .txn-item');
+  items.forEach(it=>{
+    const hay = it.getAttribute('data-q') || '';
+    it.style.display = !query || hay.includes(query) ? '' : 'none';
+  });
+}
+
+function dashTxnIcon(t) {
+  const c = (t.category || '').toLowerCase();
+  if (t.type === 'transfer' || c.includes('transfer')) return 'arrow-left-right';
+  if (c.includes('bill') || c.includes('utility') || c.includes('electric') || c.includes('water')) return 'receipt';
+  if (c.includes('food') || c.includes('restaurant') || c.includes('drink') || c.includes('coffee')) return 'cup-hot';
+  if (c.includes('transport') || c.includes('uber') || c.includes('taxi')) return 'car-front';
+  if (c.includes('shopping') || c.includes('store')) return 'bag';
+  if (c.includes('salary') || t.type === 'credit') return 'cash-coin';
+  return 'card-list';
 }
 
 function renderAccounts(el) {

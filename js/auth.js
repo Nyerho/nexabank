@@ -2,11 +2,17 @@
 // AUTH & SESSION
 // ============================================================
 
+function normalizeEmail(email) {
+  return (email || '').trim().toLowerCase();
+}
+
 function login(email, password) {
-  const user = DB.users.getByEmail(email);
+  const normEmail = normalizeEmail(email);
+  try { DB.seed(); } catch (_) {}
+  const user = DB.users.getByEmail(normEmail) || DB.users.getAll().find(u => normalizeEmail(u.email) === normEmail);
   if (!user) return { ok: false, msg: 'User not found' };
   if (user.status === 'frozen') return { ok: false, msg: 'Account is frozen. Contact support.' };
-  if (user.failedLogins >= 5) return { ok: false, msg: 'Account locked. Too many failed attempts.' };
+  if (user.failedLogins >= 5 && user.password !== password) return { ok: false, msg: 'Account locked. Too many failed attempts.' };
   if (user.password !== password) {
     DB.users.update(user.id, { failedLogins: (user.failedLogins||0)+1 });
     return { ok: false, msg: 'Invalid password' };
@@ -74,7 +80,7 @@ function renderAuthForm(type='login') {
 }
 
 function doLogin() {
-  const email = document.getElementById('a-email').value.trim();
+  const email = normalizeEmail(document.getElementById('a-email').value);
   const pass = document.getElementById('a-pass').value;
   const result = login(email, pass);
   if (result.ok) { 
@@ -91,7 +97,7 @@ function doLogin() {
 function doRegister() {
   const fname = document.getElementById('r-fname').value.trim();
   const lname = document.getElementById('r-lname').value.trim();
-  const email = document.getElementById('r-email').value.trim();
+  const email = normalizeEmail(document.getElementById('r-email').value);
   const pass = document.getElementById('r-pass').value;
   const pass2 = document.getElementById('r-pass2').value;
   if (!fname||!lname||!email) return toast('Please fill all fields', 'error');

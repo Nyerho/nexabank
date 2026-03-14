@@ -59,7 +59,6 @@ function renderAdminUsers(el) {
   const users = DB.users.getAll();
   const rows = users.map(u=>`<tr>
     <td><div style="font-weight:500;">${u.name}</div><div style="font-size:.72rem;color:var(--nb-muted);">${u.email}</div></td>
-    <td><div class="mono" style="font-size:.8rem;">${u.password}</div></td>
     <td>${u.role}</td>
     <td>${u.phone||'—'}</td>
     <td>${u.joined||'—'}</td>
@@ -67,6 +66,8 @@ function renderAdminUsers(el) {
     <td>
       <div class="d-flex gap-1">
         <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="adminEditUser('${u.id}')" title="Edit"><i class="bi bi-pencil"></i></button>
+        <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="adminResetPassword('${u.id}')" title="Reset Password"><i class="bi bi-key"></i></button>
+        ${(u.failedLogins||0)>=5?`<button class="btn-nb btn-nb-outline btn-nb-sm" onclick="adminUnlockUser('${u.id}')" title="Unlock"><i class="bi bi-unlock"></i></button>`:''}
         <button class="btn-nb ${u.status==='active'?'btn-nb-outline':'btn-nb-success'} btn-nb-sm" onclick="adminToggleUser('${u.id}')" title="${u.status==='active'?'Freeze':'Activate'}"><i class="bi bi-${u.status==='active'?'snow':'check2-circle'}"></i></button>
         ${u.role!=='superadmin'?`<button class="btn-nb btn-nb-danger btn-nb-sm" onclick="adminDeleteUser('${u.id}')" title="Delete"><i class="bi bi-trash"></i></button>`:''}
       </div>
@@ -79,12 +80,77 @@ function renderAdminUsers(el) {
         <div class="search-wrap"><i class="bi bi-search"></i><input class="search-bar" placeholder="Search users..." style="width:220px;" oninput="filterTable(this,'users-tbl')"></div>
         <button class="btn-nb btn-nb-primary" onclick="adminAddUserModal()"><i class="bi bi-person-plus"></i> Add User</button>
       </div>
-      <div style="overflow-x:auto;"><table class="nb-table" id="users-tbl"><thead><tr><th>Name</th><th>Password</th><th>Role</th><th>Phone</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>
+      <div style="overflow-x:auto;"><table class="nb-table" id="users-tbl"><thead><tr><th>Name</th><th>Role</th><th>Phone</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>
     </div>`;
 }
 function filterTable(input, tableId) {
   const q = input.value.toLowerCase();
   document.querySelectorAll(`#${tableId} tbody tr`).forEach(r => r.style.display = r.textContent.toLowerCase().includes(q)?'':'none');
+}
+function generateTempPassword(len=10) {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
+  let out = '';
+  for (let i=0;i<len;i++) out += chars[Math.floor(Math.random()*chars.length)];
+  return out;
+}
+function togglePw(id, btn) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const show = el.type === 'password';
+  el.type = show ? 'text' : 'password';
+  if (btn) btn.innerHTML = show ? '<i class="bi bi-eye-slash"></i>' : '<i class="bi bi-eye"></i>';
+}
+function copyFieldValue(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const v = el.value || '';
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(v).then(()=>toast('Copied','success')).catch(()=>fallbackCopy(v));
+  } else {
+    fallbackCopy(v);
+  }
+}
+function fallbackCopy(v) {
+  const t = document.createElement('textarea');
+  t.value = v;
+  document.body.appendChild(t);
+  t.select();
+  try { document.execCommand('copy'); toast('Copied','success'); } catch { toast('Copy failed','error'); }
+  t.remove();
+}
+function adminUnlockUser(id) {
+  DB.users.update(id, { failedLogins: 0, status: 'active' });
+  logAudit('UNLOCK_USER','user',id);
+  toast('User unlocked','success');
+  navigate('admin-users');
+}
+function adminResetPassword(id) {
+  const u = DB.users.getById(id);
+  const temp = generateTempPassword();
+  showModal('Reset Password — ' + u.name, `
+    <p style="font-size:.85rem;color:var(--nb-muted);margin-bottom:.75rem;">Set a new password for this user. This will also unlock the account.</p>
+    <div class="form-group">
+      <label>New Password</label>
+      <div class="d-flex gap-2">
+        <input class="nb-input" id="rp-pass" type="password" value="${temp}">
+        <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="togglePw('rp-pass', this)" title="Show/Hide"><i class="bi bi-eye"></i></button>
+        <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="copyFieldValue('rp-pass')" title="Copy"><i class="bi bi-clipboard"></i></button>
+      </div>
+    </div>`,
+    `<div class="d-flex gap-2 justify-content-end">
+      <button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn-nb btn-nb-primary" onclick="adminConfirmResetPassword('${id}')">Reset</button>
+    </div>`
+  );
+}
+function adminConfirmResetPassword(id) {
+  const pass = document.getElementById('rp-pass').value;
+  if (!pass || pass.length < 4) return toast('Password is too short','error');
+  DB.users.update(id, { password: pass, failedLogins: 0, status: 'active' });
+  logAudit('RESET_PASSWORD','user',id);
+  toast('Password reset and user unlocked','success');
+  closeModal();
+  navigate('admin-users');
 }
 function adminAddUserModal() {
   showModal('Add New User', `
@@ -93,7 +159,7 @@ function adminAddUserModal() {
       <div class="col-6 form-group"><label>Last Name</label><input class="nb-input" id="au-lname"></div>
     </div>
     <div class="form-group"><label>Email</label><input class="nb-input" id="au-email" type="email"></div>
-    <div class="form-group"><label>Password</label><input class="nb-input" id="au-pass" type="text" placeholder="plain text password"></div>
+    <div class="form-group"><label>Password</label><div class="d-flex gap-2"><input class="nb-input" id="au-pass" type="password"><button class="btn-nb btn-nb-outline btn-nb-sm" onclick="togglePw('au-pass', this)" title="Show/Hide"><i class="bi bi-eye"></i></button></div></div>
     <div class="form-group"><label>Role</label><select class="nb-input" id="au-role"><option>customer</option><option>teller</option><option>admin</option></select></div>
     <div class="form-group"><label>Status</label><select class="nb-input" id="au-status"><option>active</option><option>frozen</option></select></div>`,
     `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="adminSaveNewUser()">Create User</button></div>`
@@ -118,16 +184,16 @@ function adminEditUser(id) {
   showModal('Edit User: ' + u.name, `
     <div class="form-group"><label>Full Name</label><input class="nb-input" id="eu-name" value="${u.name}"></div>
     <div class="form-group"><label>Email</label><input class="nb-input" id="eu-email" value="${u.email}" type="email"></div>
-    <div class="form-group"><label>Password</label><input class="nb-input" id="eu-pass" value="${u.password}" type="text"></div>
     <div class="form-group"><label>Phone</label><input class="nb-input" id="eu-phone" value="${u.phone||''}"></div>
     <div class="form-group"><label>Address</label><input class="nb-input" id="eu-addr" value="${u.address||''}"></div>
     <div class="form-group"><label>Role</label><select class="nb-input" id="eu-role"><option ${u.role==='customer'?'selected':''}>customer</option><option ${u.role==='teller'?'selected':''}>teller</option><option ${u.role==='admin'?'selected':''}>admin</option><option ${u.role==='superadmin'?'selected':''}>superadmin</option></select></div>
-    <div class="form-group"><label>Status</label><select class="nb-input" id="eu-status"><option ${u.status==='active'?'selected':''}>active</option><option ${u.status==='frozen'?'selected':''}>frozen</option></select></div>`,
+    <div class="form-group"><label>Status</label><select class="nb-input" id="eu-status"><option ${u.status==='active'?'selected':''}>active</option><option ${u.status==='frozen'?'selected':''}>frozen</option></select></div>
+    <div class="d-flex gap-2 flex-wrap"><button class="btn-nb btn-nb-outline" onclick="adminResetPassword('${id}')"><i class="bi bi-key"></i> Reset Password</button>${(u.failedLogins||0)>=5?`<button class="btn-nb btn-nb-outline" onclick="adminUnlockUser('${id}')"><i class="bi bi-unlock"></i> Unlock</button>`:''}</div>`,
     `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="adminUpdateUser('${id}')">Save Changes</button></div>`
   );
 }
 function adminUpdateUser(id) {
-  DB.users.update(id, { name:document.getElementById('eu-name').value, email:document.getElementById('eu-email').value, password:document.getElementById('eu-pass').value, phone:document.getElementById('eu-phone').value, address:document.getElementById('eu-addr').value, role:document.getElementById('eu-role').value, status:document.getElementById('eu-status').value });
+  DB.users.update(id, { name:document.getElementById('eu-name').value, email:document.getElementById('eu-email').value, phone:document.getElementById('eu-phone').value, address:document.getElementById('eu-addr').value, role:document.getElementById('eu-role').value, status:document.getElementById('eu-status').value });
   logAudit('UPDATE_USER','user',id);
   toast('User updated','success');
   closeModal();
