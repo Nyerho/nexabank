@@ -1,13 +1,22 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import {
+  createUserWithEmailAndPassword,
+  getAuth,
+  signInWithEmailAndPassword,
+  signOut
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import {
   addDoc,
   collection,
   deleteDoc,
   doc,
   getDoc,
+  getDocs,
   getFirestore,
+  query,
   serverTimestamp,
-  setDoc
+  setDoc,
+  where
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const firebaseConfig = {
@@ -21,6 +30,19 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+
+async function signIn(email, password) {
+  return signInWithEmailAndPassword(auth, email, password);
+}
+
+async function signUp(email, password) {
+  return createUserWithEmailAndPassword(auth, email, password);
+}
+
+async function signOutUser() {
+  return signOut(auth);
+}
 
 async function queueEmail(to, subject, text, html) {
   const payload = {
@@ -48,6 +70,41 @@ async function deleteLoginOtp(userId) {
   await deleteDoc(doc(db, 'login_otps', userId));
 }
 
-window.NB_FIREBASE = { app, db, queueEmail, saveLoginOtp, getLoginOtp, deleteLoginOtp };
+async function upsert(collectionName, id, data) {
+  await setDoc(doc(db, collectionName, id), data, { merge: true });
+}
 
-export { app, db, queueEmail, saveLoginOtp, getLoginOtp, deleteLoginOtp };
+async function remove(collectionName, id) {
+  await deleteDoc(doc(db, collectionName, id));
+}
+
+async function list(collectionName) {
+  const snap = await getDocs(collection(db, collectionName));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+async function findOneByField(collectionName, field, value) {
+  const snap = await getDocs(query(collection(db, collectionName), where(field, '==', value)));
+  const docSnap = snap.docs[0];
+  if (!docSnap) return null;
+  return { id: docSnap.id, ...docSnap.data() };
+}
+
+window.NB_FIREBASE = {
+  app,
+  auth,
+  db,
+  signIn,
+  signUp,
+  signOutUser,
+  queueEmail,
+  saveLoginOtp,
+  getLoginOtp,
+  deleteLoginOtp,
+  upsert,
+  remove,
+  list,
+  findOneByField
+};
+
+export { app, auth, db, signIn, signUp, signOutUser, queueEmail, saveLoginOtp, getLoginOtp, deleteLoginOtp, upsert, remove, list, findOneByField };

@@ -13,6 +13,54 @@ async function sha256Hex(input) {
   return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+async function cloudSignInOrBootstrap(email, password) {
+  if (!window.NB_FIREBASE?.signIn || !window.NB_FIREBASE?.signUp || !window.NB_FIREBASE?.findOneByField || !window.NB_FIREBASE?.upsert) {
+    return { ok: false, msg: 'Cloud auth not available' };
+  }
+  const normEmail = normalizeEmail(email);
+  try {
+    const cred = await window.NB_FIREBASE.signIn(normEmail, password);
+    return { ok: true, firebaseUser: cred.user };
+  } catch (e) {
+    const code = e?.code || '';
+    if (code === 'auth/user-not-found' || code === 'auth/invalid-credential' || code === 'auth/wrong-password') {
+      const adminDoc = await window.NB_FIREBASE.findOneByField('admins', 'email', normEmail);
+      const userDoc = adminDoc ? null : await window.NB_FIREBASE.findOneByField('users', 'email', normEmail);
+      const rec = adminDoc || userDoc;
+      if (!rec) return { ok: false, msg: 'User not found' };
+      if (rec.password && rec.password !== password) return { ok: false, msg: 'Invalid password' };
+      try {
+        const newCred = await window.NB_FIREBASE.signUp(normEmail, password);
+        return { ok: true, firebaseUser: newCred.user };
+      } catch (e2) {
+        return { ok: false, msg: 'Unable to sign in' };
+      }
+    }
+    return { ok: false, msg: 'Unable to sign in' };
+  }
+}
+
+async function cloudGetOrCreateProfile(firebaseUser) {
+  const email = normalizeEmail(firebaseUser?.email);
+  const uid = firebaseUser?.uid;
+  if (!uid || !email) return null;
+  const adminDoc = await window.NB_FIREBASE.findOneByField('admins', 'email', email);
+  const role = adminDoc?.role || adminDoc?.type || adminDoc ? 'admin' : 'customer';
+  const existing = await window.NB_FIREBASE.findOneByField('users', 'email', email);
+  const base = existing || {
+    id: uid,
+    name: adminDoc?.name || 'User',
+    email,
+    role,
+    status: 'active',
+    failedLogins: 0,
+    joined: new Date().toISOString().slice(0, 10)
+  };
+  const profile = { ...base, id: uid, email, role };
+  await window.NB_FIREBASE.upsert('users', uid, profile);
+  return profile;
+}
+
 function verifyCredentials(email, password) {
   const normEmail = normalizeEmail(email);
   try { DB.seed(); } catch (_) {}
@@ -154,6 +202,17 @@ function renderAuthForm(type='login') {
 async function doLoginStart() {
   const email = normalizeEmail(document.getElementById('a-email').value);
   const pass = document.getElementById('a-pass').value;
+  if (window.NB_FIREBASE?.auth) {
+    const cloud = await cloudSignInOrBootstrap(email, pass);
+    if (!cloud.ok) return toast(cloud.msg, 'error');
+    const profile = await cloudGetOrCreateProfile(cloud.firebaseUser);
+    if (!profile) return toast('Unable to load profile', 'error');
+    DB.users.update(profile.id, profile);
+    finalizeLogin(profile);
+    try { await DB.cloud.syncDown(); } catch (_) {}
+    await requestLoginOtp(profile);
+    return renderAuthForm('login-otp');
+  }
   const result = verifyCredentials(email, pass);
   if (!result.ok) return toast(result.msg, 'error');
   await requestLoginOtp(result.user);
@@ -196,6 +255,7 @@ async function doLoginVerify() {
   if (!user) { clearPendingLoginOtp(); renderAuthForm('login'); return toast('Please sign in again.', 'warning'); }
   clearPendingLoginOtp();
   finalizeLogin(user);
+  try { await DB.cloud.syncDown(); } catch (_) {}
   if (isAdmin()) window.location.href = 'admin.html';
   else bootApp();
 }
@@ -223,8 +283,27 @@ function doRegister() {
   if (pass !== pass2) return toast('Passwords do not match', 'error');
   if (pass.length < 6) return toast('Password must be 6+ characters', 'error');
   if (DB.users.getByEmail(email)) return toast('Email already registered', 'error');
-  const id = 'u' + uid();
   const accType = document.getElementById('r-acc-type').value;
+  if (window.NB_FIREBASE?.auth && window.NB_FIREBASE?.signUp && window.NB_FIREBASE?.upsert) {
+    (async () => {
+      try {
+        const cred = await window.NB_FIREBASE.signUp(email, pass);
+        const id = cred.user.uid;
+        const user = { id, name:`${fname} ${lname}`, email, role:'customer', status:'active', phone, dob, ssn:ssnDigits, address, city, state, zip, country, joined:new Date().toISOString().slice(0,10), failedLogins:0 };
+        DB.users.create(user);
+        DB.accounts.create({ id:'a'+uid(), userId:id, type:accType, balance:0, iban:Math.floor(1000000000 + Math.random() * 9000000000).toString(), swift:'NXBKGB21', status:'active', limit:5000, createdAt:new Date().toISOString().slice(0,10) });
+        await window.NB_FIREBASE.upsert('users', id, user);
+        try { await DB.cloud.syncDown(); } catch (_) {}
+        await requestLoginOtp(user);
+        renderAuthForm('login-otp');
+        toast('Registration successful. Please verify your login code.', 'success');
+      } catch (_) {
+        toast('Unable to register. Please try again.', 'error');
+      }
+    })();
+    return;
+  }
+  const id = 'u' + uid();
   const user = { id, name:`${fname} ${lname}`, email, password:pass, role:'customer', status:'active', phone, dob, ssn:ssnDigits, address, city, state, zip, country, joined:new Date().toISOString().slice(0,10), failedLogins:0 };
   DB.users.create(user);
   DB.accounts.create({ id:'a'+uid(), userId:id, type:accType, balance:0, iban:Math.floor(1000000000 + Math.random() * 9000000000).toString(), swift:'NXBKGB21', status:'active', limit:5000, createdAt:new Date().toISOString().slice(0,10) });
