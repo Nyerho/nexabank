@@ -14,7 +14,7 @@ async function sha256Hex(input) {
 }
 
 async function cloudSignInOrBootstrap(email, password) {
-  if (!window.NB_FIREBASE?.signIn || !window.NB_FIREBASE?.signUp || !window.NB_FIREBASE?.findOneByField || !window.NB_FIREBASE?.upsert) {
+  if (!window.NB_FIREBASE?.signIn) {
     return { ok: false, msg: 'Cloud auth not available' };
   }
   const normEmail = normalizeEmail(email);
@@ -23,19 +23,8 @@ async function cloudSignInOrBootstrap(email, password) {
     return { ok: true, firebaseUser: cred.user };
   } catch (e) {
     const code = e?.code || '';
-    if (code === 'auth/user-not-found' || code === 'auth/invalid-credential' || code === 'auth/wrong-password') {
-      const adminDoc = await window.NB_FIREBASE.findOneByField('admins', 'email', normEmail);
-      const userDoc = adminDoc ? null : await window.NB_FIREBASE.findOneByField('users', 'email', normEmail);
-      const rec = adminDoc || userDoc;
-      if (!rec) return { ok: false, msg: 'User not found' };
-      if (rec.password && rec.password !== password) return { ok: false, msg: 'Invalid password' };
-      try {
-        const newCred = await window.NB_FIREBASE.signUp(normEmail, password);
-        return { ok: true, firebaseUser: newCred.user };
-      } catch (e2) {
-        return { ok: false, msg: 'Unable to sign in' };
-      }
-    }
+    if (code === 'auth/user-not-found') return { ok: false, msg: 'User not found. Please register or ask admin to create your account.' };
+    if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') return { ok: false, msg: 'Invalid password' };
     return { ok: false, msg: 'Unable to sign in' };
   }
 }
@@ -44,12 +33,15 @@ async function cloudGetOrCreateProfile(firebaseUser) {
   const email = normalizeEmail(firebaseUser?.email);
   const uid = firebaseUser?.uid;
   if (!uid || !email) return null;
-  const adminDoc = await window.NB_FIREBASE.findOneByField('admins', 'email', email);
-  const role = adminDoc?.role || adminDoc?.type || adminDoc ? 'admin' : 'customer';
-  const existing = await window.NB_FIREBASE.findOneByField('users', 'email', email);
+  if (!window.NB_FIREBASE?.getById || !window.NB_FIREBASE?.existsDoc || !window.NB_FIREBASE?.upsert) return null;
+  const [isAdminUser, existing] = await Promise.all([
+    window.NB_FIREBASE.existsDoc('admins', uid),
+    window.NB_FIREBASE.getById('users', uid)
+  ]);
+  const role = isAdminUser ? (existing?.role || 'admin') : (existing?.role || 'customer');
   const base = existing || {
     id: uid,
-    name: adminDoc?.name || 'User',
+    name: 'User',
     email,
     role,
     status: 'active',

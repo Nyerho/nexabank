@@ -83,6 +83,22 @@ async function list(collectionName) {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
+async function listWhere(collectionName, field, op, value) {
+  const snap = await getDocs(query(collection(db, collectionName), where(field, op, value)));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+async function getById(collectionName, id) {
+  const snap = await getDoc(doc(db, collectionName, id));
+  if (!snap.exists()) return null;
+  return { id: snap.id, ...snap.data() };
+}
+
+async function existsDoc(collectionName, id) {
+  const snap = await getDoc(doc(db, collectionName, id));
+  return snap.exists();
+}
+
 async function findOneByField(collectionName, field, value) {
   const snap = await getDocs(query(collection(db, collectionName), where(field, '==', value)));
   const docSnap = snap.docs[0];
@@ -104,7 +120,10 @@ window.NB_FIREBASE = {
   upsert,
   remove,
   list,
+  listWhere,
+  getById,
+  existsDoc,
   findOneByField
 };
 
-export { app, auth, db, signIn, signUp, signOutUser, queueEmail, saveLoginOtp, getLoginOtp, deleteLoginOtp, upsert, remove, list, findOneByField };
+export { app, auth, db, signIn, signUp, signOutUser, queueEmail, saveLoginOtp, getLoginOtp, deleteLoginOtp, upsert, remove, list, listWhere, getById, existsDoc, findOneByField };

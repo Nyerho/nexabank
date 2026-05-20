@@ -16,26 +16,48 @@ function nbCloudRemove(collectionName, id) {
 }
 
 async function nbCloudSyncDown() {
-  if (!nbCloudEnabled() || !window.NB_FIREBASE?.list) return false;
+  if (!nbCloudEnabled() || !window.NB_FIREBASE?.auth?.currentUser) return false;
   try {
-    const [users, accounts, transactions, cards, loans, notifications, payees, auditLog] = await Promise.all([
-      window.NB_FIREBASE.list('users'),
-      window.NB_FIREBASE.list('accounts'),
-      window.NB_FIREBASE.list('transactions'),
-      window.NB_FIREBASE.list('cards'),
-      window.NB_FIREBASE.list('loans'),
-      window.NB_FIREBASE.list('notifications'),
-      window.NB_FIREBASE.list('payees'),
-      window.NB_FIREBASE.list('auditLog')
+    const uid = window.NB_FIREBASE.auth.currentUser.uid;
+    const isAdmin = await (window.NB_FIREBASE.existsDoc ? window.NB_FIREBASE.existsDoc('admins', uid) : false);
+    if (isAdmin && window.NB_FIREBASE?.list) {
+      const [users, accounts, transactions, cards, loans, notifications, payees, auditLog] = await Promise.all([
+        window.NB_FIREBASE.list('users'),
+        window.NB_FIREBASE.list('accounts'),
+        window.NB_FIREBASE.list('transactions'),
+        window.NB_FIREBASE.list('cards'),
+        window.NB_FIREBASE.list('loans'),
+        window.NB_FIREBASE.list('notifications'),
+        window.NB_FIREBASE.list('payees'),
+        window.NB_FIREBASE.list('auditLog')
+      ]);
+      if (Array.isArray(users) && users.length) DB.set('users', users);
+      if (Array.isArray(accounts) && accounts.length) DB.set('accounts', accounts);
+      if (Array.isArray(transactions) && transactions.length) DB.set('transactions', transactions);
+      if (Array.isArray(cards) && cards.length) DB.set('cards', cards);
+      if (Array.isArray(loans) && loans.length) DB.set('loans', loans);
+      if (Array.isArray(notifications) && notifications.length) DB.set('notifications', notifications);
+      if (Array.isArray(payees) && payees.length) DB.set('payees', payees);
+      if (Array.isArray(auditLog) && auditLog.length) DB.set('auditLog', auditLog);
+      return true;
+    }
+    if (!window.NB_FIREBASE?.getById || !window.NB_FIREBASE?.listWhere) return false;
+    const [me, accounts, transactions, cards, loans, notifications, payees] = await Promise.all([
+      window.NB_FIREBASE.getById('users', uid),
+      window.NB_FIREBASE.listWhere('accounts', 'userId', '==', uid),
+      window.NB_FIREBASE.listWhere('transactions', 'userIds', 'array-contains', uid),
+      window.NB_FIREBASE.listWhere('cards', 'userId', '==', uid),
+      window.NB_FIREBASE.listWhere('loans', 'userId', '==', uid),
+      window.NB_FIREBASE.listWhere('notifications', 'userId', '==', uid),
+      window.NB_FIREBASE.listWhere('payees', 'userId', '==', uid)
     ]);
-    if (Array.isArray(users) && users.length) DB.set('users', users);
-    if (Array.isArray(accounts) && accounts.length) DB.set('accounts', accounts);
-    if (Array.isArray(transactions) && transactions.length) DB.set('transactions', transactions);
-    if (Array.isArray(cards) && cards.length) DB.set('cards', cards);
-    if (Array.isArray(loans) && loans.length) DB.set('loans', loans);
-    if (Array.isArray(notifications) && notifications.length) DB.set('notifications', notifications);
-    if (Array.isArray(payees) && payees.length) DB.set('payees', payees);
-    if (Array.isArray(auditLog) && auditLog.length) DB.set('auditLog', auditLog);
+    if (me) DB.set('users', [me]);
+    if (Array.isArray(accounts)) DB.set('accounts', accounts);
+    if (Array.isArray(transactions)) DB.set('transactions', transactions);
+    if (Array.isArray(cards)) DB.set('cards', cards);
+    if (Array.isArray(loans)) DB.set('loans', loans);
+    if (Array.isArray(notifications)) DB.set('notifications', notifications);
+    if (Array.isArray(payees)) DB.set('payees', payees);
     return true;
   } catch (_) {
     return false;
@@ -98,7 +120,18 @@ const DB = {
     getAll() { return DB.get('transactions') || []; },
     getByAccount(aid) { return DB.transactions.getAll().filter(t => t.fromId === aid || t.toId === aid).sort((a,b) => new Date(b.ts) - new Date(a.ts)); },
     getByUser(uid) { const accs = DB.accounts.getByUser(uid).map(a=>a.id); return DB.transactions.getAll().filter(t => accs.includes(t.fromId)||accs.includes(t.toId)).sort((a,b) => new Date(b.ts) - new Date(a.ts)); },
-    create(t) { const all = DB.transactions.getAll(); all.push(t); DB.set('transactions', all); nbCloudUpsert('transactions', t.id, t); },
+    create(t) {
+      const fromAcc = t.fromId ? DB.accounts.getById(t.fromId) : null;
+      const toAcc = t.toId ? DB.accounts.getById(t.toId) : null;
+      const fromUserId = t.fromUserId || fromAcc?.userId || null;
+      const toUserId = t.toUserId || toAcc?.userId || null;
+      const userIds = Array.isArray(t.userIds) ? t.userIds : [fromUserId, toUserId].filter(Boolean);
+      const txn = { ...t, fromUserId, toUserId, userIds };
+      const all = DB.transactions.getAll();
+      all.push(txn);
+      DB.set('transactions', all);
+      nbCloudUpsert('transactions', txn.id, txn);
+    },
     update(id, data) { const all = DB.transactions.getAll(); const i = all.findIndex(t => t.id === id); if (i > -1) { all[i] = {...all[i], ...data}; DB.set('transactions', all); nbCloudUpsert('transactions', id, all[i]); } },
     delete(id) { DB.set('transactions', DB.transactions.getAll().filter(t => t.id !== id)); nbCloudRemove('transactions', id); },
   },
