@@ -6,6 +6,13 @@ function normalizeEmail(email) {
   return (email || '').trim().toLowerCase();
 }
 
+async function sha256Hex(input) {
+  const enc = new TextEncoder();
+  const data = enc.encode(String(input));
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 function verifyCredentials(email, password) {
   const normEmail = normalizeEmail(email);
   try { DB.seed(); } catch (_) {}
@@ -46,13 +53,30 @@ function generateOtpCode() {
   return String(Math.floor(100000 + Math.random() * 900000));
 }
 
-function requestLoginOtp(user) {
+async function requestLoginOtp(user) {
   const code = generateOtpCode();
-  const payload = { userId: user.id, email: normalizeEmail(user.email), code, expiresAt: Date.now() + 10 * 60 * 1000, attempts: 0 };
+  const expiresAt = Date.now() + 10 * 60 * 1000;
+  const payload = { userId: user.id, email: normalizeEmail(user.email), expiresAt, attempts: 0 };
   sessionStorage.setItem('nb_login_otp', JSON.stringify(payload));
-  toast('One-time login code sent to your email.', 'success');
-  const showCode = (localStorage.getItem('nb_show_login_otp') || '1') === '1';
-  if (showCode) toast(`Login code: ${code}`, 'info');
+  try {
+    if (!window.NB_FIREBASE?.queueEmail || !window.NB_FIREBASE?.saveLoginOtp) throw new Error('Firebase not ready');
+    if (!crypto?.subtle) throw new Error('Secure context required');
+    const hash = await sha256Hex(`${user.id}:${code}`);
+    await window.NB_FIREBASE.saveLoginOtp(user.id, normalizeEmail(user.email), hash, expiresAt);
+    await window.NB_FIREBASE.queueEmail(
+      normalizeEmail(user.email),
+      'Your NexaBank one-time login code',
+      `Your one-time login code is ${code}. It expires in 10 minutes.`,
+      `<p>Your one-time login code is <strong>${code}</strong>.</p><p>This code expires in 10 minutes.</p>`
+    );
+    toast('One-time login code sent to your email.', 'success');
+  } catch (_) {
+    const fallback = { ...payload, code };
+    sessionStorage.setItem('nb_login_otp', JSON.stringify(fallback));
+    toast('Email OTP is not configured. Showing a fallback code for testing.', 'warning');
+    const showCode = (localStorage.getItem('nb_show_login_otp') || '1') === '1';
+    if (showCode) toast(`Login code: ${code}`, 'info');
+  }
 }
 
 function getPendingLoginOtp() {
@@ -127,25 +151,25 @@ function renderAuthForm(type='login') {
   }
 }
 
-function doLoginStart() {
+async function doLoginStart() {
   const email = normalizeEmail(document.getElementById('a-email').value);
   const pass = document.getElementById('a-pass').value;
   const result = verifyCredentials(email, pass);
   if (!result.ok) return toast(result.msg, 'error');
-  requestLoginOtp(result.user);
+  await requestLoginOtp(result.user);
   renderAuthForm('login-otp');
 }
 
-function resendLoginOtp() {
+async function resendLoginOtp() {
   const pending = getPendingLoginOtp();
   if (!pending?.userId) return toast('Please sign in again.', 'warning');
   const user = DB.users.getById(pending.userId);
   if (!user) { clearPendingLoginOtp(); return toast('Please sign in again.', 'warning'); }
-  requestLoginOtp(user);
+  await requestLoginOtp(user);
   renderAuthForm('login-otp');
 }
 
-function doLoginVerify() {
+async function doLoginVerify() {
   const pending = getPendingLoginOtp();
   if (!pending?.userId) return toast('Please sign in again.', 'warning');
   if (Date.now() > pending.expiresAt) { clearPendingLoginOtp(); renderAuthForm('login'); return toast('Login code expired. Please sign in again.', 'error'); }
@@ -153,7 +177,21 @@ function doLoginVerify() {
   const nextAttempts = (pending.attempts || 0) + 1;
   sessionStorage.setItem('nb_login_otp', JSON.stringify({ ...pending, attempts: nextAttempts }));
   if (nextAttempts > 6) { clearPendingLoginOtp(); renderAuthForm('login'); return toast('Too many attempts. Please sign in again.', 'error'); }
-  if (otp !== pending.code) return toast('Invalid login code.', 'error');
+  if (pending.code) {
+    if (otp !== pending.code) return toast('Invalid login code.', 'error');
+  } else {
+    try {
+      if (!window.NB_FIREBASE?.getLoginOtp || !window.NB_FIREBASE?.deleteLoginOtp) throw new Error('Firebase not ready');
+      if (!crypto?.subtle) throw new Error('Secure context required');
+      const rec = await window.NB_FIREBASE.getLoginOtp(pending.userId);
+      if (!rec?.hash || !rec?.expiresAt || Date.now() > rec.expiresAt) return toast('Login code expired. Please sign in again.', 'error');
+      const hash = await sha256Hex(`${pending.userId}:${otp}`);
+      if (hash !== rec.hash) return toast('Invalid login code.', 'error');
+      await window.NB_FIREBASE.deleteLoginOtp(pending.userId);
+    } catch (_) {
+      return toast('Unable to verify code. Please try again.', 'error');
+    }
+  }
   const user = DB.users.getById(pending.userId);
   if (!user) { clearPendingLoginOtp(); renderAuthForm('login'); return toast('Please sign in again.', 'warning'); }
   clearPendingLoginOtp();
