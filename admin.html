@@ -18,7 +18,7 @@
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
       <div class="sidebar-header d-flex justify-content-between align-items-center">
-        <div class="sidebar-logo"><i class="bi bi-bank2 me-2"></i>Nexa<span>Bank</span> <span class="admin-badge">Admin</span></div>
+        <a class="sidebar-logo" href="index.html"><i class="bi bi-bank2 me-2"></i>Nexa<span>Bank</span> <span class="admin-badge">Admin</span></a>
         <button class="btn-nb btn-nb-outline btn-nb-sm d-lg-none" onclick="toggleSidebar(false)" style="border-color:rgba(255,255,255,0.2);color:rgba(255,255,255,0.8);"><i class="bi bi-x-lg"></i></button>
       </div>
       <div class="sidebar-user">
@@ -85,6 +85,7 @@
   </div>
 
   <!-- Scripts -->
+  <script type="module" src="js/firebase.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/db.js"></script>
   <script src="js/state.js"></script>

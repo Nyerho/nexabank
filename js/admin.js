@@ -252,6 +252,7 @@ function adminAdjustBalance(id) {
     <p style="font-size:.85rem;">Current balance: <strong class="mono">${fmt(a.balance)}</strong></p>
     <div class="form-group"><label>Adjustment Type</label><select class="nb-input" id="adj-type"><option value="credit">Credit (+)</option><option value="debit">Debit (-)</option><option value="set">Set to Amount</option></select></div>
     <div class="form-group"><label>Amount ($)</label><input class="nb-input" id="adj-amount" type="number" placeholder="0.00"></div>
+    <div class="form-group"><label>Transaction Date</label><input class="nb-input" id="adj-ts" type="datetime-local" value="${toDatetimeLocalValue(new Date().toISOString())}"></div>
     <div class="form-group"><label>Reason</label><input class="nb-input" id="adj-reason" placeholder="Reason for adjustment"></div>`,
     `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-gold" onclick="doAdjustBalance('${id}')">Apply Adjustment</button></div>`
   );
@@ -260,14 +261,21 @@ function doAdjustBalance(id) {
   const a = DB.accounts.getById(id);
   const type = document.getElementById('adj-type').value;
   const amount = parseFloat(document.getElementById('adj-amount').value);
-  const reason = document.getElementById('adj-reason').value||'Admin adjustment';
+  const reason = sanitizeTxnDesc(document.getElementById('adj-reason').value||'Account adjustment');
+  const ts = fromDatetimeLocalValue(document.getElementById('adj-ts').value) || new Date().toISOString();
   if (!amount) return toast('Enter amount','error');
   let newBal = a.balance;
   if (type==='credit') newBal += amount;
   else if (type==='debit') newBal -= amount;
   else newBal = amount;
   DB.accounts.update(id, {balance: Math.max(0, newBal)});
-  DB.transactions.create({id:'t'+uid(),fromId:type==='debit'?id:null,toId:type==='credit'?id:null,amount,type:'adjustment',category:'Admin',desc:reason,status:'completed',ts:new Date().toISOString()});
+  DB.transactions.create({id:'t'+uid(),fromId:type==='debit'?id:null,toId:type==='credit'?id:null,amount,type:'adjustment',category:'Adjustment',desc:reason,status:'completed',ts});
+  const ownerId = a.userId;
+  const direction = type === 'debit' ? 'debit' : 'credit';
+  const msg = direction === 'debit'
+    ? `A withdrawal of ${fmt(amount)} was posted. ${reason ? '('+reason+')' : ''}`.trim()
+    : `A deposit of ${fmt(amount)} was posted. ${reason ? '('+reason+')' : ''}`.trim();
+  DB.notifications.add({ id:'n'+uid(), userId: ownerId, message: msg, type: 'info', read: false, ts });
   logAudit('ADJUST_BALANCE','account',id,reason);
   toast('Balance adjusted!','success');
   closeModal();
@@ -312,7 +320,7 @@ function renderAdminTransactions(el) {
   const txns = DB.transactions.getAll().sort((a,b)=>new Date(b.ts)-new Date(a.ts));
   const rows = txns.map(t=>`<tr>
     <td class="mono" style="font-size:.72rem;">${t.id}</td>
-    <td><div style="font-weight:500;">${t.desc}</div><div style="font-size:.72rem;color:var(--nb-muted);">${t.category}</div></td>
+    <td><div style="font-weight:500;">${sanitizeTxnDesc(t.desc)}</div><div style="font-size:.72rem;color:var(--nb-muted);">${t.category}</div></td>
     <td class="mono">${fmt(t.amount)}</td>
     <td>${t.type}</td>
     <td>${fmtDate(t.ts)}</td>
@@ -342,6 +350,7 @@ function adminCreateTxnModal() {
     <div class="form-group"><label>From Account (leave blank for credit)</label><select class="nb-input" id="mt-from"><option value="">— None —</option>${accOpts}</select></div>
     <div class="form-group"><label>To Account (leave blank for debit)</label><select class="nb-input" id="mt-to"><option value="">— None —</option>${accOpts}</select></div>
     <div class="form-group"><label>Amount ($)</label><input class="nb-input" id="mt-amount" type="number"></div>
+    <div class="form-group"><label>Transaction Date</label><input class="nb-input" id="mt-ts" type="datetime-local" value="${toDatetimeLocalValue(new Date().toISOString())}"></div>
     <div class="form-group"><label>Category</label><select class="nb-input" id="mt-cat"><option>Adjustment</option><option>Transfer</option><option>Fee</option><option>Refund</option><option>Interest</option></select></div>
     <div class="form-group"><label>Description</label><input class="nb-input" id="mt-desc" placeholder="Reason / notes"></div>`,
     `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="adminSaveTxn()">Create</button></div>`
@@ -352,10 +361,20 @@ function adminSaveTxn() {
   if (!amount) return toast('Enter amount','error');
   const fromId = document.getElementById('mt-from').value||null;
   const toId = document.getElementById('mt-to').value||null;
+  const ts = fromDatetimeLocalValue(document.getElementById('mt-ts').value) || new Date().toISOString();
+  const cat = document.getElementById('mt-cat').value;
+  const desc = sanitizeTxnDesc(document.getElementById('mt-desc').value||'Transaction posted');
   if (fromId) { const a=DB.accounts.getById(fromId); DB.accounts.update(fromId,{balance:Math.max(0,a.balance-amount)}); }
   if (toId) { const a=DB.accounts.getById(toId); DB.accounts.update(toId,{balance:a.balance+amount}); }
   const id='t'+uid();
-  DB.transactions.create({id,fromId,toId,amount,type:'adjustment',category:document.getElementById('mt-cat').value,desc:document.getElementById('mt-desc').value||'Admin entry',status:'completed',ts:new Date().toISOString()});
+  DB.transactions.create({id,fromId,toId,amount,type:'adjustment',category:cat,desc,status:'completed',ts});
+  const impacted = new Set();
+  if (fromId) impacted.add(DB.accounts.getById(fromId)?.userId);
+  if (toId) impacted.add(DB.accounts.getById(toId)?.userId);
+  impacted.forEach(userId => {
+    if (!userId) return;
+    DB.notifications.add({ id:'n'+uid(), userId, message: `A transaction of ${fmt(amount)} was posted. ${desc ? '('+desc+')' : ''}`.trim(), type:'info', read:false, ts });
+  });
   logAudit('CREATE_TRANSACTION','transaction',id);
   toast('Transaction created!','success');
   closeModal();
@@ -366,12 +385,20 @@ function adminEditTxn(id) {
   showModal('Edit Transaction', `
     <div class="form-group"><label>Description</label><input class="nb-input" id="et-desc" value="${t.desc}"></div>
     <div class="form-group"><label>Category</label><input class="nb-input" id="et-cat" value="${t.category}"></div>
+    <div class="form-group"><label>Date</label><input class="nb-input" id="et-ts" type="datetime-local" value="${toDatetimeLocalValue(t.ts)}"></div>
     <div class="form-group"><label>Status</label><select class="nb-input" id="et-status"><option ${t.status==='completed'?'selected':''}>completed</option><option ${t.status==='pending'?'selected':''}>pending</option><option ${t.status==='reversed'?'selected':''}>reversed</option></select></div>`,
     `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="adminUpdateTxn('${id}')">Save</button></div>`
   );
 }
 function adminUpdateTxn(id) {
-  DB.transactions.update(id,{desc:document.getElementById('et-desc').value,category:document.getElementById('et-cat').value,status:document.getElementById('et-status').value});
+  const ts = fromDatetimeLocalValue(document.getElementById('et-ts').value);
+  const update = {
+    desc: sanitizeTxnDesc(document.getElementById('et-desc').value),
+    category: document.getElementById('et-cat').value,
+    status: document.getElementById('et-status').value
+  };
+  if (ts) update.ts = ts;
+  DB.transactions.update(id, update);
   logAudit('UPDATE_TRANSACTION','transaction',id);
   toast('Transaction updated','success');
   closeModal();

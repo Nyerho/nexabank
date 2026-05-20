@@ -52,9 +52,63 @@
     .theme-btn.btn-two { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.25); color: #fff; }
     .theme-btn.btn-two:hover { background: rgba(255,255,255,.16); }
     .main-header.header-style-two .logo-box a { font-family: 'Poppins', sans-serif; }
-    .main-header.header-style-two .header-upper { background: rgba(255,255,255,.82); backdrop-filter: blur(10px); }
-    .main-header.header-style-two .header-upper .info-list li a { background: rgba(255,255,255,.7); border: 1px solid rgba(15,45,82,.12); }
-    .main-header.header-style-two .header-upper .info-list li a:hover { border-color: rgba(29,111,164,.55); }
+    .main-header.header-style-two .header-upper { background: rgba(255,255,255,.82); backdrop-filter: blur(10px); padding: 10px 0; }
+    .main-header.header-style-two .header-upper .upper-inner { justify-content: flex-start; }
+
+    .funfact-section#stats { padding: 36px 0 46px; }
+    @property --p { syntax: '<number>'; inherits: true; initial-value: 0; }
+    .funfact-section#stats .funfact-block-one { opacity: 0; transform: translateY(16px) scale(.98); filter: blur(2px); transition: opacity .55s ease, transform .75s cubic-bezier(.2,.9,.2,1), filter .75s ease; }
+    .funfact-section#stats .funfact-block-one.nb-count-in { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+    .funfact-section#stats .funfact-block-one .inner-box { padding: 0; border: 0; text-align: center; display: flex; flex-direction: column; align-items: center; }
+    .funfact-section#stats .nb-stat-circle {
+      --p: 0;
+      width: 168px;
+      height: 168px;
+      border-radius: 50%;
+      position: relative;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at 30% 25%, rgba(255,255,255,.95) 0%, rgba(255,255,255,.78) 45%, rgba(255,255,255,.55) 100%);
+      border: 1px solid rgba(15,45,82,.14);
+      box-shadow: 0 18px 60px rgba(15,45,82,.12);
+      overflow: hidden;
+      will-change: transform;
+    }
+    .funfact-section#stats .nb-stat-circle::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: conic-gradient(from -90deg, rgba(201,168,76,.95) calc(var(--p) * 1%), rgba(15,45,82,.10) 0);
+      -webkit-mask: radial-gradient(farthest-side, transparent calc(50% - 8px), #000 calc(50% - 7px));
+      mask: radial-gradient(farthest-side, transparent calc(50% - 8px), #000 calc(50% - 7px));
+      opacity: .9;
+    }
+    .funfact-section#stats .nb-stat-circle::after {
+      content: '';
+      position: absolute;
+      inset: -32px;
+      border-radius: 50%;
+      background: conic-gradient(from 120deg, rgba(29,111,164,.22), rgba(201,168,76,.18), rgba(29,111,164,.22));
+      filter: blur(18px);
+      opacity: 0;
+      transform: rotate(0deg);
+    }
+    .funfact-section#stats .funfact-block-one.nb-count-in .nb-stat-circle { animation: nbCircleIn .7s cubic-bezier(.2,.9,.2,1) both, nbRing 1.2s cubic-bezier(.2,.9,.2,1) both; }
+    .funfact-section#stats .funfact-block-one.nb-count-in .nb-stat-circle::after { opacity: 1; animation: nbGlowSpin 1.8s linear both; }
+    @keyframes nbCircleIn { 0% { transform: translateY(10px) scale(.9); } 60% { transform: translateY(-2px) scale(1.04); } 100% { transform: translateY(0) scale(1); } }
+    @keyframes nbRing { to { --p: 100; } }
+    @keyframes nbGlowSpin { 0% { transform: rotate(0deg); opacity: 0; } 20% { opacity: .9; } 100% { transform: rotate(330deg); opacity: .65; } }
+    .funfact-section#stats .nb-stat-value { position: relative; z-index: 1; display: inline-flex; align-items: baseline; gap: 6px; line-height: 1; }
+    .funfact-section#stats .nb-counter { display: inline-block; font-variant-numeric: tabular-nums; letter-spacing: -.8px; font-weight: 800; font-size: 40px; background: linear-gradient(135deg, var(--nb-primary), var(--nb-accent)); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: 0 10px 22px rgba(15,45,82,.10); }
+    .funfact-section#stats .symble { position: relative; top: -2px; font-weight: 700; font-size: 16px; color: var(--nb-primary); opacity: .9; }
+    .funfact-section#stats .nb-stat-label { margin: 12px 0 0; font-size: 13px; color: var(--nb-muted); letter-spacing: .2px; }
+    .funfact-section#stats .nb-counter.nb-pop { animation: nbNumberPop .7s cubic-bezier(.2,.9,.2,1) both; }
+    @keyframes nbNumberPop { 0% { transform: translateY(6px) scale(.96); } 55% { transform: translateY(-3px) scale(1.10); } 100% { transform: translateY(0) scale(1); } }
+    @media (max-width: 575px) {
+      .funfact-section#stats .nb-stat-circle { width: 148px; height: 148px; }
+      .funfact-section#stats .nb-counter { font-size: 36px; }
+    }
 
     .banner-style-two .pattern-layer { display: none; }
     .banner-style-two .bg-layer { background-image: linear-gradient(135deg, #0f2d52 0%, #1d6fa4 55%, #0b223f 100%) !important; }
@@ -125,24 +179,6 @@
                   Nexa<span style="color:var(--nb-gold);">Bank</span>
                 </a>
               </figure>
-            </div>
-            <div class="right-column">
-              <ul class="info-list">
-                <li>
-                  <a href="app.html">
-                    <img src="cornerstone/assets/images/icons/icon-47.png" alt="">
-                    Login
-                    <span>Existing Customer</span>
-                  </a>
-                </li>
-                <li>
-                  <a href="app.html">
-                    <img src="cornerstone/assets/images/icons/icon-47.png" alt="">
-                    Register
-                    <span>New Customer</span>
-                  </a>
-                </li>
-              </ul>
             </div>
           </div>
         </div>
@@ -313,34 +349,40 @@
 
     <section class="funfact-section centred" id="stats">
       <div class="auto-container">
-        <div class="row clearfix">
-          <div class="col-lg-4 col-md-6 col-sm-12 funfact-block">
+        <div class="row clearfix justify-content-center g-4">
+          <div class="col-lg-4 col-md-6 col-sm-12 funfact-block d-flex justify-content-center">
             <div class="funfact-block-one">
               <div class="inner-box">
-                <div class="count-outer count-box">
-                  <span class="odometer" data-count="2">00</span><span class="symble">M+</span>
+                <div class="nb-stat-circle">
+                  <div class="nb-stat-value">
+                    <span class="nb-counter" data-count="2">0</span><span class="symble">M+</span>
+                  </div>
                 </div>
-                <p>Happy Customers</p>
+                <p class="nb-stat-label">Happy Customers</p>
               </div>
             </div>
           </div>
-          <div class="col-lg-4 col-md-6 col-sm-12 funfact-block">
+          <div class="col-lg-4 col-md-6 col-sm-12 funfact-block d-flex justify-content-center">
             <div class="funfact-block-one">
               <div class="inner-box">
-                <div class="count-outer count-box">
-                  <span class="odometer" data-count="5">00</span><span class="symble">B+</span>
+                <div class="nb-stat-circle">
+                  <div class="nb-stat-value">
+                    <span class="nb-counter" data-count="5">0</span><span class="symble">B+</span>
+                  </div>
                 </div>
-                <p>Transactions Processed</p>
+                <p class="nb-stat-label">Transactions Processed</p>
               </div>
             </div>
           </div>
-          <div class="col-lg-4 col-md-6 col-sm-12 funfact-block">
+          <div class="col-lg-4 col-md-6 col-sm-12 funfact-block d-flex justify-content-center">
             <div class="funfact-block-one">
               <div class="inner-box">
-                <div class="count-outer count-box">
-                  <span class="odometer" data-count="99.9">00</span><span class="symble">%</span>
+                <div class="nb-stat-circle">
+                  <div class="nb-stat-value">
+                    <span class="nb-counter" data-count="99.9">0</span><span class="symble">%</span>
+                  </div>
                 </div>
-                <p>Uptime Guarantee</p>
+                <p class="nb-stat-label">Uptime Guarantee</p>
               </div>
             </div>
           </div>
@@ -474,6 +516,70 @@
   <script src="cornerstone/assets/js/jquery.lettering.min.js"></script>
   <script src="cornerstone/assets/js/jquery.circleType.js"></script>
   <script src="cornerstone/assets/js/script.js"></script>
+  <script>
+    (function () {
+      const counters = document.querySelectorAll('.nb-counter');
+      if (!counters.length) return;
+
+      const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+
+      function animateCounter(el) {
+        if (el.dataset.nbDone) return;
+        el.dataset.nbDone = '1';
+
+        const raw = (el.dataset.count || '').trim();
+        const target = Number(raw);
+        const decimals = raw.includes('.') ? (raw.split('.')[1] || '').length : 0;
+        if (!Number.isFinite(target)) return;
+
+        const duration = prefersReduced ? 0 : 760;
+        if (!duration) {
+          el.textContent = target.toFixed(decimals);
+          el.classList.add('nb-pop');
+          return;
+        }
+
+        const start = 0;
+        const startTs = performance.now();
+
+        function step(now) {
+          const p = Math.min(1, (now - startTs) / duration);
+          const v = start + (target - start) * easeOutCubic(p);
+          if (p < 1) {
+            el.textContent = v.toFixed(decimals);
+            requestAnimationFrame(step);
+            return;
+          }
+          el.textContent = target.toFixed(decimals);
+          el.classList.add('nb-pop');
+        }
+
+        requestAnimationFrame(step);
+      }
+
+      const io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (!e.isIntersecting) return;
+            const delay = prefersReduced ? 0 : (Number(e.target.dataset.nbIndex || 0) * 120);
+            setTimeout(() => {
+              const block = e.target.closest('.funfact-block-one');
+              if (block) block.classList.add('nb-count-in');
+              animateCounter(e.target);
+              io.unobserve(e.target);
+            }, delay);
+          });
+        },
+        { threshold: 0.35 }
+      );
+
+      counters.forEach((el, i) => {
+        el.dataset.nbIndex = String(i);
+        io.observe(el);
+      });
+    })();
+  </script>
 
 </body>
 </html>

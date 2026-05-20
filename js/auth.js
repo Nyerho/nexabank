@@ -6,7 +6,7 @@ function normalizeEmail(email) {
   return (email || '').trim().toLowerCase();
 }
 
-function login(email, password) {
+function verifyCredentials(email, password) {
   const normEmail = normalizeEmail(email);
   try { DB.seed(); } catch (_) {}
   const user = DB.users.getByEmail(normEmail) || DB.users.getAll().find(u => normalizeEmail(u.email) === normEmail);
@@ -18,6 +18,10 @@ function login(email, password) {
     return { ok: false, msg: 'Invalid password' };
   }
   DB.users.update(user.id, { failedLogins: 0 });
+  return { ok: true, user };
+}
+
+function finalizeLogin(user) {
   STATE.user = user;
   sessionStorage.setItem('nb_session', user.id);
   return { ok: true };
@@ -38,6 +42,27 @@ function restoreSession() {
   return false;
 }
 
+function generateOtpCode() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+function requestLoginOtp(user) {
+  const code = generateOtpCode();
+  const payload = { userId: user.id, email: normalizeEmail(user.email), code, expiresAt: Date.now() + 10 * 60 * 1000, attempts: 0 };
+  sessionStorage.setItem('nb_login_otp', JSON.stringify(payload));
+  toast('One-time login code sent to your email.', 'success');
+  const showCode = (localStorage.getItem('nb_show_login_otp') || '1') === '1';
+  if (showCode) toast(`Login code: ${code}`, 'info');
+}
+
+function getPendingLoginOtp() {
+  try { return JSON.parse(sessionStorage.getItem('nb_login_otp') || 'null'); } catch { return null; }
+}
+
+function clearPendingLoginOtp() {
+  sessionStorage.removeItem('nb_login_otp');
+}
+
 // ============================================================
 // AUTH FORMS
 // ============================================================
@@ -53,10 +78,23 @@ function renderAuthForm(type='login') {
         <label style="display:inline-flex;align-items:center;gap:.3rem;cursor:pointer;color:var(--nb-text);"><input type="checkbox"> Remember me</label>
         <a href="#" style="color:var(--nb-accent);">Forgot password?</a>
       </div>
-      <button class="btn-nb btn-nb-primary w-100 justify-content-center" style="padding:.75rem;" onclick="doLogin()"><i class="bi bi-box-arrow-in-right"></i> Sign In</button>
+      <button class="btn-nb btn-nb-primary w-100 justify-content-center" style="padding:.75rem;" onclick="doLoginStart()"><i class="bi bi-box-arrow-in-right"></i> Continue</button>
       <div class="text-center mt-3" style="font-size:.82rem;color:var(--nb-muted);">No account? <a href="#" style="color:var(--nb-accent);" onclick="renderAuthForm('register')">Create one</a></div>
     `;
     // Removed demo accounts hint for "real" bank feel
+  } else if (type === 'login-otp') {
+    const pending = getPendingLoginOtp();
+    const masked = pending?.email ? pending.email.replace(/^(.{2}).+(@.+)$/, (_, a, b) => `${a}••••${b}`) : '';
+    c.innerHTML = `
+      <div class="form-group"><label>Email Address</label><input class="nb-input" id="lo-email" type="email" value="${pending?.email || ''}" disabled/></div>
+      <div class="form-group"><label>One-Time Login Code</label><input class="nb-input" id="lo-otp" inputmode="numeric" maxlength="6" placeholder="6-digit code" style="letter-spacing:4px;text-align:center;font-size:1.1rem;"/></div>
+      <div class="d-flex justify-content-between align-items-center mb-3" style="font-size:.82rem;">
+        <span style="color:var(--nb-muted);">Sent to ${masked || 'your email'}</span>
+        <a href="#" style="color:var(--nb-accent);" onclick="resendLoginOtp()">Resend</a>
+      </div>
+      <button class="btn-nb btn-nb-primary w-100 justify-content-center" style="padding:.75rem;" onclick="doLoginVerify()"><i class="bi bi-shield-check"></i> Verify & Sign In</button>
+      <div class="text-center mt-3" style="font-size:.82rem;color:var(--nb-muted);"><a href="#" style="color:var(--nb-accent);" onclick="clearPendingLoginOtp();renderAuthForm('login')">Back</a></div>
+    `;
   } else {
     c.innerHTML = `
       <div class="row g-2">
@@ -64,8 +102,18 @@ function renderAuthForm(type='login') {
         <div class="col-6 form-group"><label>Last Name</label><input class="nb-input" id="r-lname" placeholder="Doe"></div>
       </div>
       <div class="form-group"><label>Email</label><input class="nb-input" id="r-email" type="email" placeholder="you@email.com"></div>
+      <div class="form-group"><label>SSN</label><input class="nb-input" id="r-ssn" placeholder="123-45-6789" inputmode="numeric"></div>
       <div class="form-group"><label>Date of Birth</label><input class="nb-input" id="r-dob" type="date"></div>
       <div class="form-group"><label>Phone</label><input class="nb-input" id="r-phone" placeholder="+1-555-0100"></div>
+      <div class="form-group"><label>Address</label><input class="nb-input" id="r-address" placeholder="Street address"></div>
+      <div class="row g-2">
+        <div class="col-6 form-group"><label>City</label><input class="nb-input" id="r-city" placeholder="City"></div>
+        <div class="col-6 form-group"><label>State/Region</label><input class="nb-input" id="r-state" placeholder="State"></div>
+      </div>
+      <div class="row g-2">
+        <div class="col-6 form-group"><label>Postal Code</label><input class="nb-input" id="r-zip" placeholder="ZIP"></div>
+        <div class="col-6 form-group"><label>Country</label><input class="nb-input" id="r-country" placeholder="Country"></div>
+      </div>
       <div class="form-group"><label>Account Type</label>
         <select class="nb-input" id="r-acc-type">
           <option value="Checking">Checking Account</option>
@@ -79,42 +127,72 @@ function renderAuthForm(type='login') {
   }
 }
 
-function doLogin() {
+function doLoginStart() {
   const email = normalizeEmail(document.getElementById('a-email').value);
   const pass = document.getElementById('a-pass').value;
-  const result = login(email, pass);
-  if (result.ok) { 
-      // Check if admin and redirect if needed
-      if (isAdmin()) {
-          window.location.href = 'admin.html';
-      } else {
-          bootApp(); 
-      }
-  }
-  else { toast(result.msg, 'error'); }
+  const result = verifyCredentials(email, pass);
+  if (!result.ok) return toast(result.msg, 'error');
+  requestLoginOtp(result.user);
+  renderAuthForm('login-otp');
+}
+
+function resendLoginOtp() {
+  const pending = getPendingLoginOtp();
+  if (!pending?.userId) return toast('Please sign in again.', 'warning');
+  const user = DB.users.getById(pending.userId);
+  if (!user) { clearPendingLoginOtp(); return toast('Please sign in again.', 'warning'); }
+  requestLoginOtp(user);
+  renderAuthForm('login-otp');
+}
+
+function doLoginVerify() {
+  const pending = getPendingLoginOtp();
+  if (!pending?.userId) return toast('Please sign in again.', 'warning');
+  if (Date.now() > pending.expiresAt) { clearPendingLoginOtp(); renderAuthForm('login'); return toast('Login code expired. Please sign in again.', 'error'); }
+  const otp = String(document.getElementById('lo-otp').value || '').trim();
+  const nextAttempts = (pending.attempts || 0) + 1;
+  sessionStorage.setItem('nb_login_otp', JSON.stringify({ ...pending, attempts: nextAttempts }));
+  if (nextAttempts > 6) { clearPendingLoginOtp(); renderAuthForm('login'); return toast('Too many attempts. Please sign in again.', 'error'); }
+  if (otp !== pending.code) return toast('Invalid login code.', 'error');
+  const user = DB.users.getById(pending.userId);
+  if (!user) { clearPendingLoginOtp(); renderAuthForm('login'); return toast('Please sign in again.', 'warning'); }
+  clearPendingLoginOtp();
+  finalizeLogin(user);
+  if (isAdmin()) window.location.href = 'admin.html';
+  else bootApp();
 }
 
 function doRegister() {
   const fname = document.getElementById('r-fname').value.trim();
   const lname = document.getElementById('r-lname').value.trim();
   const email = normalizeEmail(document.getElementById('r-email').value);
+  const ssnRaw = document.getElementById('r-ssn').value.trim();
   const pass = document.getElementById('r-pass').value;
   const pass2 = document.getElementById('r-pass2').value;
-  if (!fname||!lname||!email) return toast('Please fill all fields', 'error');
+  const dob = document.getElementById('r-dob').value;
+  const phone = document.getElementById('r-phone').value.trim();
+  const address = document.getElementById('r-address').value.trim();
+  const city = document.getElementById('r-city').value.trim();
+  const state = document.getElementById('r-state').value.trim();
+  const zip = document.getElementById('r-zip').value.trim();
+  const country = document.getElementById('r-country').value.trim();
+  const ssnDigits = ssnRaw.replace(/[^\d]/g, '');
+  if (!fname||!lname||!email) return toast('Please fill all required fields', 'error');
+  if (ssnDigits.length !== 9) return toast('Please enter a valid SSN', 'error');
+  if (!dob) return toast('Date of birth is required', 'error');
+  if (!phone) return toast('Phone is required', 'error');
+  if (!address || !city || !state || !zip || !country) return toast('Address details are required', 'error');
   if (pass !== pass2) return toast('Passwords do not match', 'error');
   if (pass.length < 6) return toast('Password must be 6+ characters', 'error');
   if (DB.users.getByEmail(email)) return toast('Email already registered', 'error');
   const id = 'u' + uid();
   const accType = document.getElementById('r-acc-type').value;
-  const user = { id, name:`${fname} ${lname}`, email, password:pass, role:'customer', status:'active', phone:document.getElementById('r-phone').value, dob:document.getElementById('r-dob').value, address:'', joined:new Date().toISOString().slice(0,10), failedLogins:0 };
+  const user = { id, name:`${fname} ${lname}`, email, password:pass, role:'customer', status:'active', phone, dob, ssn:ssnDigits, address, city, state, zip, country, joined:new Date().toISOString().slice(0,10), failedLogins:0 };
   DB.users.create(user);
   DB.accounts.create({ id:'a'+uid(), userId:id, type:accType, balance:0, iban:Math.floor(1000000000 + Math.random() * 9000000000).toString(), swift:'NXBKGB21', status:'active', limit:5000, createdAt:new Date().toISOString().slice(0,10) });
-  const res = login(email, pass);
-  if (res.ok) {
-    bootApp();
-    toast('Welcome to NexaBank!', 'success');
-  } else {
-    toast('Registration successful but login failed. Please sign in.', 'warning');
-    renderAuthForm('login');
-  }
+  const res = verifyCredentials(email, pass);
+  if (!res.ok) { toast('Registration successful. Please sign in.', 'success'); return renderAuthForm('login'); }
+  requestLoginOtp(res.user);
+  renderAuthForm('login-otp');
+  toast('Registration successful. Please verify your login code.', 'success');
 }

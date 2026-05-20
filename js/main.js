@@ -637,12 +637,13 @@ function renderHistory(el) {
   const expenses = txns.filter(t=>t.fromId && myAccIds.includes(t.fromId) && t.type!=='transfer').reduce((s,t)=>s+t.amount,0);
   const rows = txns.map(t=>{
     const isDebit = myAccIds.includes(t.fromId) && t.type!=='credit';
+    const cleanDesc = sanitizeTxnDesc(t.desc);
     return `<tr>
       <td><div class="d-flex align-items-center gap-2">
         <div style="width:36px;height:36px;border-radius:50%;background:${isDebit?'#fee2e2':'#d1fae5'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
           <i class="bi bi-arrow-${isDebit?'up':'down'}-circle" style="color:${isDebit?'var(--nb-danger)':'var(--nb-success)'};"></i>
         </div>
-        <div><div style="font-weight:500;">${t.desc}</div><div style="font-size:.75rem;color:var(--nb-muted);">${t.category}</div></div>
+        <div><div style="font-weight:500;">${cleanDesc}</div><div style="font-size:.75rem;color:var(--nb-muted);">${t.category}</div></div>
       </div></td>
       <td style="font-size:.78rem;color:var(--nb-muted);">${fmtDate(t.ts)}</td>
       <td><span class="${isDebit?'amount-neg':'amount-pos'}">${isDebit?'-':'+'}${fmt(t.amount)}</span></td>
@@ -668,10 +669,11 @@ function renderHistory(el) {
 function viewTxn(id) {
   const t = DB.transactions.getAll().find(tx=>tx.id===id);
   if (!t) return;
+  const cleanDesc = sanitizeTxnDesc(t.desc);
   showModal('Transaction Details', `
     <div style="font-size:.88rem;">
       <div class="d-flex justify-content-between py-2 border-bottom"><span style="color:var(--nb-muted);">ID</span><span class="mono">${t.id}</span></div>
-      <div class="d-flex justify-content-between py-2 border-bottom"><span style="color:var(--nb-muted);">Description</span><span>${t.desc}</span></div>
+      <div class="d-flex justify-content-between py-2 border-bottom"><span style="color:var(--nb-muted);">Description</span><span>${cleanDesc}</span></div>
       <div class="d-flex justify-content-between py-2 border-bottom"><span style="color:var(--nb-muted);">Category</span><span>${t.category}</span></div>
       <div class="d-flex justify-content-between py-2 border-bottom"><span style="color:var(--nb-muted);">Amount</span><span class="mono fw-bold">${fmt(t.amount)}</span></div>
       <div class="d-flex justify-content-between py-2 border-bottom"><span style="color:var(--nb-muted);">Type</span><span>${t.type}</span></div>

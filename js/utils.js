@@ -38,3 +38,22 @@ function logAudit(action, entity, entityId, detail='') {
   DB.auditLog.add({ id:'al'+uid(), adminId:STATE.user.id, action, entity, entityId, detail, ts:new Date().toISOString() });
 }
 
+function sanitizeTxnDesc(desc) {
+  const s = String(desc || '').replace(/\s+/g, ' ').trim();
+  return s.replace(/\bfrom\s+admin\b/ig, '').replace(/\s+/g, ' ').trim();
+}
+
+function toDatetimeLocalValue(isoString) {
+  if (!isoString) return '';
+  const d = new Date(isoString);
+  if (Number.isNaN(d.getTime())) return '';
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function fromDatetimeLocalValue(v) {
+  if (!v) return null;
+  const d = new Date(v);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toISOString();
+}
