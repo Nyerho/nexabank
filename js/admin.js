@@ -66,6 +66,7 @@ function renderAdminUsers(el) {
     <td>
       <div class="d-flex gap-1">
         <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="adminEditUser('${u.id}')" title="Edit"><i class="bi bi-pencil"></i></button>
+        <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="adminRegenerateAccessCode('${u.id}')" title="Access Code"><i class="bi bi-shield-lock"></i></button>
         <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="adminResetPassword('${u.id}')" title="Reset Password"><i class="bi bi-key"></i></button>
         ${(u.failedLogins||0)>=5?`<button class="btn-nb btn-nb-outline btn-nb-sm" onclick="adminUnlockUser('${u.id}')" title="Unlock"><i class="bi bi-unlock"></i></button>`:''}
         <button class="btn-nb ${u.status==='active'?'btn-nb-outline':'btn-nb-success'} btn-nb-sm" onclick="adminToggleUser('${u.id}')" title="${u.status==='active'?'Freeze':'Activate'}"><i class="bi bi-${u.status==='active'?'snow':'check2-circle'}"></i></button>
@@ -89,6 +90,13 @@ function filterTable(input, tableId) {
 }
 function generateTempPassword(len=10) {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
+  let out = '';
+  for (let i=0;i<len;i++) out += chars[Math.floor(Math.random()*chars.length)];
+  return out;
+}
+
+function generateAccessCode(len=8) {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let out = '';
   for (let i=0;i<len;i++) out += chars[Math.floor(Math.random()*chars.length)];
   return out;
@@ -160,6 +168,12 @@ function adminAddUserModal() {
     </div>
     <div class="form-group"><label>Email</label><input class="nb-input" id="au-email" type="email"></div>
     <div class="form-group"><label>Password</label><div class="d-flex gap-2"><input class="nb-input" id="au-pass" type="password"><button class="btn-nb btn-nb-outline btn-nb-sm" onclick="togglePw('au-pass', this)" title="Show/Hide"><i class="bi bi-eye"></i></button></div></div>
+    <div class="form-group"><label>Access Code (give to customer)</label>
+      <div class="d-flex gap-2">
+        <input class="nb-input" id="au-code" type="text" value="${generateAccessCode()}" readonly>
+        <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="copyFieldValue('au-code')" title="Copy"><i class="bi bi-clipboard"></i></button>
+      </div>
+    </div>
     <div class="form-group"><label>Role</label><select class="nb-input" id="au-role"><option>customer</option><option>teller</option><option>admin</option></select></div>
     <div class="form-group"><label>Status</label><select class="nb-input" id="au-status"><option>active</option><option>frozen</option></select></div>`,
     `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="adminSaveNewUser()">Create User</button></div>`
@@ -173,9 +187,37 @@ function adminSaveNewUser() {
   if (!fname||!email||!pass) return toast('Fill required fields','error');
   if (DB.users.getByEmail(email)) return toast('Email exists','error');
   const id = 'u'+uid();
-  DB.users.create({id,name:`${fname} ${lname}`,email,password:pass,role:document.getElementById('au-role').value,status:document.getElementById('au-status').value,phone:'',address:'',dob:'',joined:new Date().toISOString().slice(0,10),failedLogins:0});
+  const accessCode = document.getElementById('au-code')?.value || generateAccessCode();
+  DB.users.create({id,name:`${fname} ${lname}`,email,password:pass,accessCode,role:document.getElementById('au-role').value,status:document.getElementById('au-status').value,phone:'',address:'',dob:'',joined:new Date().toISOString().slice(0,10),failedLogins:0});
   logAudit('CREATE_USER','user',id);
-  toast('User created!','success');
+  toast('User created! Copy the access code and share with the customer.','success');
+  closeModal();
+  navigate('admin-users');
+}
+
+function adminRegenerateAccessCode(id) {
+  const u = DB.users.getById(id);
+  const code = generateAccessCode();
+  showModal('Regenerate Access Code — ' + u.name, `
+    <p style="font-size:.85rem;color:var(--nb-muted);margin-bottom:.75rem;">Generate a new access code for this user.</p>
+    <div class="form-group">
+      <label>Access Code</label>
+      <div class="d-flex gap-2">
+        <input class="nb-input" id="ra-code" type="text" value="${code}" readonly>
+        <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="copyFieldValue('ra-code')" title="Copy"><i class="bi bi-clipboard"></i></button>
+      </div>
+    </div>`,
+    `<div class="d-flex gap-2 justify-content-end">
+      <button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn-nb btn-nb-primary" onclick="adminConfirmRegenerateAccessCode('${id}','${code}')">Save</button>
+    </div>`
+  );
+}
+
+function adminConfirmRegenerateAccessCode(id, code) {
+  DB.users.update(id, { accessCode: code });
+  logAudit('REGENERATE_ACCESS_CODE','user',id);
+  toast('Access code updated','success');
   closeModal();
   navigate('admin-users');
 }

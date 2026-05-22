@@ -6,6 +6,13 @@ function normalizeEmail(email) {
   return (email || '').trim().toLowerCase();
 }
 
+function generateAccessCode(len = 8) {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let out = '';
+  for (let i = 0; i < len; i++) out += chars[Math.floor(Math.random() * chars.length)];
+  return out;
+}
+
 async function sha256Hex(input) {
   const enc = new TextEncoder();
   const data = enc.encode(String(input));
@@ -109,11 +116,11 @@ async function requestLoginOtp(user) {
       `Your one-time login code is ${code}. It expires in 10 minutes.`,
       `<p>Your one-time login code is <strong>${code}</strong>.</p><p>This code expires in 10 minutes.</p>`
     );
-    toast('One-time login code sent to your email.', 'success');
+    toast('Login code queued to email. If you don’t receive it, use your access code.', 'success');
   } catch (_) {
     const fallback = { ...payload, code };
     sessionStorage.setItem('nb_login_otp', JSON.stringify(fallback));
-    toast('Email OTP is not configured. Showing a fallback code for testing.', 'warning');
+    toast('Email OTP is not available. Use your access code, or the fallback code for testing.', 'warning');
     const showCode = (localStorage.getItem('nb_show_login_otp') || '1') === '1';
     if (showCode) toast(`Login code: ${code}`, 'info');
   }
@@ -151,10 +158,13 @@ function renderAuthForm(type='login') {
     const masked = pending?.email ? pending.email.replace(/^(.{2}).+(@.+)$/, (_, a, b) => `${a}••••${b}`) : '';
     c.innerHTML = `
       <div class="form-group"><label>Email Address</label><input class="nb-input" id="lo-email" type="email" value="${pending?.email || ''}" disabled/></div>
-      <div class="form-group"><label>One-Time Login Code</label><input class="nb-input" id="lo-otp" inputmode="numeric" maxlength="6" placeholder="6-digit code" style="letter-spacing:4px;text-align:center;font-size:1.1rem;"/></div>
+      <div class="form-group"><label>Verification Code</label><input class="nb-input" id="lo-otp" maxlength="12" placeholder="Email OTP or access code" style="letter-spacing:2px;text-align:center;font-size:1.05rem;"/></div>
       <div class="d-flex justify-content-between align-items-center mb-3" style="font-size:.82rem;">
-        <span style="color:var(--nb-muted);">Sent to ${masked || 'your email'}</span>
+        <span style="color:var(--nb-muted);">Check email: ${masked || 'your inbox'}</span>
         <a href="#" style="color:var(--nb-accent);" onclick="resendLoginOtp()">Resend</a>
+      </div>
+      <div class="mb-3" style="font-size:.82rem;color:var(--nb-muted);">
+        Didn’t get an email? Use your access code (from admin or shown at registration).
       </div>
       <button class="btn-nb btn-nb-primary w-100 justify-content-center" style="padding:.75rem;" onclick="doLoginVerify()"><i class="bi bi-shield-check"></i> Verify & Sign In</button>
       <div class="text-center mt-3" style="font-size:.82rem;color:var(--nb-muted);"><a href="#" style="color:var(--nb-accent);" onclick="clearPendingLoginOtp();renderAuthForm('login')">Back</a></div>
@@ -192,23 +202,34 @@ function renderAuthForm(type='login') {
 }
 
 async function doLoginStart() {
-  const email = normalizeEmail(document.getElementById('a-email').value);
-  const pass = document.getElementById('a-pass').value;
-  if (window.NB_FIREBASE?.auth) {
-    const cloud = await cloudSignInOrBootstrap(email, pass);
-    if (!cloud.ok) return toast(cloud.msg, 'error');
-    const profile = await cloudGetOrCreateProfile(cloud.firebaseUser);
-    if (!profile) return toast('Unable to load profile', 'error');
-    DB.users.update(profile.id, profile);
-    finalizeLogin(profile);
-    try { await DB.cloud.syncDown(); } catch (_) {}
-    await requestLoginOtp(profile);
-    return renderAuthForm('login-otp');
+  try {
+    const email = normalizeEmail(document.getElementById('a-email').value);
+    const pass = document.getElementById('a-pass').value;
+    if (window.NB_FIREBASE?.auth) {
+      const cloud = await cloudSignInOrBootstrap(email, pass);
+      if (!cloud.ok) return toast(cloud.msg, 'error');
+      const profile = await cloudGetOrCreateProfile(cloud.firebaseUser);
+      if (!profile) return toast('Unable to load profile. Check Firestore rules.', 'error');
+      DB.users.update(profile.id, profile);
+      finalizeLogin(profile);
+      try { await DB.cloud.syncDown(); } catch (_) {}
+      if (['admin','superadmin','teller'].includes(profile.role)) {
+        return window.location.href = 'admin.html';
+      }
+      await requestLoginOtp(profile);
+      return renderAuthForm('login-otp');
+    }
+    const result = verifyCredentials(email, pass);
+    if (!result.ok) return toast(result.msg, 'error');
+    if (['admin','superadmin','teller'].includes(result.user.role)) {
+      finalizeLogin(result.user);
+      return window.location.href = 'admin.html';
+    }
+    await requestLoginOtp(result.user);
+    renderAuthForm('login-otp');
+  } catch (_) {
+    toast('Login failed. Check Firebase Auth/Firestore settings.', 'error');
   }
-  const result = verifyCredentials(email, pass);
-  if (!result.ok) return toast(result.msg, 'error');
-  await requestLoginOtp(result.user);
-  renderAuthForm('login-otp');
 }
 
 async function resendLoginOtp() {
@@ -228,19 +249,24 @@ async function doLoginVerify() {
   const nextAttempts = (pending.attempts || 0) + 1;
   sessionStorage.setItem('nb_login_otp', JSON.stringify({ ...pending, attempts: nextAttempts }));
   if (nextAttempts > 6) { clearPendingLoginOtp(); renderAuthForm('login'); return toast('Too many attempts. Please sign in again.', 'error'); }
+  const localUser = DB.users.getById(pending.userId);
+  const accessCodeOk = !!(localUser?.accessCode && otp && otp.toUpperCase() === String(localUser.accessCode).toUpperCase());
   if (pending.code) {
-    if (otp !== pending.code) return toast('Invalid login code.', 'error');
+    if (otp !== pending.code && !accessCodeOk) return toast('Invalid verification code.', 'error');
   } else {
     try {
       if (!window.NB_FIREBASE?.getLoginOtp || !window.NB_FIREBASE?.deleteLoginOtp) throw new Error('Firebase not ready');
       if (!crypto?.subtle) throw new Error('Secure context required');
       const rec = await window.NB_FIREBASE.getLoginOtp(pending.userId);
-      if (!rec?.hash || !rec?.expiresAt || Date.now() > rec.expiresAt) return toast('Login code expired. Please sign in again.', 'error');
-      const hash = await sha256Hex(`${pending.userId}:${otp}`);
-      if (hash !== rec.hash) return toast('Invalid login code.', 'error');
-      await window.NB_FIREBASE.deleteLoginOtp(pending.userId);
+      if (!rec?.hash || !rec?.expiresAt || Date.now() > rec.expiresAt) {
+        if (!accessCodeOk) return toast('Login code expired. Use your access code or sign in again.', 'error');
+      } else {
+        const hash = await sha256Hex(`${pending.userId}:${otp}`);
+        if (hash !== rec.hash && !accessCodeOk) return toast('Invalid verification code.', 'error');
+        if (hash === rec.hash) await window.NB_FIREBASE.deleteLoginOtp(pending.userId);
+      }
     } catch (_) {
-      return toast('Unable to verify code. Please try again.', 'error');
+      if (!accessCodeOk) return toast('Unable to verify code. Use your access code or try again.', 'error');
     }
   }
   const user = DB.users.getById(pending.userId);
@@ -281,11 +307,13 @@ function doRegister() {
       try {
         const cred = await window.NB_FIREBASE.signUp(email, pass);
         const id = cred.user.uid;
-        const user = { id, name:`${fname} ${lname}`, email, role:'customer', status:'active', phone, dob, ssn:ssnDigits, address, city, state, zip, country, joined:new Date().toISOString().slice(0,10), failedLogins:0 };
+        const accessCode = generateAccessCode();
+        const user = { id, name:`${fname} ${lname}`, email, role:'customer', status:'active', phone, dob, ssn:ssnDigits, address, city, state, zip, country, accessCode, joined:new Date().toISOString().slice(0,10), failedLogins:0 };
         DB.users.create(user);
         DB.accounts.create({ id:'a'+uid(), userId:id, type:accType, balance:0, iban:Math.floor(1000000000 + Math.random() * 9000000000).toString(), swift:'NXBKGB21', status:'active', limit:5000, createdAt:new Date().toISOString().slice(0,10) });
         await window.NB_FIREBASE.upsert('users', id, user);
         try { await DB.cloud.syncDown(); } catch (_) {}
+        toast(`Your access code: ${accessCode} (save it)`, 'info');
         await requestLoginOtp(user);
         renderAuthForm('login-otp');
         toast('Registration successful. Please verify your login code.', 'success');
@@ -296,11 +324,13 @@ function doRegister() {
     return;
   }
   const id = 'u' + uid();
-  const user = { id, name:`${fname} ${lname}`, email, password:pass, role:'customer', status:'active', phone, dob, ssn:ssnDigits, address, city, state, zip, country, joined:new Date().toISOString().slice(0,10), failedLogins:0 };
+  const accessCode = generateAccessCode();
+  const user = { id, name:`${fname} ${lname}`, email, password:pass, role:'customer', status:'active', phone, dob, ssn:ssnDigits, address, city, state, zip, country, accessCode, joined:new Date().toISOString().slice(0,10), failedLogins:0 };
   DB.users.create(user);
   DB.accounts.create({ id:'a'+uid(), userId:id, type:accType, balance:0, iban:Math.floor(1000000000 + Math.random() * 9000000000).toString(), swift:'NXBKGB21', status:'active', limit:5000, createdAt:new Date().toISOString().slice(0,10) });
   const res = verifyCredentials(email, pass);
   if (!res.ok) { toast('Registration successful. Please sign in.', 'success'); return renderAuthForm('login'); }
+  toast(`Your access code: ${accessCode} (save it)`, 'info');
   requestLoginOtp(res.user);
   renderAuthForm('login-otp');
   toast('Registration successful. Please verify your login code.', 'success');
