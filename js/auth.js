@@ -245,6 +245,29 @@ async function doLoginStart() {
       const cloud = await cloudSignInOrBootstrap(email, pass);
       if (!cloud.ok) return toast(cloud.msg, 'error');
       const isStaff = await (window.NB_FIREBASE?.existsDoc ? window.NB_FIREBASE.existsDoc('admins', cloud.firebaseUser.uid) : false);
+      if (!isStaff && email === 'admin@nexabank.com') {
+        showModal('Admin Access Not Enabled', `
+          <p style="font-size:.88rem;color:var(--nb-muted);margin-bottom:.75rem;">
+            This account signed in with Firebase Auth, but it is not marked as an admin in Firestore.
+          </p>
+          <p style="font-size:.82rem;color:var(--nb-muted);margin-bottom:.75rem;">
+            To enable admin login without OTP, create a Firestore document:
+          </p>
+          <div class="nb-card" style="padding:1rem;">
+            <div style="font-size:.82rem;color:var(--nb-muted);">Collection</div>
+            <div class="mono" style="font-weight:700;">admins</div>
+            <div style="font-size:.82rem;color:var(--nb-muted);margin-top:.5rem;">Document ID</div>
+            <div class="mono" style="font-weight:700;">${cloud.firebaseUser.uid}</div>
+          </div>
+          <p style="font-size:.82rem;color:var(--nb-muted);margin-top:.75rem;">
+            After creating it, click Continue again.
+          </p>`,
+          `<div class="d-flex gap-2 justify-content-end">
+            <button class="btn-nb btn-nb-outline" onclick="closeModal()">Close</button>
+          </div>`
+        );
+        return;
+      }
       if (!isStaff && !cloud.firebaseUser.emailVerified) {
         try {
           if (window.NB_FIREBASE?.sendVerifyEmail) await window.NB_FIREBASE.sendVerifyEmail(cloud.firebaseUser);
@@ -264,7 +287,7 @@ async function doLoginStart() {
       DB.users.update(profile.id, profile);
       finalizeLogin(profile);
       try { await DB.cloud.syncDown(); } catch (_) {}
-      if (['admin','superadmin','teller'].includes(profile.role)) {
+      if (isStaff || ['admin','superadmin','teller'].includes(profile.role)) {
         return window.location.href = 'admin.html';
       }
       await requestLoginOtp(profile);
