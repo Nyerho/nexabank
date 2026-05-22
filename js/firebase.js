@@ -2,6 +2,8 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/fireba
 import {
   createUserWithEmailAndPassword,
   getAuth,
+  sendEmailVerification,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
@@ -38,6 +40,14 @@ async function signIn(email, password) {
 
 async function signUp(email, password) {
   return createUserWithEmailAndPassword(auth, email, password);
+}
+
+async function sendVerifyEmail(user) {
+  return sendEmailVerification(user);
+}
+
+async function sendPasswordReset(email) {
+  return sendPasswordResetEmail(auth, email);
 }
 
 async function signOutUser() {
@@ -112,6 +122,8 @@ window.NB_FIREBASE = {
   db,
   signIn,
   signUp,
+  sendVerifyEmail,
+  sendPasswordReset,
   signOutUser,
   queueEmail,
   saveLoginOtp,
@@ -126,4 +138,4 @@ window.NB_FIREBASE = {
   findOneByField
 };
 
-export { app, auth, db, signIn, signUp, signOutUser, queueEmail, saveLoginOtp, getLoginOtp, deleteLoginOtp, upsert, remove, list, listWhere, getById, existsDoc, findOneByField };
+export { app, auth, db, signIn, signUp, sendVerifyEmail, sendPasswordReset, signOutUser, queueEmail, saveLoginOtp, getLoginOtp, deleteLoginOtp, upsert, remove, list, listWhere, getById, existsDoc, findOneByField };

@@ -13,6 +13,42 @@ function generateAccessCode(len = 8) {
   return out;
 }
 
+function openForgotPasswordModal() {
+  showModal('Reset Password', `
+    <p style="font-size:.85rem;color:var(--nb-muted);margin-bottom:.75rem;">Enter your email address and we’ll send a password reset link.</p>
+    <div class="form-group"><label>Email</label><input class="nb-input" id="fp-email" type="email" placeholder="you@example.com"></div>`,
+    `<div class="d-flex gap-2 justify-content-end">
+      <button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn-nb btn-nb-primary" onclick="sendForgotPasswordLink()">Send Link</button>
+    </div>`
+  );
+}
+
+async function sendForgotPasswordLink() {
+  const email = normalizeEmail(document.getElementById('fp-email')?.value);
+  if (!email) return toast('Enter your email', 'error');
+  try {
+    if (!window.NB_FIREBASE?.sendPasswordReset) throw new Error('Firebase not ready');
+    await window.NB_FIREBASE.sendPasswordReset(email);
+    toast('Password reset email sent.', 'success');
+    closeModal();
+  } catch (_) {
+    toast('Unable to send reset email. Check Firebase Auth settings.', 'error');
+  }
+}
+
+async function resendVerificationEmail() {
+  try {
+    const user = window.NB_FIREBASE?.auth?.currentUser;
+    if (!user) return toast('Please sign in again.', 'warning');
+    if (!window.NB_FIREBASE?.sendVerifyEmail) throw new Error('Firebase not ready');
+    await window.NB_FIREBASE.sendVerifyEmail(user);
+    toast('Verification email sent.', 'success');
+  } catch (_) {
+    toast('Unable to send verification email.', 'error');
+  }
+}
+
 async function sha256Hex(input) {
   const enc = new TextEncoder();
   const data = enc.encode(String(input));
@@ -147,7 +183,7 @@ function renderAuthForm(type='login') {
       <div class="form-group"><label>Password</label><input class="nb-input" id="a-pass" type="password" placeholder="••••••••"/></div>
       <div class="d-flex justify-content-between align-items-center mb-3" style="font-size:.82rem;">
         <label style="display:inline-flex;align-items:center;gap:.3rem;cursor:pointer;color:var(--nb-text);"><input type="checkbox"> Remember me</label>
-        <a href="#" style="color:var(--nb-accent);">Forgot password?</a>
+        <a href="#" style="color:var(--nb-accent);" onclick="openForgotPasswordModal()">Forgot password?</a>
       </div>
       <button class="btn-nb btn-nb-primary w-100 justify-content-center" style="padding:.75rem;" onclick="doLoginStart()"><i class="bi bi-box-arrow-in-right"></i> Continue</button>
       <div class="text-center mt-3" style="font-size:.82rem;color:var(--nb-muted);">No account? <a href="#" style="color:var(--nb-accent);" onclick="renderAuthForm('register')">Create one</a></div>
@@ -208,6 +244,21 @@ async function doLoginStart() {
     if (window.NB_FIREBASE?.auth) {
       const cloud = await cloudSignInOrBootstrap(email, pass);
       if (!cloud.ok) return toast(cloud.msg, 'error');
+      const isStaff = await (window.NB_FIREBASE?.existsDoc ? window.NB_FIREBASE.existsDoc('admins', cloud.firebaseUser.uid) : false);
+      if (!isStaff && !cloud.firebaseUser.emailVerified) {
+        try {
+          if (window.NB_FIREBASE?.sendVerifyEmail) await window.NB_FIREBASE.sendVerifyEmail(cloud.firebaseUser);
+        } catch (_) {}
+        showModal('Verify Your Email', `
+          <p style="font-size:.88rem;color:var(--nb-muted);margin-bottom:.75rem;">We sent a verification link to <strong>${normalizeEmail(cloud.firebaseUser.email)}</strong>.</p>
+          <p style="font-size:.82rem;color:var(--nb-muted);">Verify your email, then click Continue again.</p>`,
+          `<div class="d-flex gap-2 justify-content-end">
+            <button class="btn-nb btn-nb-outline" onclick="closeModal()">Close</button>
+            <button class="btn-nb btn-nb-primary" onclick="resendVerificationEmail()">Resend Email</button>
+          </div>`
+        );
+        return;
+      }
       const profile = await cloudGetOrCreateProfile(cloud.firebaseUser);
       if (!profile) return toast('Unable to load profile. Check Firestore rules.', 'error');
       DB.users.update(profile.id, profile);
@@ -306,6 +357,9 @@ function doRegister() {
     (async () => {
       try {
         const cred = await window.NB_FIREBASE.signUp(email, pass);
+        try {
+          if (window.NB_FIREBASE?.sendVerifyEmail) await window.NB_FIREBASE.sendVerifyEmail(cred.user);
+        } catch (_) {}
         const id = cred.user.uid;
         const accessCode = generateAccessCode();
         const user = { id, name:`${fname} ${lname}`, email, role:'customer', status:'active', phone, dob, ssn:ssnDigits, address, city, state, zip, country, accessCode, joined:new Date().toISOString().slice(0,10), failedLogins:0 };
@@ -314,6 +368,7 @@ function doRegister() {
         await window.NB_FIREBASE.upsert('users', id, user);
         try { await DB.cloud.syncDown(); } catch (_) {}
         toast(`Your access code: ${accessCode} (save it)`, 'info');
+        toast('Verification email sent. Please verify your email before logging in.', 'success');
         await requestLoginOtp(user);
         renderAuthForm('login-otp');
         toast('Registration successful. Please verify your login code.', 'success');
