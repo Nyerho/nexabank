@@ -19,7 +19,7 @@ function openForgotPasswordModal() {
     <div class="form-group"><label>Email</label><input class="nb-input" id="fp-email" type="email" placeholder="you@example.com"></div>`,
     `<div class="d-flex gap-2 justify-content-end">
       <button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button>
-      <button class="btn-nb btn-nb-primary" onclick="sendForgotPasswordLink()">Send Link</button>
+      <button class="btn-nb btn-nb-primary" onclick="runLocked(this, sendForgotPasswordLink, 'Sending...')">Send Link</button>
     </div>`
   );
 }
@@ -185,7 +185,7 @@ function renderAuthForm(type='login') {
         <label style="display:inline-flex;align-items:center;gap:.3rem;cursor:pointer;color:var(--nb-text);"><input type="checkbox"> Remember me</label>
         <a href="#" style="color:var(--nb-accent);" onclick="openForgotPasswordModal()">Forgot password?</a>
       </div>
-      <button class="btn-nb btn-nb-primary w-100 justify-content-center" style="padding:.75rem;" onclick="doLoginStart()"><i class="bi bi-box-arrow-in-right"></i> Continue</button>
+      <button class="btn-nb btn-nb-primary w-100 justify-content-center" style="padding:.75rem;" onclick="runLocked(this, doLoginStart, 'Signing in...')"><i class="bi bi-box-arrow-in-right"></i> Continue</button>
       <div class="text-center mt-3" style="font-size:.82rem;color:var(--nb-muted);">No account? <a href="#" style="color:var(--nb-accent);" onclick="renderAuthForm('register')">Create one</a></div>
     `;
     // Removed demo accounts hint for "real" bank feel
@@ -197,12 +197,12 @@ function renderAuthForm(type='login') {
       <div class="form-group"><label>Verification Code</label><input class="nb-input" id="lo-otp" maxlength="12" placeholder="Email OTP or access code" style="letter-spacing:2px;text-align:center;font-size:1.05rem;"/></div>
       <div class="d-flex justify-content-between align-items-center mb-3" style="font-size:.82rem;">
         <span style="color:var(--nb-muted);">Check email: ${masked || 'your inbox'}</span>
-        <a href="#" style="color:var(--nb-accent);" onclick="resendLoginOtp()">Resend</a>
+        <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="runLocked(this, resendLoginOtp, 'Resending...')">Resend</button>
       </div>
       <div class="mb-3" style="font-size:.82rem;color:var(--nb-muted);">
         Didn’t get an email? Use your access code (from admin or shown at registration).
       </div>
-      <button class="btn-nb btn-nb-primary w-100 justify-content-center" style="padding:.75rem;" onclick="doLoginVerify()"><i class="bi bi-shield-check"></i> Verify & Sign In</button>
+      <button class="btn-nb btn-nb-primary w-100 justify-content-center" style="padding:.75rem;" onclick="runLocked(this, doLoginVerify, 'Verifying...')"><i class="bi bi-shield-check"></i> Verify & Sign In</button>
       <div class="text-center mt-3" style="font-size:.82rem;color:var(--nb-muted);"><a href="#" style="color:var(--nb-accent);" onclick="clearPendingLoginOtp();renderAuthForm('login')">Back</a></div>
     `;
   } else {
@@ -232,7 +232,7 @@ function renderAuthForm(type='login') {
       </div>
       <div class="form-group"><label>Password</label><input class="nb-input" id="r-pass" type="password" placeholder="min 8 chars"></div>
       <div class="form-group"><label>Confirm Password</label><input class="nb-input" id="r-pass2" type="password" placeholder="repeat password"></div>
-      <button class="btn-nb btn-nb-primary w-100 justify-content-center" style="padding:.75rem;" onclick="doRegister()"><i class="bi bi-person-plus"></i> Create Account</button>
+      <button class="btn-nb btn-nb-primary w-100 justify-content-center" style="padding:.75rem;" onclick="runLocked(this, doRegister, 'Creating...')"><i class="bi bi-person-plus"></i> Create Account</button>
       <div class="text-center mt-3" style="font-size:.82rem;color:var(--nb-muted);">Have an account? <a href="#" style="color:var(--nb-accent);" onclick="renderAuthForm('login')">Sign in</a></div>`;
   }
 }
@@ -277,7 +277,7 @@ async function doLoginStart() {
           <p style="font-size:.82rem;color:var(--nb-muted);">Verify your email, then click Continue again.</p>`,
           `<div class="d-flex gap-2 justify-content-end">
             <button class="btn-nb btn-nb-outline" onclick="closeModal()">Close</button>
-            <button class="btn-nb btn-nb-primary" onclick="resendVerificationEmail()">Resend Email</button>
+            <button class="btn-nb btn-nb-primary" onclick="runLocked(this, resendVerificationEmail, 'Sending...')">Resend Email</button>
           </div>`
         );
         return;

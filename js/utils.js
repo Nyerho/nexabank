@@ -24,6 +24,49 @@ function showModal(title, html, footer='') {
 
 function closeModal() { const m = document.getElementById('active-modal'); if(m) m.remove(); }
 
+async function runLocked(btn, action, loadingText = 'Loading...', minMs = 600) {
+  const b = btn && btn.closest ? btn.closest('button') : btn;
+  const start = Date.now();
+  if (b && b.dataset && b.dataset.nbLocked === '1') return;
+  let prevHtml = null;
+  try {
+    if (b) {
+      prevHtml = b.innerHTML;
+      b.dataset.nbLocked = '1';
+      b.disabled = true;
+      b.setAttribute('aria-busy', 'true');
+      b.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="width:.95rem;height:.95rem;"></span><span>${loadingText}</span>`;
+      b.style.gap = '.5rem';
+      b.style.justifyContent = 'center';
+    }
+    const result = await Promise.resolve(action());
+    const elapsed = Date.now() - start;
+    const remaining = minMs - elapsed;
+    if (remaining > 0) await new Promise(r => setTimeout(r, remaining));
+    return result;
+  } finally {
+    if (b) {
+      b.disabled = false;
+      b.removeAttribute('aria-busy');
+      delete b.dataset.nbLocked;
+      if (prevHtml !== null) b.innerHTML = prevHtml;
+    }
+  }
+}
+
+document.addEventListener('click', e => {
+  const b = e.target && e.target.closest ? e.target.closest('button') : null;
+  if (!b) return;
+  if (b.disabled) return;
+  if (b.dataset && b.dataset.nbNoClickLock === '1') return;
+  if (b.dataset && b.dataset.nbLocked === '1') return;
+  b.disabled = true;
+  setTimeout(() => {
+    if (b.dataset && b.dataset.nbLocked === '1') return;
+    b.disabled = false;
+  }, 600);
+}, true);
+
 function toggleSidebar(force) {
   const s = document.getElementById('sidebar');
   const o = document.getElementById('sidebar-overlay');
