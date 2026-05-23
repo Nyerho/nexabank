@@ -125,6 +125,19 @@
           bootApp();
         }
       } else {
+        if (window.NB_FIREBASE?.auth?.currentUser && DB?.cloud?.syncDown) {
+          try {
+            await DB.cloud.syncDown();
+            const uid = window.NB_FIREBASE.auth.currentUser.uid;
+            const u = DB.users.getById(uid);
+            if (u) {
+              STATE.user = u;
+              sessionStorage.setItem('nb_session', u.id);
+              bootApp();
+              return;
+            }
+          } catch (_) {}
+        }
         renderAuthForm('login');
       }
     });
