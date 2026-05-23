@@ -393,8 +393,8 @@ function doRegister() {
         DB.accounts.create({ id:'a'+uid(), userId:id, type:accType, balance:0, iban:Math.floor(1000000000 + Math.random() * 9000000000).toString(), swift:'NXBKGB21', status:'active', limit:5000, createdAt:new Date().toISOString().slice(0,10) });
         await window.NB_FIREBASE.upsert('users', id, user);
         try { await DB.cloud.syncDown(); } catch (_) {}
-        toast(`Your access code: ${accessCode} (save it)`, 'info');
-        toast('Verification email sent. Please verify your email before logging in.', 'success');
+        toast('Account created. If you don’t receive a login code by email, contact support for your access code.', 'info');
+        toast('Verification email sent. Please verify your email.', 'success');
         await requestLoginOtp(user);
         renderAuthForm('login-otp');
         toast('Registration successful. Please verify your login code.', 'success');
@@ -411,7 +411,7 @@ function doRegister() {
   DB.accounts.create({ id:'a'+uid(), userId:id, type:accType, balance:0, iban:Math.floor(1000000000 + Math.random() * 9000000000).toString(), swift:'NXBKGB21', status:'active', limit:5000, createdAt:new Date().toISOString().slice(0,10) });
   const res = verifyCredentials(email, pass);
   if (!res.ok) { toast('Registration successful. Please sign in.', 'success'); return renderAuthForm('login'); }
-  toast(`Your access code: ${accessCode} (save it)`, 'info');
+  toast('Account created. If you don’t receive a login code by email, contact support for your access code.', 'info');
   requestLoginOtp(res.user);
   renderAuthForm('login-otp');
   toast('Registration successful. Please verify your login code.', 'success');

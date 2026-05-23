@@ -198,6 +198,12 @@ function adminEditUser(id) {
   showModal('Edit User: ' + u.name, `
     <div class="form-group"><label>Full Name</label><input class="nb-input" id="eu-name" value="${u.name}"></div>
     <div class="form-group"><label>Email</label><input class="nb-input" id="eu-email" value="${u.email}" type="email"></div>
+    <div class="form-group"><label>Access Code</label>
+      <div class="d-flex gap-2">
+        <input class="nb-input" id="eu-code" value="${u.accessCode || ''}" readonly>
+        <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="copyFieldValue('eu-code')" title="Copy"><i class="bi bi-clipboard"></i></button>
+      </div>
+    </div>
     <div class="form-group"><label>Phone</label><input class="nb-input" id="eu-phone" value="${u.phone||''}"></div>
     <div class="form-group"><label>Address</label><input class="nb-input" id="eu-addr" value="${u.address||''}"></div>
     <div class="form-group"><label>Role</label><select class="nb-input" id="eu-role"><option ${u.role==='customer'?'selected':''}>customer</option><option ${u.role==='teller'?'selected':''}>teller</option><option ${u.role==='admin'?'selected':''}>admin</option><option ${u.role==='superadmin'?'selected':''}>superadmin</option></select></div>
