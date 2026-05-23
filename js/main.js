@@ -923,6 +923,7 @@ function payToPayee(id) {
 
 function renderProfile(el) {
   const u = STATE.user;
+  const emailVerified = !!(window.NB_FIREBASE?.auth?.currentUser?.emailVerified);
   el.innerHTML = `
     <div class="row g-4">
       <div class="col-12 col-lg-4">
@@ -931,6 +932,14 @@ function renderProfile(el) {
           <h5 class="fw-semibold mb-1">${u.name}</h5>
           <div style="color:var(--nb-muted);font-size:.85rem;">${u.email}</div>
           <div class="mt-2"><span class="chip"><i class="bi bi-shield-check"></i> ${u.role}</span></div>
+          ${u.role==='customer' && !emailVerified ? `
+            <div class="mt-3" style="font-size:.85rem;color:var(--nb-warning);">
+              Email not verified
+            </div>
+            <button class="btn-nb btn-nb-outline btn-nb-sm mt-2" onclick="runLocked(this, resendVerificationFromDashboard, 'Sending...')">
+              <i class="bi bi-envelope"></i> Resend Verification
+            </button>
+          ` : ``}
           <hr class="divider">
           <div class="text-start" style="font-size:.85rem;">
             <div class="d-flex justify-content-between py-1"><span style="color:var(--nb-muted);">Member since</span><span>${u.joined}</span></div>
@@ -962,6 +971,18 @@ function renderProfile(el) {
         </div>
       </div>
     </div>`;
+}
+
+async function resendVerificationFromDashboard() {
+  try {
+    const user = window.NB_FIREBASE?.auth?.currentUser;
+    if (!user) return toast('Please sign in again.', 'warning');
+    if (!window.NB_FIREBASE?.sendVerifyEmail) throw new Error('Firebase not ready');
+    await window.NB_FIREBASE.sendVerifyEmail(user);
+    toast('Verification email sent.', 'success');
+  } catch (_) {
+    toast('Unable to send verification email.', 'error');
+  }
 }
 function saveProfile() {
   DB.users.update(STATE.user.id, { name:document.getElementById('p-name').value, email:document.getElementById('p-email').value, phone:document.getElementById('p-phone').value, dob:document.getElementById('p-dob').value, address:document.getElementById('p-addr').value });

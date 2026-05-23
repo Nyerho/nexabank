@@ -2,6 +2,8 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/fireba
 import {
   createUserWithEmailAndPassword,
   getAuth,
+  applyActionCode,
+  reload,
   sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
@@ -48,6 +50,16 @@ async function sendVerifyEmail(user) {
 
 async function sendPasswordReset(email) {
   return sendPasswordResetEmail(auth, email);
+}
+
+async function reloadCurrentUser() {
+  if (!auth.currentUser) return null;
+  await reload(auth.currentUser);
+  return auth.currentUser;
+}
+
+async function applyEmailVerificationCode(oobCode) {
+  await applyActionCode(auth, oobCode);
 }
 
 async function signOutUser() {
@@ -124,6 +136,8 @@ window.NB_FIREBASE = {
   signUp,
   sendVerifyEmail,
   sendPasswordReset,
+  reloadCurrentUser,
+  applyEmailVerificationCode,
   signOutUser,
   queueEmail,
   saveLoginOtp,
@@ -138,4 +152,4 @@ window.NB_FIREBASE = {
   findOneByField
 };
 
-export { app, auth, db, signIn, signUp, sendVerifyEmail, sendPasswordReset, signOutUser, queueEmail, saveLoginOtp, getLoginOtp, deleteLoginOtp, upsert, remove, list, listWhere, getById, existsDoc, findOneByField };
+export { app, auth, db, signIn, signUp, sendVerifyEmail, sendPasswordReset, reloadCurrentUser, applyEmailVerificationCode, signOutUser, queueEmail, saveLoginOtp, getLoginOtp, deleteLoginOtp, upsert, remove, list, listWhere, getById, existsDoc, findOneByField };

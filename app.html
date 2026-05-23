@@ -97,12 +97,25 @@
   <script src="js/main.js"></script>
   <script>
     // Boot App
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       // Check theme
       const savedTheme = localStorage.getItem('nb_theme') || 'light';
       document.documentElement.dataset.theme = savedTheme;
       const themeBtn = document.getElementById('theme-btn');
       if(themeBtn) themeBtn.innerHTML = savedTheme==='dark' ? '<i class="bi bi-moon"></i>' : '<i class="bi bi-sun"></i>';
+
+      const params = new URLSearchParams(location.search);
+      const mode = params.get('mode');
+      const oobCode = params.get('oobCode');
+      if (mode === 'verifyEmail' && oobCode && window.NB_FIREBASE?.applyEmailVerificationCode) {
+        try {
+          await window.NB_FIREBASE.applyEmailVerificationCode(oobCode);
+          toast('Email verified successfully.', 'success');
+        } catch (_) {
+          toast('Email verification failed or expired.', 'error');
+        }
+        history.replaceState({}, '', 'app.html');
+      }
 
       // Check Session
       if (restoreSession()) {

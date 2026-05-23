@@ -244,6 +244,9 @@ async function doLoginStart() {
     if (window.NB_FIREBASE?.auth) {
       const cloud = await cloudSignInOrBootstrap(email, pass);
       if (!cloud.ok) return toast(cloud.msg, 'error');
+      if (window.NB_FIREBASE?.reloadCurrentUser) {
+        try { await window.NB_FIREBASE.reloadCurrentUser(); } catch (_) {}
+      }
       const isStaff = await (window.NB_FIREBASE?.existsDoc ? window.NB_FIREBASE.existsDoc('admins', cloud.firebaseUser.uid) : false);
       if (!isStaff && email === 'admin@nexabank.com') {
         showModal('Admin Access Not Enabled', `
@@ -268,19 +271,19 @@ async function doLoginStart() {
         );
         return;
       }
-      if (!isStaff && !cloud.firebaseUser.emailVerified) {
+      const emailVerified = !!(window.NB_FIREBASE?.auth?.currentUser?.emailVerified);
+      if (!isStaff && !emailVerified) {
         try {
           if (window.NB_FIREBASE?.sendVerifyEmail) await window.NB_FIREBASE.sendVerifyEmail(cloud.firebaseUser);
         } catch (_) {}
         showModal('Verify Your Email', `
           <p style="font-size:.88rem;color:var(--nb-muted);margin-bottom:.75rem;">We sent a verification link to <strong>${normalizeEmail(cloud.firebaseUser.email)}</strong>.</p>
-          <p style="font-size:.82rem;color:var(--nb-muted);">Verify your email, then click Continue again.</p>`,
+          <p style="font-size:.82rem;color:var(--nb-muted);">You can still continue to enter your login code, but please verify your email.</p>`,
           `<div class="d-flex gap-2 justify-content-end">
             <button class="btn-nb btn-nb-outline" onclick="closeModal()">Close</button>
             <button class="btn-nb btn-nb-primary" onclick="runLocked(this, resendVerificationEmail, 'Sending...')">Resend Email</button>
           </div>`
         );
-        return;
       }
       const profile = await cloudGetOrCreateProfile(cloud.firebaseUser);
       if (!profile) return toast('Unable to load profile. Check Firestore rules.', 'error');
