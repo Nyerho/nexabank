@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -44,6 +44,16 @@
       --title-color: #0f2d52;
       --text-color: #6b7280;
     }
+    [data-theme="dark"] {
+      --nb-bg: #0d1117;
+      --nb-card: #161b22;
+      --nb-text: #e6edf3;
+      --nb-muted: #8b949e;
+      --nb-border: rgba(255,255,255,.10);
+      --nb-light-accent: #1c2e45;
+      --title-color: #e6edf3;
+      --text-color: #8b949e;
+    }
     body { font-family: 'DM Sans', 'Poppins', sans-serif; background: var(--nb-bg); color: var(--nb-text); }
     h1, h2, h3, h4, h5, h6 { font-family: 'Hanken Grotesk', 'DM Sans', sans-serif; letter-spacing: -.2px; }
     p { color: var(--nb-muted); }
@@ -55,6 +65,30 @@
     .main-header.header-style-two .logo-box a { font-family: 'Poppins', sans-serif; }
     .main-header.header-style-two .header-upper { background: rgba(255,255,255,.82); backdrop-filter: blur(10px); padding: 10px 0; }
     .main-header.header-style-two .header-upper .upper-inner { justify-content: flex-start; }
+    [data-theme="dark"] .main-header.header-style-two .header-upper { background: rgba(13,17,23,.70); border-bottom: 1px solid rgba(255,255,255,.08); }
+    [data-theme="dark"] .main-header.header-style-two .header-lower { background: rgba(13,17,23,.60); }
+    [data-theme="dark"] .main-header.header-style-two .main-menu .navigation > li > a { color: rgba(255,255,255,.86); }
+    [data-theme="dark"] .main-header.header-style-two .main-menu .navigation > li:hover > a { color: #fff; }
+
+    .nb-theme-toggle {
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      border: 1px solid rgba(15,45,82,.12);
+      background: rgba(255,255,255,.85);
+      color: var(--nb-primary);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 12px 30px rgba(15,45,82,.12);
+      transition: transform .18s ease, background .18s ease, border-color .18s ease;
+    }
+    .nb-theme-toggle:hover { transform: translateY(-1px); border-color: rgba(29,111,164,.22); }
+    [data-theme="dark"] .nb-theme-toggle {
+      background: rgba(22,27,34,.82);
+      border-color: rgba(255,255,255,.12);
+      color: rgba(255,255,255,.92);
+      box-shadow: 0 18px 50px rgba(0,0,0,.35);
+    }
 
     .funfact-section#stats { padding: 36px 0 46px; }
     @property --p { syntax: '<number>'; inherits: true; initial-value: 0; }
@@ -126,6 +160,11 @@
       padding: 22px;
       transform: rotate(-2deg);
     }
+    [data-theme="dark"] .nb-hero-card {
+      background: rgba(22,27,34,.88);
+      border-color: rgba(255,255,255,.10);
+      box-shadow: 0 30px 90px rgba(0,0,0,.55);
+    }
     .nb-hero-card .nb-balance-card {
       background: linear-gradient(135deg, #0f2d52 0%, #1d6fa4 70%);
       border-radius: 18px;
@@ -163,6 +202,12 @@
       transition: opacity .2s ease, transform .28s cubic-bezier(.2,.9,.2,1);
       z-index: 50;
     }
+    [data-theme="dark"] .nb-nav-preview-panel {
+      background: rgba(22,27,34,.92);
+      border-color: rgba(255,255,255,.10);
+      box-shadow: 0 22px 65px rgba(0,0,0,.55);
+    }
+    [data-theme="dark"] .nb-nav-preview-panel .title { color: rgba(255,255,255,.92); }
     .navigation > li.nb-nav-preview:hover .nb-nav-preview-panel { opacity: 1; transform: translateY(0); pointer-events: auto; }
     .nb-nav-preview-panel .title { font-weight: 850; color: var(--nb-primary); margin: 0 0 6px; font-size: 15px; }
     .nb-nav-preview-panel .desc { margin: 0 0 12px; color: var(--nb-muted); font-size: 13px; line-height: 1.4; }
@@ -174,6 +219,11 @@
       background: linear-gradient(135deg, rgba(29,111,164,.08), rgba(201,168,76,.06));
       transition: transform .2s ease, border-color .2s ease;
     }
+    [data-theme="dark"] .nb-nav-preview-card {
+      border-color: rgba(255,255,255,.10);
+      background: linear-gradient(135deg, rgba(29,111,164,.18), rgba(201,168,76,.10));
+    }
+    [data-theme="dark"] .nb-nav-preview-card .v { color: rgba(255,255,255,.92); }
     .nb-nav-preview-card:hover { transform: translateY(-2px); border-color: rgba(29,111,164,.25); }
     .nb-nav-preview-card .k { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--nb-muted); }
     .nb-nav-preview-card .v { margin-top: 6px; font-weight: 800; color: var(--nb-primary); font-size: 13px; }
@@ -235,6 +285,11 @@
       overflow: hidden;
       backdrop-filter: blur(10px);
     }
+    [data-theme="dark"] .nb-lb-card {
+      background: rgba(22,27,34,.86);
+      border-color: rgba(255,255,255,.10);
+      box-shadow: 0 30px 90px rgba(0,0,0,.55);
+    }
     .nb-lb-header {
       display: flex;
       align-items: center;
@@ -244,7 +299,12 @@
       border-bottom: 1px solid rgba(15,45,82,.08);
       background: linear-gradient(135deg, rgba(29,111,164,.08), rgba(201,168,76,.06));
     }
+    [data-theme="dark"] .nb-lb-header {
+      border-bottom-color: rgba(255,255,255,.08);
+      background: linear-gradient(135deg, rgba(29,111,164,.16), rgba(201,168,76,.10));
+    }
     .nb-lb-title { font-weight: 900; color: var(--nb-primary); letter-spacing: -.2px; }
+    [data-theme="dark"] .nb-lb-title { color: rgba(255,255,255,.92); }
     .nb-lb-live {
       display: inline-flex;
       align-items: center;
@@ -283,6 +343,10 @@
       transform: translateY(10px);
       opacity: 0;
       animation: nbLbIn .65s cubic-bezier(.2,.9,.2,1) both;
+    }
+    [data-theme="dark"] .nb-lb-row {
+      border-color: rgba(255,255,255,.08);
+      background: rgba(13,17,23,.65);
     }
     @keyframes nbLbIn { to { transform: translateY(0); opacity: 1; } }
     .nb-lb-row::after {
@@ -324,6 +388,11 @@
       font-weight: 850;
       font-size: 12px;
       white-space: nowrap;
+    }
+    [data-theme="dark"] .nb-lb-pill {
+      border-color: rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.86);
     }
     .nb-lb-amt { font-weight: 950; font-size: 14px; letter-spacing: -.2px; }
     .nb-lb-amt.in { color: #0a5a34; }
@@ -386,10 +455,15 @@
           <div class="upper-inner">
             <div class="left-column">
               <figure class="logo-box">
-                <a href="index.html" style="font-weight:800;font-size:26px;color:var(--nb-primary);">
+                <a href="index.html" style="font-weight:800;font-size:26px;color:var(--nb-text);">
                   Nexa<span style="color:var(--nb-gold);">Bank</span>
                 </a>
               </figure>
+            </div>
+            <div class="right-column" style="margin-left:auto;display:flex;align-items:center;gap:10px;">
+              <button class="nb-theme-toggle" id="nb-theme-toggle" type="button" aria-label="Toggle theme">
+                <i class="bi bi-moon-stars"></i>
+              </button>
             </div>
           </div>
         </div>
@@ -967,6 +1041,29 @@
   <script>
     (function () {
       const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      (function () {
+        const html = document.documentElement;
+        const btn = document.getElementById('nb-theme-toggle');
+        const savedTheme = localStorage.getItem('nb_theme') || 'light';
+        html.dataset.theme = savedTheme;
+
+        function syncIcon() {
+          if (!btn) return;
+          const dark = html.dataset.theme === 'dark';
+          btn.innerHTML = dark ? '<i class="bi bi-sun"></i>' : '<i class="bi bi-moon-stars"></i>';
+        }
+
+        syncIcon();
+        if (btn) {
+          btn.addEventListener('click', () => {
+            const dark = html.dataset.theme === 'dark';
+            html.dataset.theme = dark ? 'light' : 'dark';
+            localStorage.setItem('nb_theme', html.dataset.theme);
+            syncIcon();
+          });
+        }
+      })();
 
       const revealEls = document.querySelectorAll('.nb-reveal');
       if (revealEls.length) {
