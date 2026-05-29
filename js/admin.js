@@ -61,6 +61,16 @@ function renderAdminUsers(el) {
     <td><div style="font-weight:500;">${u.name}</div><div style="font-size:.72rem;color:var(--nb-muted);">${u.email}</div></td>
     <td>${u.role}</td>
     <td>${u.phone||'—'}</td>
+    <td>
+      ${u.accessCode ? `
+        <div class="d-flex align-items-center gap-2">
+          <span class="mono" style="font-size:.78rem;font-weight:800;letter-spacing:1px;">${u.accessCode}</span>
+          <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="adminCopyAccessCode('${u.id}')" title="Copy access code"><i class="bi bi-clipboard"></i></button>
+        </div>
+      ` : `
+        <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="adminGenerateAccessCode('${u.id}')" title="Generate access code"><i class="bi bi-magic"></i> Generate</button>
+      `}
+    </td>
     <td>${u.joined||'—'}</td>
     <td><span class="badge-status badge-${u.status}">${u.status}</span></td>
     <td>
@@ -80,7 +90,7 @@ function renderAdminUsers(el) {
         <div class="search-wrap"><i class="bi bi-search"></i><input class="search-bar" placeholder="Search users..." style="width:220px;" oninput="filterTable(this,'users-tbl')"></div>
         <button class="btn-nb btn-nb-primary" onclick="adminAddUserModal()"><i class="bi bi-person-plus"></i> Add User</button>
       </div>
-      <div style="overflow-x:auto;"><table class="nb-table" id="users-tbl"><thead><tr><th>Name</th><th>Role</th><th>Phone</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>
+      <div style="overflow-x:auto;"><table class="nb-table" id="users-tbl"><thead><tr><th>Name</th><th>Role</th><th>Phone</th><th>Access Code</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>
     </div>`;
 }
 function filterTable(input, tableId) {
@@ -124,6 +134,27 @@ function fallbackCopy(v) {
   t.select();
   try { document.execCommand('copy'); toast('Copied','success'); } catch { toast('Copy failed','error'); }
   t.remove();
+}
+
+function adminCopyAccessCode(id) {
+  const u = DB.users.getById(id);
+  const v = u?.accessCode || '';
+  if (!v) return toast('No access code yet. Generate one first.', 'warning');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(v).then(()=>toast('Copied','success')).catch(()=>fallbackCopy(v));
+  } else {
+    fallbackCopy(v);
+  }
+}
+
+function adminGenerateAccessCode(id) {
+  const u = DB.users.getById(id);
+  if (!u) return toast('User not found', 'error');
+  const code = generateAccessCode();
+  DB.users.update(id, { accessCode: code });
+  logAudit('GENERATE_ACCESS_CODE','user',id);
+  toast('Access code generated. Copy and share with the customer.', 'success');
+  navigate('admin-users');
 }
 function adminUnlockUser(id) {
   DB.users.update(id, { failedLogins: 0, status: 'active' });
