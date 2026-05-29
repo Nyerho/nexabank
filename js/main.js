@@ -38,17 +38,42 @@ function buildNav() {
 // Navigation & UI
 // toggleSidebar moved to utils.js
 
+function nbUserInitials(user) {
+  const name = (user?.name || '').trim();
+  if (name) {
+    const parts = name.split(/\s+/).filter(Boolean);
+    const letters = parts.slice(0, 2).map(p => (p[0] || '').toUpperCase()).join('');
+    return letters || 'U';
+  }
+  const email = (user?.email || '').trim();
+  if (email) return String(email[0] || 'U').toUpperCase();
+  return 'U';
+}
+
+function nbApplyAvatar(el, user) {
+  if (!el) return;
+  const photo = user?.photo || user?.photoUrl || user?.avatar || '';
+  if (photo) {
+    el.dataset.hasPhoto = '1';
+    el.style.backgroundImage = `url("${photo}")`;
+    el.textContent = '';
+    return;
+  }
+  el.dataset.hasPhoto = '0';
+  el.style.backgroundImage = '';
+  el.textContent = nbUserInitials(user);
+}
+
 function updateTopbarUser() {
   const u = STATE.user;
   if (!u) return;
-  const initials = u.name.split(' ').map(n=>n[0]).join('').toUpperCase();
   const sidebarAvatar = document.getElementById('sidebar-avatar');
   const topbarAvatar = document.getElementById('topbar-avatar');
   const sidebarName = document.getElementById('sidebar-name');
   const sidebarRole = document.getElementById('sidebar-role');
 
-  if(sidebarAvatar) sidebarAvatar.textContent = initials;
-  if(topbarAvatar) topbarAvatar.textContent = initials;
+  nbApplyAvatar(sidebarAvatar, u);
+  nbApplyAvatar(topbarAvatar, u);
   if(sidebarName) sidebarName.textContent = u.name;
   if(sidebarRole) sidebarRole.textContent = u.role.charAt(0).toUpperCase()+u.role.slice(1);
   updateNotifDot();
@@ -924,14 +949,28 @@ function payToPayee(id) {
 function renderProfile(el) {
   const u = STATE.user;
   const emailVerified = !!(window.NB_FIREBASE?.auth?.currentUser?.emailVerified);
+  const initials = nbUserInitials(u);
+  const photo = u?.photo || u?.photoUrl || '';
+  const avatarStyle = photo
+    ? `background-image:url('${photo}');background-size:cover;background-position:center;background-repeat:no-repeat;`
+    : `background:linear-gradient(135deg,var(--nb-primary),var(--nb-accent));`;
   el.innerHTML = `
     <div class="row g-4">
       <div class="col-12 col-lg-4">
         <div class="nb-card text-center">
-          <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--nb-primary),var(--nb-accent));margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;color:#fff;">${u.name.split(' ').map(n=>n[0]).join('')}</div>
+          <div id="profile-avatar" style="width:80px;height:80px;border-radius:50%;margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;color:#fff;${avatarStyle}">${photo ? '' : initials}</div>
           <h5 class="fw-semibold mb-1">${u.name}</h5>
           <div style="color:var(--nb-muted);font-size:.85rem;">${u.email}</div>
           <div class="mt-2"><span class="chip"><i class="bi bi-shield-check"></i> ${u.role}</span></div>
+          <div class="mt-3">
+            <div class="form-group text-start">
+              <label>Profile photo</label>
+              <input class="nb-input" id="p-photo" type="file" accept="image/*" onchange="onProfilePhotoSelected(event)">
+            </div>
+            <div class="d-flex gap-2 justify-content-center mt-2">
+              ${photo ? `<button class="btn-nb btn-nb-outline btn-nb-sm" onclick="removeProfilePhoto()"><i class="bi bi-trash3"></i> Remove</button>` : ``}
+            </div>
+          </div>
           ${u.role==='customer' && !emailVerified ? `
             <div class="mt-3" style="font-size:.85rem;color:var(--nb-warning);">
               Email not verified
@@ -984,6 +1023,72 @@ async function resendVerificationFromDashboard() {
     toast('Unable to send verification email.', 'error');
   }
 }
+
+async function nbImageFileToAvatarDataUrl(file, size = 256) {
+  const mime = 'image/jpeg';
+  const quality = 0.86;
+  if (window.createImageBitmap) {
+    const bmp = await createImageBitmap(file);
+    const minSide = Math.min(bmp.width, bmp.height);
+    const sx = Math.max(0, Math.floor((bmp.width - minSide) / 2));
+    const sy = Math.max(0, Math.floor((bmp.height - minSide) / 2));
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d', { alpha: false });
+    ctx.drawImage(bmp, sx, sy, minSide, minSide, 0, 0, size, size);
+    if (typeof bmp.close === 'function') bmp.close();
+    return canvas.toDataURL(mime, quality);
+  }
+  const dataUrl = await new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => resolve(String(fr.result || ''));
+    fr.onerror = () => reject(new Error('read failed'));
+    fr.readAsDataURL(file);
+  });
+  const img = new Image();
+  img.src = dataUrl;
+  await new Promise((resolve, reject) => {
+    img.onload = () => resolve();
+    img.onerror = () => reject(new Error('image load failed'));
+  });
+  const minSide = Math.min(img.naturalWidth || img.width, img.naturalHeight || img.height);
+  const sx = Math.max(0, Math.floor(((img.naturalWidth || img.width) - minSide) / 2));
+  const sy = Math.max(0, Math.floor(((img.naturalHeight || img.height) - minSide) / 2));
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d', { alpha: false });
+  ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
+  return canvas.toDataURL(mime, quality);
+}
+
+async function onProfilePhotoSelected(e) {
+  try {
+    const file = e?.target?.files?.[0];
+    if (!file) return;
+    if (!String(file.type || '').startsWith('image/')) return toast('Please select an image file.', 'error');
+    const dataUrl = await nbImageFileToAvatarDataUrl(file, 256);
+    DB.users.update(STATE.user.id, { photo: dataUrl });
+    STATE.user = DB.users.getById(STATE.user.id);
+    updateTopbarUser();
+    const el = document.getElementById('page-content');
+    if (STATE.page === 'profile' && el) renderProfile(el);
+    toast('Profile photo updated!', 'success');
+  } catch (_) {
+    toast('Unable to update photo. Please try a different image.', 'error');
+  }
+}
+
+function removeProfilePhoto() {
+  DB.users.update(STATE.user.id, { photo: null });
+  STATE.user = DB.users.getById(STATE.user.id);
+  updateTopbarUser();
+  const el = document.getElementById('page-content');
+  if (STATE.page === 'profile' && el) renderProfile(el);
+  toast('Profile photo removed.', 'success');
+}
+
 function saveProfile() {
   DB.users.update(STATE.user.id, { name:document.getElementById('p-name').value, email:document.getElementById('p-email').value, phone:document.getElementById('p-phone').value, dob:document.getElementById('p-dob').value, address:document.getElementById('p-addr').value });
   STATE.user = DB.users.getById(STATE.user.id);
