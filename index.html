@@ -44,7 +44,8 @@
       --title-color: #0f2d52;
       --text-color: #6b7280;
     }
-    body { font-family: 'Poppins', sans-serif; background: var(--nb-bg); color: var(--nb-text); }
+    body { font-family: 'DM Sans', 'Poppins', sans-serif; background: var(--nb-bg); color: var(--nb-text); }
+    h1, h2, h3, h4, h5, h6 { font-family: 'Hanken Grotesk', 'DM Sans', sans-serif; letter-spacing: -.2px; }
     p { color: var(--nb-muted); }
     .mono { font-family: 'JetBrains Mono', monospace; }
     .theme-btn.btn-one { background: var(--nb-accent); }
@@ -142,6 +143,85 @@
     @media (max-width: 991px) {
       .nb-hero-card { transform: none; margin-top: 28px; }
     }
+
+    .navigation > li.nb-nav-preview { position: relative; }
+    .navigation > li.nb-nav-preview > a { position: relative; }
+    .nb-nav-preview-panel {
+      position: absolute;
+      top: calc(100% + 14px);
+      left: 0;
+      width: 360px;
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.92);
+      border: 1px solid rgba(15,45,82,.12);
+      box-shadow: 0 22px 65px rgba(15,45,82,.22);
+      backdrop-filter: blur(10px);
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition: opacity .2s ease, transform .28s cubic-bezier(.2,.9,.2,1);
+      z-index: 50;
+    }
+    .navigation > li.nb-nav-preview:hover .nb-nav-preview-panel { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .nb-nav-preview-panel .title { font-weight: 850; color: var(--nb-primary); margin: 0 0 6px; font-size: 15px; }
+    .nb-nav-preview-panel .desc { margin: 0 0 12px; color: var(--nb-muted); font-size: 13px; line-height: 1.4; }
+    .nb-nav-preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .nb-nav-preview-card {
+      border-radius: 14px;
+      padding: 10px 12px;
+      border: 1px solid rgba(29,111,164,.14);
+      background: linear-gradient(135deg, rgba(29,111,164,.08), rgba(201,168,76,.06));
+      transition: transform .2s ease, border-color .2s ease;
+    }
+    .nb-nav-preview-card:hover { transform: translateY(-2px); border-color: rgba(29,111,164,.25); }
+    .nb-nav-preview-card .k { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--nb-muted); }
+    .nb-nav-preview-card .v { margin-top: 6px; font-weight: 800; color: var(--nb-primary); font-size: 13px; }
+    .navigation > li.nb-nav-preview.nb-nav-preview-right .nb-nav-preview-panel { left: auto; right: 0; }
+    @media (max-width: 991px) {
+      .navigation > li.nb-nav-preview .nb-nav-preview-panel { display: none; }
+    }
+
+    .nb-rate-ticker {
+      padding: 14px 0;
+      background: linear-gradient(135deg, rgba(15,45,82,.96), rgba(29,111,164,.92));
+      position: relative;
+      overflow: hidden;
+    }
+    .nb-rate-ticker::before {
+      content:'';
+      position:absolute;
+      inset:0;
+      background: radial-gradient(900px 420px at 20% 30%, rgba(201,168,76,.22), rgba(201,168,76,0) 65%),
+        radial-gradient(700px 420px at 85% 70%, rgba(255,255,255,.10), rgba(255,255,255,0) 60%);
+      pointer-events:none;
+    }
+    .nb-rate-ticker .nb-ticker-wrap { display: flex; align-items: center; gap: 12px; white-space: nowrap; will-change: transform; }
+    .nb-rate-ticker .nb-ticker-viewport { position: relative; overflow: hidden; }
+    .nb-rate-ticker .nb-ticker-track { display: inline-flex; gap: 14px; align-items: center; animation: nbMarquee 26s linear infinite; }
+    .nb-rate-ticker .nb-rate-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.22);
+      background: rgba(255,255,255,.10);
+      color: rgba(255,255,255,.92);
+      box-shadow: 0 18px 50px rgba(0,0,0,.18);
+    }
+    .nb-rate-ticker .nb-rate-pill .tag { font-size: 12px; opacity: .9; }
+    .nb-rate-ticker .nb-rate-pill .val { font-weight: 850; letter-spacing: -.2px; }
+    .nb-rate-ticker .nb-rate-pill .chg { font-size: 12px; padding: 3px 8px; border-radius: 999px; border: 1px solid rgba(255,255,255,.22); }
+    .nb-rate-ticker .nb-rate-pill .chg.up { background: rgba(18,183,106,.18); }
+    .nb-rate-ticker .nb-rate-pill .chg.down { background: rgba(240,68,56,.18); }
+    @keyframes nbMarquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+    @media (prefers-reduced-motion: reduce) {
+      .nb-rate-ticker .nb-ticker-track { animation: none; }
+    }
+
+    .nb-reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .75s cubic-bezier(.2,.9,.2,1); }
+    .nb-reveal.nb-in { opacity: 1; transform: translateY(0); }
   </style>
 </head>
 <body>
@@ -196,12 +276,108 @@
               <nav class="main-menu navbar-expand-md navbar-light clearfix">
                 <div class="collapse navbar-collapse show clearfix" id="navbarSupportedContent">
                   <ul class="navigation clearfix">
-                    <li><a href="#home">Home</a></li>
-                    <li><a href="#features">Features</a></li>
-                    <li><a href="#stats">Stats</a></li>
-                    <li><a href="#testimonials">Testimonials</a></li>
-                    <li><a href="#contact">Contact</a></li>
-                    <li><a href="app.html">Online Banking</a></li>
+                    <li class="nb-nav-preview">
+                      <a href="#home">Home</a>
+                      <div class="nb-nav-preview-panel">
+                        <div class="title">Welcome to NexaBank</div>
+                        <div class="desc">A modern banking experience built for speed, clarity, and control.</div>
+                        <div class="nb-nav-preview-grid">
+                          <a class="nb-nav-preview-card" href="#features" style="text-decoration:none;">
+                            <div class="k"><i class="bi bi-stars"></i><span>Explore</span></div>
+                            <div class="v">Product Highlights</div>
+                          </a>
+                          <a class="nb-nav-preview-card" href="#stats" style="text-decoration:none;">
+                            <div class="k"><i class="bi bi-graph-up"></i><span>Proof</span></div>
+                            <div class="v">Trust & Scale</div>
+                          </a>
+                        </div>
+                      </div>
+                    </li>
+                    <li class="nb-nav-preview">
+                      <a href="#features">Features</a>
+                      <div class="nb-nav-preview-panel">
+                        <div class="title">What you get</div>
+                        <div class="desc">Security-first accounts, smart insights, and a mobile experience that feels effortless.</div>
+                        <div class="nb-nav-preview-grid">
+                          <a class="nb-nav-preview-card" href="#features" style="text-decoration:none;">
+                            <div class="k"><i class="bi bi-shield-lock"></i><span>Security</span></div>
+                            <div class="v">Bank-grade protection</div>
+                          </a>
+                          <a class="nb-nav-preview-card" href="#features" style="text-decoration:none;">
+                            <div class="k"><i class="bi bi-pie-chart"></i><span>Insights</span></div>
+                            <div class="v">Smart analytics</div>
+                          </a>
+                        </div>
+                      </div>
+                    </li>
+                    <li class="nb-nav-preview">
+                      <a href="#stats">Stats</a>
+                      <div class="nb-nav-preview-panel">
+                        <div class="title">Performance</div>
+                        <div class="desc">Built to stay fast and reliable—even when traffic spikes.</div>
+                        <div class="nb-nav-preview-grid">
+                          <a class="nb-nav-preview-card" href="#stats" style="text-decoration:none;">
+                            <div class="k"><i class="bi bi-check2-circle"></i><span>Uptime</span></div>
+                            <div class="v">99.9% guarantee</div>
+                          </a>
+                          <a class="nb-nav-preview-card" href="#stats" style="text-decoration:none;">
+                            <div class="k"><i class="bi bi-lightning-charge"></i><span>Speed</span></div>
+                            <div class="v">Instant actions</div>
+                          </a>
+                        </div>
+                      </div>
+                    </li>
+                    <li class="nb-nav-preview">
+                      <a href="#testimonials">Testimonials</a>
+                      <div class="nb-nav-preview-panel">
+                        <div class="title">Loved by customers</div>
+                        <div class="desc">See what people say about switching to a simpler bank.</div>
+                        <div class="nb-nav-preview-grid">
+                          <a class="nb-nav-preview-card" href="#testimonials" style="text-decoration:none;">
+                            <div class="k"><i class="bi bi-star-fill"></i><span>Rating</span></div>
+                            <div class="v">4.9/5 average</div>
+                          </a>
+                          <a class="nb-nav-preview-card" href="#contact" style="text-decoration:none;">
+                            <div class="k"><i class="bi bi-arrow-right-circle"></i><span>Start</span></div>
+                            <div class="v">Open in minutes</div>
+                          </a>
+                        </div>
+                      </div>
+                    </li>
+                    <li class="nb-nav-preview">
+                      <a href="#contact">Contact</a>
+                      <div class="nb-nav-preview-panel">
+                        <div class="title">Get started</div>
+                        <div class="desc">Open an account, sign in, and start tracking your finances today.</div>
+                        <div class="nb-nav-preview-grid">
+                          <a class="nb-nav-preview-card" href="app.html" style="text-decoration:none;">
+                            <div class="k"><i class="bi bi-box-arrow-in-right"></i><span>Portal</span></div>
+                            <div class="v">Online Banking</div>
+                          </a>
+                          <a class="nb-nav-preview-card" href="#contact" style="text-decoration:none;">
+                            <div class="k"><i class="bi bi-headset"></i><span>Support</span></div>
+                            <div class="v">Talk to us</div>
+                          </a>
+                        </div>
+                      </div>
+                    </li>
+                    <li class="nb-nav-preview nb-nav-preview-right">
+                      <a href="app.html">Online Banking</a>
+                      <div class="nb-nav-preview-panel">
+                        <div class="title">Sign in securely</div>
+                        <div class="desc">Access accounts, cards, loans, transfers, and notifications in one dashboard.</div>
+                        <div class="nb-nav-preview-grid">
+                          <a class="nb-nav-preview-card" href="app.html" style="text-decoration:none;">
+                            <div class="k"><i class="bi bi-shield-check"></i><span>Secure</span></div>
+                            <div class="v">Email + OTP</div>
+                          </a>
+                          <a class="nb-nav-preview-card" href="app.html" style="text-decoration:none;">
+                            <div class="k"><i class="bi bi-speedometer2"></i><span>Fast</span></div>
+                            <div class="v">Instant overview</div>
+                          </a>
+                        </div>
+                      </div>
+                    </li>
                   </ul>
                 </div>
               </nav>
@@ -249,7 +425,7 @@
           <div class="auto-container">
             <div class="row align-items-center">
               <div class="col-lg-7 col-md-12 col-sm-12 content-column">
-                <div class="content-box">
+                <div class="content-box nb-reveal">
                   <h2>Banking for the Digital Age</h2>
                   <p>Experience seamless, secure, and smart banking with NexaBank. Manage your finances, track spending, and grow your wealth—all in one place.</p>
                   <div class="btn-box d-flex flex-wrap gap-3">
@@ -259,7 +435,7 @@
                 </div>
               </div>
               <div class="col-lg-5 col-md-12 col-sm-12">
-                <div class="nb-hero-card">
+                <div class="nb-hero-card nb-reveal">
                   <div class="d-flex justify-content-between align-items-center mb-3">
                     <div style="font-weight:800;color:var(--nb-primary);">My Wallet</div>
                     <div class="d-flex align-items-center gap-2">
@@ -300,14 +476,37 @@
       </div>
     </section>
 
+    <section class="nb-rate-ticker" aria-label="Live card and rate ticker">
+      <div class="nb-ticker-viewport">
+        <div class="nb-ticker-track">
+          <div class="nb-ticker-wrap">
+            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-credit-card-2-front me-1"></i>Cashback Card</span><span class="val">2.5%</span><span class="chg up">+0.2%</span></span>
+            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-cash-coin me-1"></i>Savings APY</span><span class="val">4.10%</span><span class="chg up">+0.05%</span></span>
+            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-house-door me-1"></i>Mortgage</span><span class="val">6.35%</span><span class="chg down">-0.10%</span></span>
+            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-briefcase me-1"></i>Business Loan</span><span class="val">9.20%</span><span class="chg up">+0.12%</span></span>
+            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-globe2 me-1"></i>FX USD/EUR</span><span class="val">0.93</span><span class="chg up">+0.01</span></span>
+            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-lightning-charge me-1"></i>Instant Transfer</span><span class="val">$0</span><span class="chg up">Free</span></span>
+          </div>
+          <div class="nb-ticker-wrap" aria-hidden="true">
+            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-credit-card-2-front me-1"></i>Cashback Card</span><span class="val">2.5%</span><span class="chg up">+0.2%</span></span>
+            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-cash-coin me-1"></i>Savings APY</span><span class="val">4.10%</span><span class="chg up">+0.05%</span></span>
+            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-house-door me-1"></i>Mortgage</span><span class="val">6.35%</span><span class="chg down">-0.10%</span></span>
+            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-briefcase me-1"></i>Business Loan</span><span class="val">9.20%</span><span class="chg up">+0.12%</span></span>
+            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-globe2 me-1"></i>FX USD/EUR</span><span class="val">0.93</span><span class="chg up">+0.01</span></span>
+            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-lightning-charge me-1"></i>Instant Transfer</span><span class="val">$0</span><span class="chg up">Free</span></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="custom-banking-two" id="features">
       <div class="auto-container">
-        <div class="sec-title centred">
+        <div class="sec-title centred nb-reveal">
           <span class="sub-title">Why Choose NexaBank?</span>
           <h2>We build tools that help you master your money.</h2>
         </div>
         <div class="three-item-carousel owl-carousel owl-theme owl-nav-none dots-style-one">
-          <div class="banking-block-one">
+          <div class="banking-block-one nb-reveal">
             <div class="inner-box">
               <div class="text-box">
                 <h3><a href="javascript:void(0)">Bank-Grade Security</a></h3>
@@ -319,7 +518,7 @@
               </div>
             </div>
           </div>
-          <div class="banking-block-one">
+          <div class="banking-block-one nb-reveal">
             <div class="inner-box">
               <div class="text-box">
                 <h3><a href="javascript:void(0)">Smart Analytics</a></h3>
@@ -331,7 +530,7 @@
               </div>
             </div>
           </div>
-          <div class="banking-block-one">
+          <div class="banking-block-one nb-reveal">
             <div class="inner-box">
               <div class="text-box">
                 <h3><a href="javascript:void(0)">Mobile First</a></h3>
@@ -342,6 +541,39 @@
                 <div class="icon-box"><img src="cornerstone/assets/images/icons/icon-54.png" alt=""></div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="pt_110 pb_110" id="how">
+      <div class="auto-container">
+        <div class="sec-title centred nb-reveal">
+          <span class="sub-title">How It Works</span>
+          <h2>Open. Fund. Grow.</h2>
+          <p>Get started in minutes, then manage everything from one clean dashboard.</p>
+        </div>
+        <div class="row clearfix g-4">
+          <div class="col-lg-4 col-md-6 col-sm-12 nb-reveal">
+            <a href="app.html" class="nb-nav-preview-card" style="text-decoration:none;display:block;height:100%;padding:16px 16px;border-radius:18px;">
+              <div class="k"><i class="bi bi-person-check"></i><span>Create account</span></div>
+              <div class="v" style="font-size:16px;">Sign up and verify email</div>
+              <div class="desc" style="margin-top:10px;">Create your account and secure it with email verification and one-time codes.</div>
+            </a>
+          </div>
+          <div class="col-lg-4 col-md-6 col-sm-12 nb-reveal">
+            <a href="app.html" class="nb-nav-preview-card" style="text-decoration:none;display:block;height:100%;padding:16px 16px;border-radius:18px;">
+              <div class="k"><i class="bi bi-arrow-left-right"></i><span>Move money</span></div>
+              <div class="v" style="font-size:16px;">Transfer and pay instantly</div>
+              <div class="desc" style="margin-top:10px;">Send transfers, manage payees, and track every transaction with clarity.</div>
+            </a>
+          </div>
+          <div class="col-lg-4 col-md-6 col-sm-12 nb-reveal">
+            <a href="app.html" class="nb-nav-preview-card" style="text-decoration:none;display:block;height:100%;padding:16px 16px;border-radius:18px;">
+              <div class="k"><i class="bi bi-graph-up-arrow"></i><span>Stay on top</span></div>
+              <div class="v" style="font-size:16px;">Insights that help you save</div>
+              <div class="desc" style="margin-top:10px;">Use trends and alerts to make better decisions and grow your balance.</div>
+            </a>
           </div>
         </div>
       </div>
@@ -392,13 +624,13 @@
 
     <section class="testimonial-section pt_110 pb_120" id="testimonials">
       <div class="auto-container">
-        <div class="sec-title centred">
+        <div class="sec-title centred nb-reveal">
           <span class="sub-title">Testimonials</span>
           <h2>What Our Users Say</h2>
           <p>Rated 4.9/5 by over 10,000 users.</p>
         </div>
         <div class="row clearfix">
-          <div class="col-lg-6 col-md-12 col-sm-12 testimonial-block">
+          <div class="col-lg-6 col-md-12 col-sm-12 testimonial-block nb-reveal">
             <div class="testimonial-content">
               <div class="inner-box">
                 <div class="text">
@@ -412,7 +644,7 @@
               </div>
             </div>
           </div>
-          <div class="col-lg-6 col-md-12 col-sm-12 testimonial-block">
+          <div class="col-lg-6 col-md-12 col-sm-12 testimonial-block nb-reveal">
             <div class="testimonial-content">
               <div class="inner-box">
                 <div class="text">
@@ -430,9 +662,42 @@
       </div>
     </section>
 
+    <section class="pt_90 pb_90" id="security">
+      <div class="auto-container">
+        <div class="sec-title centred nb-reveal">
+          <span class="sub-title">Security</span>
+          <h2>Designed to protect every transaction</h2>
+          <p>Security is built in from day one—from sign-in to every action inside the portal.</p>
+        </div>
+        <div class="row clearfix g-4">
+          <div class="col-lg-4 col-md-6 col-sm-12 nb-reveal">
+            <div class="nb-nav-preview-card" style="padding:18px;border-radius:18px;">
+              <div class="k"><i class="bi bi-shield-lock"></i><span>Encryption</span></div>
+              <div class="v" style="font-size:16px;">256-bit transport security</div>
+              <div class="desc" style="margin-top:10px;">Sensitive information is protected end-to-end during transit.</div>
+            </div>
+          </div>
+          <div class="col-lg-4 col-md-6 col-sm-12 nb-reveal">
+            <div class="nb-nav-preview-card" style="padding:18px;border-radius:18px;">
+              <div class="k"><i class="bi bi-shield-check"></i><span>Verification</span></div>
+              <div class="v" style="font-size:16px;">Email + one-time codes</div>
+              <div class="desc" style="margin-top:10px;">Optional OTP flow helps stop unauthorized access.</div>
+            </div>
+          </div>
+          <div class="col-lg-4 col-md-6 col-sm-12 nb-reveal">
+            <div class="nb-nav-preview-card" style="padding:18px;border-radius:18px;">
+              <div class="k"><i class="bi bi-eye-slash"></i><span>Privacy</span></div>
+              <div class="v" style="font-size:16px;">Minimal data exposure</div>
+              <div class="desc" style="margin-top:10px;">Clear permissions and controlled access help keep customer data private.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="pb_120" id="contact">
       <div class="auto-container">
-        <div class="sec-title centred">
+        <div class="sec-title centred nb-reveal">
           <span class="sub-title">Get Started</span>
           <h2>Ready to get started?</h2>
           <p>Join millions of users who trust NexaBank for their financial needs. Open an account in less than 5 minutes.</p>
@@ -518,10 +783,29 @@
   <script src="cornerstone/assets/js/script.js"></script>
   <script>
     (function () {
+      const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      const revealEls = document.querySelectorAll('.nb-reveal');
+      if (revealEls.length) {
+        if (prefersReduced) {
+          revealEls.forEach((el) => el.classList.add('nb-in'));
+        } else {
+          const rio = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((e) => {
+                if (!e.isIntersecting) return;
+                e.target.classList.add('nb-in');
+                rio.unobserve(e.target);
+              });
+            },
+            { threshold: 0.15 }
+          );
+          revealEls.forEach((el) => rio.observe(el));
+        }
+      }
+
       const counters = document.querySelectorAll('.nb-counter');
       if (!counters.length) return;
-
-      const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
 
       function animateCounter(el) {

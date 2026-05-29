@@ -77,10 +77,14 @@ async function cloudGetOrCreateProfile(firebaseUser) {
   const uid = firebaseUser?.uid;
   if (!uid || !email) return null;
   if (!window.NB_FIREBASE?.getById || !window.NB_FIREBASE?.existsDoc || !window.NB_FIREBASE?.upsert) return null;
-  const [isAdminUser, existing] = await Promise.all([
+  const [isAdminUser, existingById] = await Promise.all([
     window.NB_FIREBASE.existsDoc('admins', uid),
     window.NB_FIREBASE.getById('users', uid)
   ]);
+  let existing = existingById;
+  if (!existing && window.NB_FIREBASE?.findOneByField) {
+    try { existing = await window.NB_FIREBASE.findOneByField('users', 'email', email); } catch (_) {}
+  }
   const role = isAdminUser ? (existing?.role || 'admin') : (existing?.role || 'customer');
   const base = existing || {
     id: uid,
@@ -247,8 +251,15 @@ async function doLoginStart() {
       if (window.NB_FIREBASE?.reloadCurrentUser) {
         try { await window.NB_FIREBASE.reloadCurrentUser(); } catch (_) {}
       }
-      const isStaff = await (window.NB_FIREBASE?.existsDoc ? window.NB_FIREBASE.existsDoc('admins', cloud.firebaseUser.uid) : false);
-      if (!isStaff && email === 'admin@nexabank.com') {
+      let isStaff = false;
+      let isStaffKnown = true;
+      try {
+        isStaff = await (window.NB_FIREBASE?.existsDoc ? window.NB_FIREBASE.existsDoc('admins', cloud.firebaseUser.uid) : false);
+      } catch (_) {
+        isStaffKnown = false;
+        isStaff = false;
+      }
+      if (isStaffKnown && !isStaff && email === 'admin@nexabank.com') {
         showModal('Admin Access Not Enabled', `
           <p style="font-size:.88rem;color:var(--nb-muted);margin-bottom:.75rem;">
             This account signed in with Firebase Auth, but it is not marked as an admin in Firestore.
@@ -285,15 +296,37 @@ async function doLoginStart() {
           </div>`
         );
       }
-      const profile = await cloudGetOrCreateProfile(cloud.firebaseUser);
-      if (!profile) return toast('Unable to load profile. Check Firestore rules.', 'error');
-      DB.users.update(profile.id, profile);
-      finalizeLogin(profile);
+      let profile = null;
+      try {
+        profile = await cloudGetOrCreateProfile(cloud.firebaseUser);
+      } catch (_) {
+        profile = null;
+      }
+      if (!profile) {
+        const fallback = {
+          id: cloud.firebaseUser.uid,
+          name: cloud.firebaseUser.displayName || 'User',
+          email: normalizeEmail(cloud.firebaseUser.email),
+          role: isStaff ? 'admin' : 'customer',
+          status: 'active',
+          failedLogins: 0,
+          joined: new Date().toISOString().slice(0, 10)
+        };
+        if (DB.users.getById(fallback.id)) DB.users.update(fallback.id, fallback);
+        else DB.users.create(fallback);
+        finalizeLogin(fallback);
+        toast('Signed in, but profile access is blocked by Firestore rules. Using local profile.', 'warning');
+      } else {
+        if (DB.users.getById(profile.id)) DB.users.update(profile.id, profile);
+        else DB.users.create(profile);
+        finalizeLogin(profile);
+      }
       try { await DB.cloud.syncDown(); } catch (_) {}
-      if (isStaff || ['admin','superadmin','teller'].includes(profile.role)) {
+      const sessionUser = STATE.user;
+      if (isStaff || ['admin','superadmin','teller'].includes(sessionUser?.role)) {
         return window.location.href = 'admin.html';
       }
-      await requestLoginOtp(profile);
+      await requestLoginOtp(sessionUser);
       return renderAuthForm('login-otp');
     }
     const result = verifyCredentials(email, pass);
@@ -304,8 +337,9 @@ async function doLoginStart() {
     }
     await requestLoginOtp(result.user);
     renderAuthForm('login-otp');
-  } catch (_) {
-    toast('Login failed. Check Firebase Auth/Firestore settings.', 'error');
+  } catch (e) {
+    const code = e?.code ? ` (${e.code})` : '';
+    toast(`Login failed${code}. Check Firebase Auth/Firestore settings.`, 'error');
   }
 }
 

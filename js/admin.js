@@ -175,19 +175,33 @@ function adminAddUserModal() {
     </div>
     <div class="form-group"><label>Role</label><select class="nb-input" id="au-role"><option>customer</option><option>teller</option><option>admin</option></select></div>
     <div class="form-group"><label>Status</label><select class="nb-input" id="au-status"><option>active</option><option>frozen</option></select></div>`,
-    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="adminSaveNewUser()">Create User</button></div>`
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="runLocked(this, adminSaveNewUser, 'Creating...')">Create User</button></div>`
   );
 }
-function adminSaveNewUser() {
+async function adminSaveNewUser() {
   const fname = document.getElementById('au-fname').value.trim();
   const lname = document.getElementById('au-lname').value.trim();
   const email = document.getElementById('au-email').value.trim();
   const pass = document.getElementById('au-pass').value;
   if (!fname||!email||!pass) return toast('Fill required fields','error');
   if (DB.users.getByEmail(email)) return toast('Email exists','error');
-  const id = 'u'+uid();
+  let id = 'u'+uid();
+  const useCloud = !!window.NB_FIREBASE?.adminCreateAuthUser;
+  if (useCloud) {
+    try {
+      const created = await window.NB_FIREBASE.adminCreateAuthUser(email, pass);
+      id = created.uid;
+    } catch (_) {
+      return toast('Unable to create user in Firebase Auth. Check Auth settings.', 'error');
+    }
+  }
   const accessCode = document.getElementById('au-code')?.value || generateAccessCode();
-  DB.users.create({id,name:`${fname} ${lname}`,email,password:pass,accessCode,role:document.getElementById('au-role').value,status:document.getElementById('au-status').value,phone:'',address:'',dob:'',joined:new Date().toISOString().slice(0,10),failedLogins:0});
+  const role = document.getElementById('au-role').value;
+  const status = document.getElementById('au-status').value;
+  const user = {id,name:`${fname} ${lname}`,email,accessCode,role,status,phone:'',address:'',dob:'',joined:new Date().toISOString().slice(0,10),failedLogins:0};
+  if (!useCloud) user.password = pass;
+  DB.users.create(user);
+  DB.accounts.create({ id:'a'+uid(), userId:id, type:'Checking', balance:0, iban:Math.floor(1000000000 + Math.random() * 9000000000).toString(), swift:'NXBKGB21', status:'active', limit:5000, createdAt:new Date().toISOString().slice(0,10) });
   logAudit('CREATE_USER','user',id);
   toast('User created! Copy the access code and share with the customer.','success');
   closeModal();

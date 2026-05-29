@@ -1,8 +1,8 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import {
-  createUserWithEmailAndPassword,
   getAuth,
   applyActionCode,
+  createUserWithEmailAndPassword,
   reload,
   sendEmailVerification,
   sendPasswordResetEmail,
@@ -35,6 +35,14 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+let secondaryApp = null;
+let secondaryAuth = null;
+
+function getSecondaryAuth() {
+  if (!secondaryApp) secondaryApp = initializeApp(firebaseConfig, 'nb-secondary');
+  if (!secondaryAuth) secondaryAuth = getAuth(secondaryApp);
+  return secondaryAuth;
+}
 
 async function signIn(email, password) {
   return signInWithEmailAndPassword(auth, email, password);
@@ -50,6 +58,14 @@ async function sendVerifyEmail(user) {
 
 async function sendPasswordReset(email) {
   return sendPasswordResetEmail(auth, email);
+}
+
+async function adminCreateAuthUser(email, password) {
+  const a = getSecondaryAuth();
+  const cred = await createUserWithEmailAndPassword(a, email, password);
+  try { await sendEmailVerification(cred.user); } catch (_) {}
+  try { await signOut(a); } catch (_) {}
+  return { uid: cred.user.uid };
 }
 
 async function reloadCurrentUser() {
@@ -136,6 +152,7 @@ window.NB_FIREBASE = {
   signUp,
   sendVerifyEmail,
   sendPasswordReset,
+  adminCreateAuthUser,
   reloadCurrentUser,
   applyEmailVerificationCode,
   signOutUser,
@@ -152,4 +169,4 @@ window.NB_FIREBASE = {
   findOneByField
 };
 
-export { app, auth, db, signIn, signUp, sendVerifyEmail, sendPasswordReset, reloadCurrentUser, applyEmailVerificationCode, signOutUser, queueEmail, saveLoginOtp, getLoginOtp, deleteLoginOtp, upsert, remove, list, listWhere, getById, existsDoc, findOneByField };
+export { app, auth, db, signIn, signUp, sendVerifyEmail, sendPasswordReset, adminCreateAuthUser, reloadCurrentUser, applyEmailVerificationCode, signOutUser, queueEmail, saveLoginOtp, getLoginOtp, deleteLoginOtp, upsert, remove, list, listWhere, getById, existsDoc, findOneByField };
