@@ -990,18 +990,19 @@
       (function () {
         const listEl = document.getElementById('nb-leaderboard-list');
         if (!listEl) return;
-        const rows = [
-          { name: 'Ava M.', bank: 'Chase', channel: 'Zelle', desc: 'Zelle transfer to Marcus R. — rent split', amount: -875.00, minutesAgo: 3 },
-          { name: 'Noah K.', bank: 'Bank of America', channel: 'ATM', desc: 'ATM withdrawal — 5th Ave ATM, NYC', amount: -120.00, minutesAgo: 6 },
-          { name: 'Mia S.', bank: 'Wells Fargo', channel: 'Cash App', desc: 'Cash App add cash — weekly budget', amount: -60.00, minutesAgo: 8 },
-          { name: 'Ethan J.', bank: 'Citibank', channel: 'Card', desc: 'Debit purchase — Whole Foods Market', amount: -42.19, minutesAgo: 10 },
-          { name: 'Sofia L.', bank: 'Capital One', channel: 'Zelle', desc: 'Zelle received from Daniel P. — reimbursement', amount: 215.00, minutesAgo: 13 },
-          { name: 'Liam T.', bank: 'Chase', channel: 'Card', desc: 'Debit purchase — Uber trip', amount: -18.74, minutesAgo: 15 },
-          { name: 'Isabella R.', bank: 'PNC Bank', channel: 'Transfer', desc: 'External transfer to savings — autopilot', amount: -300.00, minutesAgo: 18 },
-          { name: 'Jackson B.', bank: 'US Bank', channel: 'ATM', desc: 'ATM deposit — Downtown branch ATM', amount: 500.00, minutesAgo: 22 },
-          { name: 'Olivia D.', bank: 'TD Bank', channel: 'Cash App', desc: 'Cash App payment to Chris H. — dinner', amount: -34.50, minutesAgo: 26 },
-          { name: 'Lucas P.', bank: 'Truist', channel: 'Zelle', desc: 'Zelle payment to daycare', amount: -210.00, minutesAgo: 31 },
-        ];
+        const UPDATE_MS = 2600;
+        const MAX_ITEMS = 14;
+        const VIEW_COUNT = 7;
+
+        const firstNames = ['Ava','Noah','Mia','Ethan','Sofia','Liam','Isabella','Jackson','Olivia','Lucas','Amelia','James','Harper','Benjamin','Evelyn','Henry','Ella','Daniel','Grace','Leo','Chloe','Nora','Mateo','Aaliyah','Zoe','Mason'];
+        const lastInitials = ['A.','B.','C.','D.','E.','F.','G.','H.','J.','K.','L.','M.','N.','P.','R.','S.','T.','W.','Y.'];
+        const banks = ['Chase','Bank of America','Wells Fargo','Citibank','Capital One','PNC Bank','U.S. Bank','TD Bank','Truist','Ally Bank','HSBC'];
+        const merchants = ['Starbucks','Amazon Marketplace','Apple Services','Trader Joe’s','Whole Foods Market','Shell','Target','Walmart','Costco','Uber','Lyft','CVS Pharmacy','Walgreens','Home Depot'];
+        const cities = ['New York, NY','Los Angeles, CA','Chicago, IL','Houston, TX','Miami, FL','Seattle, WA','Atlanta, GA','Denver, CO','Phoenix, AZ','Boston, MA'];
+
+        function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+        function rand(min, max) { return min + Math.random() * (max - min); }
+        function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
 
         function initials(name) {
           const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
@@ -1016,10 +1017,13 @@
           return `${sign}$${abs.toFixed(2)}`;
         }
 
-        function fmtAgo(mins) {
-          if (mins < 1) return 'just now';
-          if (mins < 60) return `${mins}m ago`;
-          const h = Math.floor(mins / 60);
+        function fmtAgoMs(ms) {
+          const s = Math.max(0, Math.floor(ms / 1000));
+          if (s < 10) return 'just now';
+          if (s < 60) return `${s}s ago`;
+          const m = Math.floor(s / 60);
+          if (m < 60) return `${m}m ago`;
+          const h = Math.floor(m / 60);
           return `${h}h ago`;
         }
 
@@ -1029,14 +1033,128 @@
           if (c.includes('cash')) return 'cash-coin';
           if (c.includes('atm')) return 'bank';
           if (c.includes('card')) return 'credit-card-2-front';
-          if (c.includes('transfer')) return 'arrow-left-right';
+          if (c.includes('transfer') || c.includes('ach')) return 'arrow-left-right';
           return 'arrow-repeat';
         }
 
+        function makeName() {
+          return `${pick(firstNames)} ${pick(lastInitials)}`;
+        }
+
+        function makeChannel() {
+          const r = Math.random();
+          if (r < 0.25) return 'Zelle';
+          if (r < 0.45) return 'Cash App';
+          if (r < 0.62) return 'ATM';
+          if (r < 0.86) return 'Card';
+          return 'ACH Transfer';
+        }
+
+        function makeTransaction(nowTs) {
+          const name = makeName();
+          const bank = pick(banks);
+          const channel = makeChannel();
+
+          if (channel === 'Zelle') {
+            const incoming = Math.random() < 0.35;
+            const other = makeName();
+            const reasons = ['rent split','reimbursement','utilities','gift','tuition','childcare','shared groceries'];
+            const amt = incoming ? randInt(35, 650) : randInt(25, 950);
+            return {
+              id: `z-${nowTs}-${Math.random().toString(16).slice(2)}`,
+              name,
+              bank,
+              channel,
+              desc: incoming ? `Zelle received from ${other} — ${pick(reasons)}` : `Zelle transfer to ${other} — ${pick(reasons)}`,
+              amount: incoming ? amt : -amt,
+              createdAt: nowTs
+            };
+          }
+
+          if (channel === 'Cash App') {
+            const incoming = Math.random() < 0.28;
+            const other = makeName();
+            const reasons = ['dinner','rideshare','weekend plans','group trip','tickets','coffee','split bill'];
+            const amt = randInt(10, 260) + (Math.random() < 0.25 ? 0.5 : 0);
+            return {
+              id: `c-${nowTs}-${Math.random().toString(16).slice(2)}`,
+              name,
+              bank,
+              channel,
+              desc: incoming ? `Cash App received from ${other} — ${pick(reasons)}` : `Cash App payment to ${other} — ${pick(reasons)}`,
+              amount: incoming ? amt : -amt,
+              createdAt: nowTs
+            };
+          }
+
+          if (channel === 'ATM') {
+            const isDeposit = Math.random() < 0.18;
+            const city = pick(cities);
+            if (isDeposit) {
+              const amt = randInt(80, 1200);
+              return {
+                id: `a-${nowTs}-${Math.random().toString(16).slice(2)}`,
+                name,
+                bank,
+                channel,
+                desc: `ATM deposit — ${city}`,
+                amount: amt,
+                createdAt: nowTs
+              };
+            }
+            const amt = randInt(20, 260);
+            return {
+              id: `a-${nowTs}-${Math.random().toString(16).slice(2)}`,
+              name,
+              bank,
+              channel,
+              desc: `ATM withdrawal — ${city}`,
+              amount: -amt,
+              createdAt: nowTs
+            };
+          }
+
+          if (channel === 'Card') {
+            const merchant = pick(merchants);
+            const amt = Math.round(rand(6.5, 180) * 100) / 100;
+            const isRefund = Math.random() < 0.08;
+            return {
+              id: `d-${nowTs}-${Math.random().toString(16).slice(2)}`,
+              name,
+              bank,
+              channel,
+              desc: isRefund ? `Card refund — ${merchant}` : `Debit purchase — ${merchant}`,
+              amount: isRefund ? amt : -amt,
+              createdAt: nowTs
+            };
+          }
+
+          const transferToSavings = Math.random() < 0.55;
+          const amt = randInt(50, 850);
+          return {
+            id: `t-${nowTs}-${Math.random().toString(16).slice(2)}`,
+            name,
+            bank,
+            channel,
+            desc: transferToSavings ? 'ACH transfer to savings — autopilot' : 'ACH transfer received — payroll',
+            amount: transferToSavings ? -amt : amt,
+            createdAt: nowTs
+          };
+        }
+
+        const now = Date.now();
+        const feed = Array.from({ length: MAX_ITEMS }, (_, i) => {
+          const ts = now - (i * randInt(45, 220) * 1000);
+          return makeTransaction(ts);
+        });
+        feed.sort((a, b) => b.createdAt - a.createdAt);
+
         function render() {
-          const view = rows.slice(0, 7);
+          const nowTs = Date.now();
+          const view = feed.slice(0, VIEW_COUNT);
           listEl.innerHTML = view.map((r, i) => {
             const amtClass = r.amount >= 0 ? 'in' : 'out';
+            const ago = fmtAgoMs(nowTs - r.createdAt);
             return `
               <div class="nb-lb-row" style="animation-delay:${Math.min(420, i * 70)}ms">
                 <div class="nb-lb-avatar">${initials(r.name)}</div>
@@ -1049,7 +1167,7 @@
                 </div>
                 <div style="text-align:right;">
                   <div class="nb-lb-amt ${amtClass}">${fmtMoney(r.amount)}</div>
-                  <div class="nb-lb-time">${fmtAgo(r.minutesAgo)}</div>
+                  <div class="nb-lb-time">${ago}</div>
                 </div>
               </div>
             `;
@@ -1057,21 +1175,33 @@
         }
 
         render();
-        if (prefersReduced) return;
 
-        let t = 0;
-        const timer = setInterval(() => {
-          t += 1;
-          rows.forEach((r) => { r.minutesAgo = Math.max(0, r.minutesAgo + 1); });
-          rows.push(rows.shift());
-          if (t % 3 === 0) rows[0].minutesAgo = 1;
-          render();
-        }, 2400);
-
+        let paused = false;
         const card = listEl.closest('.nb-lb-card');
         if (card) {
-          card.addEventListener('mouseenter', () => clearInterval(timer), { once: true });
+          card.addEventListener('mouseenter', () => { paused = true; });
+          card.addEventListener('mouseleave', () => { paused = false; });
         }
+
+        const tickClock = setInterval(() => {
+          if (paused) return;
+          render();
+        }, prefersReduced ? 15000 : 8000);
+
+        if (prefersReduced) return;
+
+        const tickNew = setInterval(() => {
+          if (paused) return;
+          const tx = makeTransaction(Date.now());
+          feed.unshift(tx);
+          if (feed.length > MAX_ITEMS) feed.length = MAX_ITEMS;
+          render();
+        }, UPDATE_MS);
+
+        window.addEventListener('beforeunload', () => {
+          clearInterval(tickNew);
+          clearInterval(tickClock);
+        });
       })();
 
       const counters = document.querySelectorAll('.nb-counter');
