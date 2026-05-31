@@ -13,6 +13,14 @@ function generateAccessCode(len = 8) {
   return out;
 }
 
+function togglePwInput(id, btn) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const show = el.type === 'password';
+  el.type = show ? 'text' : 'password';
+  if (btn) btn.innerHTML = show ? '<i class="bi bi-eye-slash"></i>' : '<i class="bi bi-eye"></i>';
+}
+
 function openForgotPasswordModal() {
   showModal('Reset Password', `
     <p style="font-size:.85rem;color:var(--nb-muted);margin-bottom:.75rem;">Enter your email address and we’ll send a password reset link.</p>
@@ -184,7 +192,12 @@ function renderAuthForm(type='login') {
   if (type === 'login') {
     c.innerHTML = `
       <div class="form-group"><label>Email Address</label><input class="nb-input" id="a-email" type="email" placeholder="you@example.com"/></div>
-      <div class="form-group"><label>Password</label><input class="nb-input" id="a-pass" type="password" placeholder="••••••••"/></div>
+      <div class="form-group"><label>Password</label>
+        <div class="d-flex gap-2">
+          <input class="nb-input" id="a-pass" type="password" placeholder="••••••••"/>
+          <button class="btn-nb btn-nb-outline btn-nb-sm" type="button" onclick="togglePwInput('a-pass', this)" title="Show/Hide"><i class="bi bi-eye"></i></button>
+        </div>
+      </div>
       <div class="d-flex justify-content-between align-items-center mb-3" style="font-size:.82rem;">
         <label style="display:inline-flex;align-items:center;gap:.3rem;cursor:pointer;color:var(--nb-text);"><input type="checkbox"> Remember me</label>
         <a href="#" style="color:var(--nb-accent);" onclick="openForgotPasswordModal()">Forgot password?</a>
@@ -234,8 +247,18 @@ function renderAuthForm(type='login') {
           <option value="Savings">Savings Account</option>
         </select>
       </div>
-      <div class="form-group"><label>Password</label><input class="nb-input" id="r-pass" type="password" placeholder="min 8 chars"></div>
-      <div class="form-group"><label>Confirm Password</label><input class="nb-input" id="r-pass2" type="password" placeholder="repeat password"></div>
+      <div class="form-group"><label>Password</label>
+        <div class="d-flex gap-2">
+          <input class="nb-input" id="r-pass" type="password" placeholder="min 8 chars">
+          <button class="btn-nb btn-nb-outline btn-nb-sm" type="button" onclick="togglePwInput('r-pass', this)" title="Show/Hide"><i class="bi bi-eye"></i></button>
+        </div>
+      </div>
+      <div class="form-group"><label>Confirm Password</label>
+        <div class="d-flex gap-2">
+          <input class="nb-input" id="r-pass2" type="password" placeholder="repeat password">
+          <button class="btn-nb btn-nb-outline btn-nb-sm" type="button" onclick="togglePwInput('r-pass2', this)" title="Show/Hide"><i class="bi bi-eye"></i></button>
+        </div>
+      </div>
       <button class="btn-nb btn-nb-primary w-100 justify-content-center" style="padding:.75rem;" onclick="runLocked(this, doRegister, 'Creating...')"><i class="bi bi-person-plus"></i> Create Account</button>
       <div class="text-center mt-3" style="font-size:.82rem;color:var(--nb-muted);">Have an account? <a href="#" style="color:var(--nb-accent);" onclick="renderAuthForm('login')">Sign in</a></div>`;
   }

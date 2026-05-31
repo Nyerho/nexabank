@@ -718,21 +718,31 @@ function exportTxns() {
 }
 
 function renderCards(el) {
-  const cards = DB.cards.getByUser(STATE.user.id);
+  const cards = DB.cards.getByUser(STATE.user.id).map(nbEnsureCardSecrets);
   const colorClass = ['blue','dark','gold'];
   const cardHtml = cards.map((c,i)=>`
     <div class="col-12 col-md-6">
       <div class="bank-card ${colorClass[i%3]} mb-3">
         <div class="card-chip"></div>
         <div style="position:relative;z-index:1;">
-          <div class="card-number mb-2">${c.maskedNumber}</div>
+          <div class="card-number mb-2">${nbMaskPan(c.number || c.maskedNumber)}</div>
           <div class="d-flex justify-content-between align-items-end">
-            <div><div class="card-name">${STATE.user.name}</div><div style="font-size:.7rem;opacity:.7;">VALID THRU ${c.expiry}</div></div>
+            <div><div class="card-name">${c.holderName || STATE.user.name}</div><div style="font-size:.7rem;opacity:.7;">VALID THRU ${c.expiry}</div></div>
             <div class="text-end"><div style="font-weight:700;font-size:1.1rem;">${c.type}</div><span class="badge-status badge-${c.status}" style="font-size:.65rem;">${c.status}</span></div>
           </div>
         </div>
       </div>
       <div class="nb-card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div style="font-weight:700;">Card details</div>
+          <button class="btn-nb btn-nb-outline btn-nb-sm" id="card-secrets-btn-${c.id}" onclick="toggleCardSecrets('${c.id}')"><i class="bi bi-eye"></i> Show details</button>
+        </div>
+        <div id="card-secrets-${c.id}" data-open="0" class="row g-2 mb-3" style="font-size:.82rem;">
+          <div class="col-12"><div style="color:var(--nb-muted);">Card Number</div><div class="mono fw-bold" id="card-num-${c.id}">${nbMaskPan(c.number)}</div></div>
+          <div class="col-6"><div style="color:var(--nb-muted);">CVV</div><div class="mono fw-bold" id="card-cvv-${c.id}">•••</div></div>
+          <div class="col-6"><div style="color:var(--nb-muted);">Expiry</div><div class="mono fw-bold">${c.expiry}</div></div>
+          <div class="col-12"><div style="color:var(--nb-muted);">Cardholder</div><div class="mono fw-bold">${c.holderName || STATE.user.name}</div></div>
+        </div>
         <div class="row g-2 mb-3" style="font-size:.82rem;">
           <div class="col-6"><div style="color:var(--nb-muted);">Daily Limit</div><div class="mono fw-bold">${fmt(c.dailyLimit)}</div></div>
           <div class="col-6"><div style="color:var(--nb-muted);">Monthly Limit</div><div class="mono fw-bold">${fmt(c.monthlyLimit)}</div></div>
@@ -788,8 +798,23 @@ function requestCardModal() {
   );
 }
 function doRequestCard() {
-  const num = '**** **** **** ' + Math.floor(1000+Math.random()*9000);
-  DB.cards.create({ id:'c'+uid(), accountId:document.getElementById('nc-acc').value, userId:STATE.user.id, type:document.getElementById('nc-type').value, maskedNumber:num, expiry:'12/29', status:'active', dailyLimit:1500, monthlyLimit:7500 });
+  const pan = nbGeneratePan();
+  const cvv = String(Math.floor(100 + Math.random() * 900));
+  const expiry = '12/29';
+  DB.cards.create({
+    id:'c'+uid(),
+    accountId:document.getElementById('nc-acc').value,
+    userId:STATE.user.id,
+    type:document.getElementById('nc-type').value,
+    number: pan,
+    maskedNumber: nbMaskPan(pan),
+    cvv,
+    expiry,
+    holderName: STATE.user.name,
+    status:'active',
+    dailyLimit:1500,
+    monthlyLimit:7500
+  });
   toast('Card requested! Processing in 3-5 business days.', 'success');
   closeModal();
   navigate('cards');
@@ -944,6 +969,61 @@ function quickBill(cat) {
 function payToPayee(id) {
   const p = DB.payees.getById ? DB.payees.getById(id) : (DB.get('payees')||[]).find(px=>px.id===id);
   if (p) { document.getElementById('bill-provider').value = p.name; }
+}
+
+function nbDigits(n) {
+  return String(n ?? '').replace(/\D/g, '');
+}
+
+function nbGeneratePan(last4 = null) {
+  const l4 = last4 ? nbDigits(last4).slice(-4) : String(Math.floor(1000 + Math.random() * 9000));
+  const prefix = String(Math.floor(4000 + Math.random() * 999)).padStart(4, '4');
+  const mid1 = String(Math.floor(1000 + Math.random() * 9000));
+  const mid2 = String(Math.floor(1000 + Math.random() * 9000));
+  return `${prefix}${mid1}${mid2}${l4}`.slice(0, 16);
+}
+
+function nbFormatPan(pan) {
+  const digits = nbDigits(pan).slice(0, 16);
+  return digits.replace(/(\d{4})(?=\d)/g, '$1 ').trim();
+}
+
+function nbMaskPan(pan) {
+  const digits = nbDigits(pan).slice(0, 16);
+  if (!digits) return '**** **** **** ****';
+  const last4 = digits.slice(-4);
+  return `**** **** **** ${last4}`;
+}
+
+function nbEnsureCardSecrets(card) {
+  if (!card) return card;
+  const patch = {};
+  const masked = String(card.maskedNumber || '');
+  const last4 = masked.match(/(\d{4})\s*$/)?.[1] || null;
+  if (!card.number) patch.number = nbGeneratePan(last4);
+  if (!card.cvv) patch.cvv = String(Math.floor(100 + Math.random() * 900));
+  if (!card.expiry) patch.expiry = '12/29';
+  if (!card.holderName) patch.holderName = STATE?.user?.name || card.holderName || 'Card Holder';
+  if (!card.maskedNumber) patch.maskedNumber = nbMaskPan(patch.number || card.number);
+  if (Object.keys(patch).length) {
+    DB.cards.update(card.id, patch);
+    return { ...card, ...patch };
+  }
+  return card;
+}
+
+function toggleCardSecrets(id) {
+  const box = document.getElementById(`card-secrets-${id}`);
+  const btn = document.getElementById(`card-secrets-btn-${id}`);
+  if (!box) return;
+  const open = box.dataset.open === '1';
+  box.dataset.open = open ? '0' : '1';
+  const c = nbEnsureCardSecrets(DB.cards.getById(id));
+  const numEl = document.getElementById(`card-num-${id}`);
+  const cvvEl = document.getElementById(`card-cvv-${id}`);
+  if (numEl) numEl.textContent = (open ? nbMaskPan(c.number) : nbFormatPan(c.number));
+  if (cvvEl) cvvEl.textContent = (open ? '•••' : String(c.cvv || ''));
+  if (btn) btn.innerHTML = open ? '<i class="bi bi-eye"></i> Show details' : '<i class="bi bi-eye-slash"></i> Hide details';
 }
 
 function renderProfile(el) {

@@ -146,7 +146,12 @@
     }
 
     .banner-style-two .pattern-layer { display: none; }
-    .banner-style-two .bg-layer { background-image: linear-gradient(135deg, #0f2d52 0%, #1d6fa4 55%, #0b223f 100%) !important; }
+    .banner-style-two .bg-layer {
+      --nb-hero-bg: linear-gradient(135deg, #0f2d52 0%, #1d6fa4 55%, #0b223f 100%);
+      background-image: var(--nb-hero-bg);
+      background-size: cover;
+      background-position: center;
+    }
     .banner-style-two .bg-layer::after { content:''; position:absolute; inset:0; background: radial-gradient(900px 500px at 85% 25%, rgba(201,168,76,.35) 0%, rgba(201,168,76,0) 60%), radial-gradient(700px 400px at 20% 75%, rgba(255,255,255,.16) 0%, rgba(255,255,255,0) 55%); }
     .banner-style-two .slide-item { overflow: hidden; }
     .banner-style-two .content-box h2 { color: #fff; }
@@ -181,6 +186,12 @@
 
     @media (max-width: 991px) {
       .nb-hero-card { transform: none; margin-top: 28px; }
+    }
+    @media (max-width: 575px) {
+      .nb-hero-card { max-width: 420px; margin-left: auto; margin-right: auto; padding: 18px; border-radius: 18px; }
+      .nb-hero-card .nb-balance-card { padding: 14px; border-radius: 16px; }
+      .nb-hero-card .nb-balance-card::after { width: 200px; height: 200px; bottom: -95px; right: -95px; }
+      .nb-hero-card .nb-mini { padding: 10px; border-radius: 14px; }
     }
 
     .navigation > li.nb-nav-preview { position: relative; }
@@ -272,6 +283,8 @@
 
     .nb-reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .75s cubic-bezier(.2,.9,.2,1); }
     .nb-reveal.nb-in { opacity: 1; transform: translateY(0); }
+    .nb-hero-swap { transition: opacity .38s ease, transform .38s cubic-bezier(.2,.9,.2,1); }
+    .nb-hero-swap.nb-out { opacity: 0; transform: translateY(6px); }
 
     .nb-leaderboard {
       background: radial-gradient(900px 520px at 20% 15%, rgba(201,168,76,.18), rgba(201,168,76,0) 60%),
@@ -422,6 +435,34 @@
     .nb-lb-summary p { color: rgba(255,255,255,.80); margin-bottom: 16px; }
     .nb-lb-badges { display:flex; gap:10px; flex-wrap: wrap; }
     .nb-lb-badge { display:inline-flex; align-items:center; gap:8px; padding: 8px 10px; border-radius: 999px; border: 1px solid rgba(255,255,255,.20); background: rgba(255,255,255,.10); font-weight: 800; font-size: 12px; color: rgba(255,255,255,.92); }
+
+    #nb-market-table td {
+      background: rgba(255,255,255,.78);
+      border: 1px solid rgba(15,45,82,.10);
+      padding: 10px 10px;
+      vertical-align: middle;
+      font-size: 13px;
+      color: var(--nb-text);
+    }
+    #nb-market-table td:first-child { border-radius: 16px 0 0 16px; }
+    #nb-market-table td:last-child { border-radius: 0 16px 16px 0; }
+    [data-theme="dark"] #nb-market-table td {
+      background: rgba(13,17,23,.65);
+      border-color: rgba(255,255,255,.10);
+      color: rgba(255,255,255,.92);
+    }
+    .nb-mono { font-variant-numeric: tabular-nums; font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; }
+    .nb-up { color: #0a5a34; }
+    .nb-down { color: #8a1f17; }
+    [data-theme="dark"] .nb-up { color: #4ade80; }
+    [data-theme="dark"] .nb-down { color: #fb7185; }
+    .nb-blink-up td { animation: nbBlinkUp .55s ease both; }
+    .nb-blink-down td { animation: nbBlinkDown .55s ease both; }
+    @keyframes nbBlinkUp { 0% { box-shadow: 0 0 0 0 rgba(18,183,106,.0); } 30% { box-shadow: 0 0 0 6px rgba(18,183,106,.18); } 100% { box-shadow: 0 0 0 0 rgba(18,183,106,.0); } }
+    @keyframes nbBlinkDown { 0% { box-shadow: 0 0 0 0 rgba(240,68,56,.0); } 30% { box-shadow: 0 0 0 6px rgba(240,68,56,.18); } 100% { box-shadow: 0 0 0 0 rgba(240,68,56,.0); } }
+    @media (prefers-reduced-motion: reduce) {
+      .nb-blink-up td, .nb-blink-down td { animation: none; }
+    }
   </style>
 </head>
 <body>
@@ -643,16 +684,16 @@
     <section class="banner-style-two p_relative" id="home">
       <div class="banner-carousel owl-theme owl-carousel dots-style-one owl-nav-none">
         <div class="slide-item p_relative">
-          <div class="bg-layer"></div>
+          <div class="bg-layer" id="nb-hero-bg"></div>
           <div class="auto-container">
             <div class="row align-items-center">
               <div class="col-lg-7 col-md-12 col-sm-12 content-column">
                 <div class="content-box nb-reveal">
-                  <h2>Banking for the Digital Age</h2>
-                  <p>Experience seamless, secure, and smart banking with NexaBank. Manage your finances, track spending, and grow your wealth—all in one place.</p>
+                  <h2 id="nb-hero-title" class="nb-hero-swap">Banking for the Digital Age</h2>
+                  <p id="nb-hero-sub" class="nb-hero-swap">Experience seamless, secure, and smart banking with NexaBank. Manage your finances, track spending, and grow your wealth—all in one place.</p>
                   <div class="btn-box d-flex flex-wrap gap-3">
-                    <a href="app.html" class="theme-btn btn-one"><span>Open an Account</span></a>
-                    <a href="#features" class="theme-btn btn-two"><span>Learn More</span></a>
+                    <a href="app.html?view=register" class="theme-btn btn-one"><span>Open an Account</span></a>
+                    <a href="app.html" class="theme-btn btn-two"><span>Login</span></a>
                   </div>
                 </div>
               </div>
@@ -702,20 +743,20 @@
       <div class="nb-ticker-viewport">
         <div class="nb-ticker-track">
           <div class="nb-ticker-wrap">
-            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-credit-card-2-front me-1"></i>Cashback Card</span><span class="val">2.5%</span><span class="chg up">+0.2%</span></span>
+            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-graph-up-arrow me-1"></i>AAPL</span><span class="val">$212.34</span><span class="chg up">+0.86%</span></span>
+            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-graph-down-arrow me-1"></i>NVDA</span><span class="val">$121.88</span><span class="chg down">-1.12%</span></span>
+            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-currency-exchange me-1"></i>EUR/USD</span><span class="val">1.0832</span><span class="chg up">+0.09%</span></span>
+            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-currency-exchange me-1"></i>GBP/USD</span><span class="val">1.2718</span><span class="chg down">-0.04%</span></span>
+            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-gem me-1"></i>Gold</span><span class="val">$2346.8</span><span class="chg up">+0.22%</span></span>
             <span class="nb-rate-pill"><span class="tag"><i class="bi bi-cash-coin me-1"></i>Savings APY</span><span class="val">4.10%</span><span class="chg up">+0.05%</span></span>
-            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-house-door me-1"></i>Mortgage</span><span class="val">6.35%</span><span class="chg down">-0.10%</span></span>
-            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-briefcase me-1"></i>Business Loan</span><span class="val">9.20%</span><span class="chg up">+0.12%</span></span>
-            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-globe2 me-1"></i>FX USD/EUR</span><span class="val">0.93</span><span class="chg up">+0.01</span></span>
-            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-lightning-charge me-1"></i>Instant Transfer</span><span class="val">$0</span><span class="chg up">Free</span></span>
           </div>
           <div class="nb-ticker-wrap" aria-hidden="true">
-            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-credit-card-2-front me-1"></i>Cashback Card</span><span class="val">2.5%</span><span class="chg up">+0.2%</span></span>
+            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-graph-up-arrow me-1"></i>AAPL</span><span class="val">$212.34</span><span class="chg up">+0.86%</span></span>
+            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-graph-down-arrow me-1"></i>NVDA</span><span class="val">$121.88</span><span class="chg down">-1.12%</span></span>
+            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-currency-exchange me-1"></i>EUR/USD</span><span class="val">1.0832</span><span class="chg up">+0.09%</span></span>
+            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-currency-exchange me-1"></i>GBP/USD</span><span class="val">1.2718</span><span class="chg down">-0.04%</span></span>
+            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-gem me-1"></i>Gold</span><span class="val">$2346.8</span><span class="chg up">+0.22%</span></span>
             <span class="nb-rate-pill"><span class="tag"><i class="bi bi-cash-coin me-1"></i>Savings APY</span><span class="val">4.10%</span><span class="chg up">+0.05%</span></span>
-            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-house-door me-1"></i>Mortgage</span><span class="val">6.35%</span><span class="chg down">-0.10%</span></span>
-            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-briefcase me-1"></i>Business Loan</span><span class="val">9.20%</span><span class="chg up">+0.12%</span></span>
-            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-globe2 me-1"></i>FX USD/EUR</span><span class="val">0.93</span><span class="chg up">+0.01</span></span>
-            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-lightning-charge me-1"></i>Instant Transfer</span><span class="val">$0</span><span class="chg up">Free</span></span>
           </div>
         </div>
       </div>
@@ -801,42 +842,101 @@
       </div>
     </section>
 
-    <section class="funfact-section centred" id="stats">
+    <section class="pt_110 pb_110" id="stats">
       <div class="auto-container">
-        <div class="row clearfix justify-content-center g-4">
-          <div class="col-lg-4 col-md-6 col-sm-12 funfact-block d-flex justify-content-center">
-            <div class="funfact-block-one">
-              <div class="inner-box">
-                <div class="nb-stat-circle">
-                  <div class="nb-stat-value">
-                    <span class="nb-counter" data-count="2">0</span><span class="symble">M+</span>
-                  </div>
-                </div>
-                <p class="nb-stat-label">Happy Customers</p>
+        <div class="sec-title centred nb-reveal">
+          <span class="sub-title">Analytics</span>
+          <h2>Usage & performance at a glance</h2>
+          <p>Real-time style visuals that make product performance easy to understand.</p>
+        </div>
+        <div class="row clearfix g-4 align-items-stretch">
+          <div class="col-12 col-lg-8 nb-reveal">
+            <div class="nb-lb-card" style="padding:16px 16px;">
+              <div class="d-flex justify-content-between align-items-center mb-3" style="padding:0 4px;">
+                <div style="font-weight:900;color:var(--nb-primary);">Platform activity</div>
+                <div class="nb-lb-pill"><i class="bi bi-graph-up"></i><span>Last 6 months</span></div>
+              </div>
+              <div style="height:320px;">
+                <canvas id="nb-analytics-chart"></canvas>
               </div>
             </div>
           </div>
-          <div class="col-lg-4 col-md-6 col-sm-12 funfact-block d-flex justify-content-center">
-            <div class="funfact-block-one">
-              <div class="inner-box">
-                <div class="nb-stat-circle">
-                  <div class="nb-stat-value">
-                    <span class="nb-counter" data-count="5">0</span><span class="symble">B+</span>
+          <div class="col-12 col-lg-4 nb-reveal">
+            <div class="nb-lb-card" style="padding:16px 16px;height:100%;">
+              <div style="font-weight:900;color:var(--nb-primary);margin-bottom:10px;">Key metrics</div>
+              <div class="row g-3">
+                <div class="col-6">
+                  <div class="nb-nav-preview-card" style="padding:14px;border-radius:18px;">
+                    <div class="k"><i class="bi bi-people"></i><span>Customers</span></div>
+                    <div class="v" style="font-size:18px;">2.0M+</div>
                   </div>
                 </div>
-                <p class="nb-stat-label">Transactions Processed</p>
+                <div class="col-6">
+                  <div class="nb-nav-preview-card" style="padding:14px;border-radius:18px;">
+                    <div class="k"><i class="bi bi-arrow-repeat"></i><span>Monthly txns</span></div>
+                    <div class="v" style="font-size:18px;">5.0B+</div>
+                  </div>
+                </div>
+                <div class="col-12">
+                  <div class="nb-nav-preview-card" style="padding:14px;border-radius:18px;">
+                    <div class="k"><i class="bi bi-shield-check"></i><span>Uptime</span></div>
+                    <div class="v" style="font-size:18px;">99.9%</div>
+                    <div class="desc" style="margin-top:8px;">A monitoring-style view with clean charts and clear deltas.</div>
+                  </div>
+                </div>
+                <div class="col-12">
+                  <a href="#markets" class="nb-nav-preview-card" style="text-decoration:none;display:block;padding:14px;border-radius:18px;">
+                    <div class="k"><i class="bi bi-candlestick"></i><span>Markets</span></div>
+                    <div class="v" style="font-size:18px;">Stocks & FX</div>
+                    <div class="desc" style="margin-top:8px;">Live-style pricing table with blinking up/down changes.</div>
+                  </a>
+                </div>
               </div>
             </div>
           </div>
-          <div class="col-lg-4 col-md-6 col-sm-12 funfact-block d-flex justify-content-center">
-            <div class="funfact-block-one">
-              <div class="inner-box">
-                <div class="nb-stat-circle">
-                  <div class="nb-stat-value">
-                    <span class="nb-counter" data-count="99.9">0</span><span class="symble">%</span>
-                  </div>
-                </div>
-                <p class="nb-stat-label">Uptime Guarantee</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="pt_110 pb_110" id="markets">
+      <div class="auto-container">
+        <div class="sec-title centred nb-reveal">
+          <span class="sub-title">Markets</span>
+          <h2>Stocks & FX analytics</h2>
+          <p>Price + change + percent with blinkers on every move.</p>
+        </div>
+        <div class="row clearfix g-4 align-items-stretch">
+          <div class="col-12 col-lg-5 nb-reveal">
+            <div class="nb-lb-card" style="padding:16px 16px;height:100%;">
+              <div class="d-flex justify-content-between align-items-center mb-3" style="padding:0 4px;">
+                <div style="font-weight:900;color:var(--nb-primary);">Top movers</div>
+                <div class="nb-lb-pill"><i class="bi bi-lightning-charge"></i><span>Auto-updating</span></div>
+              </div>
+              <div id="nb-movers" style="display:flex;flex-direction:column;gap:10px;"></div>
+            </div>
+          </div>
+          <div class="col-12 col-lg-7 nb-reveal">
+            <div class="nb-lb-card" style="padding:16px 16px;">
+              <div class="d-flex justify-content-between align-items-center mb-3" style="padding:0 4px;">
+                <div style="font-weight:900;color:var(--nb-primary);">Advanced market table</div>
+                <div class="nb-lb-pill"><i class="bi bi-broadcast"></i><span>Prices + %</span></div>
+              </div>
+              <div style="overflow-x:auto;">
+                <table style="width:100%;border-collapse:separate;border-spacing:0 10px;">
+                  <thead>
+                    <tr style="text-align:left;font-size:12px;color:var(--nb-muted);">
+                      <th style="padding:0 10px;">Symbol</th>
+                      <th style="padding:0 10px;">Price</th>
+                      <th style="padding:0 10px;">Change</th>
+                      <th style="padding:0 10px;">%</th>
+                      <th style="padding:0 10px;">Trend</th>
+                    </tr>
+                  </thead>
+                  <tbody id="nb-market-table"></tbody>
+                </table>
+              </div>
+              <div style="font-size:12px;color:var(--nb-muted);padding:0 4px;margin-top:6px;">
+                Demo pricing engine (no external API keys required).
               </div>
             </div>
           </div>
@@ -1038,6 +1138,7 @@
   <script src="cornerstone/assets/js/jquery.lettering.min.js"></script>
   <script src="cornerstone/assets/js/jquery.circleType.js"></script>
   <script src="cornerstone/assets/js/script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script>
     (function () {
       const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1065,6 +1166,51 @@
         }
       })();
 
+      (function () {
+        const bg = document.getElementById('nb-hero-bg');
+        const title = document.getElementById('nb-hero-title');
+        const sub = document.getElementById('nb-hero-sub');
+        if (!bg || !title || !sub) return;
+        const slides = [
+          {
+            title: 'Banking for the Digital Age',
+            sub: 'Fast transfers, smart insights, and secure access—built for the way you move money today.',
+            bg: "linear-gradient(135deg, rgba(15,45,82,.92) 0%, rgba(29,111,164,.86) 55%, rgba(11,34,63,.92) 100%), url('cornerstone/assets/images/banner/banner-4.jpg')"
+          },
+          {
+            title: 'Move money instantly',
+            sub: 'Send transfers, pay bills, and stay notified with a dashboard that keeps everything simple.',
+            bg: "linear-gradient(135deg, rgba(11,34,63,.92) 0%, rgba(29,111,164,.84) 60%, rgba(201,168,76,.18) 100%), url('cornerstone/assets/images/banner/banner-5.jpg')"
+          },
+          {
+            title: 'Security-first by design',
+            sub: 'Email verification, one-time codes, and clear controls for sensitive information.',
+            bg: "linear-gradient(135deg, rgba(15,45,82,.94) 0%, rgba(29,111,164,.82) 50%, rgba(11,34,63,.95) 100%), url('cornerstone/assets/images/banner/banner-6.jpg')"
+          }
+        ];
+
+        let i = 0;
+        function apply(next) {
+          const s = slides[next % slides.length];
+          title.classList.add('nb-out');
+          sub.classList.add('nb-out');
+          setTimeout(() => {
+            title.textContent = s.title;
+            sub.textContent = s.sub;
+            bg.style.setProperty('--nb-hero-bg', s.bg);
+            title.classList.remove('nb-out');
+            sub.classList.remove('nb-out');
+          }, prefersReduced ? 0 : 220);
+        }
+
+        bg.style.setProperty('--nb-hero-bg', slides[0].bg);
+        if (prefersReduced) return;
+        setInterval(() => {
+          i = (i + 1) % slides.length;
+          apply(i);
+        }, 5600);
+      })();
+
       const revealEls = document.querySelectorAll('.nb-reveal');
       if (revealEls.length) {
         if (prefersReduced) {
@@ -1083,6 +1229,217 @@
           revealEls.forEach((el) => rio.observe(el));
         }
       }
+
+      (function () {
+        const canvas = document.getElementById('nb-analytics-chart');
+        if (!canvas || !window.Chart) return;
+        let chart = null;
+
+        function themeMode() {
+          return document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+        }
+
+        function colors() {
+          const dark = themeMode() === 'dark';
+          return {
+            grid: dark ? 'rgba(255,255,255,.08)' : 'rgba(15,45,82,.10)',
+            text: dark ? 'rgba(255,255,255,.82)' : 'rgba(15,45,82,.72)',
+            line1: 'rgba(29,111,164,.95)',
+            fill1: dark ? 'rgba(29,111,164,.18)' : 'rgba(29,111,164,.14)',
+            line2: 'rgba(201,168,76,.95)',
+            fill2: dark ? 'rgba(201,168,76,.16)' : 'rgba(201,168,76,.12)'
+          };
+        }
+
+        function build() {
+          const c = colors();
+          const labels = ['Jan','Feb','Mar','Apr','May','Jun'];
+          const users = [1.42, 1.56, 1.63, 1.74, 1.88, 2.02];
+          const volume = [3.8, 4.1, 4.5, 4.7, 4.9, 5.2];
+          if (chart) chart.destroy();
+          chart = new Chart(canvas, {
+            type: 'line',
+            data: {
+              labels,
+              datasets: [
+                {
+                  label: 'Customers (M)',
+                  data: users,
+                  borderColor: c.line1,
+                  backgroundColor: c.fill1,
+                  fill: true,
+                  tension: 0.35,
+                  pointRadius: 2,
+                  pointHoverRadius: 4,
+                },
+                {
+                  label: 'Monthly txns (B)',
+                  data: volume,
+                  borderColor: c.line2,
+                  backgroundColor: c.fill2,
+                  fill: true,
+                  tension: 0.35,
+                  pointRadius: 2,
+                  pointHoverRadius: 4,
+                }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  labels: { color: c.text, boxWidth: 10, boxHeight: 10, usePointStyle: true, pointStyle: 'circle' }
+                },
+                tooltip: { intersect: false, mode: 'index' }
+              },
+              interaction: { intersect: false, mode: 'index' },
+              scales: {
+                x: {
+                  grid: { color: 'transparent' },
+                  ticks: { color: c.text }
+                },
+                y: {
+                  grid: { color: c.grid },
+                  ticks: { color: c.text }
+                }
+              }
+            }
+          });
+        }
+
+        build();
+        const btn = document.getElementById('nb-theme-toggle');
+        if (btn) {
+          btn.addEventListener('click', () => setTimeout(build, 0));
+        }
+      })();
+
+      (function () {
+        const moversEl = document.getElementById('nb-movers');
+        const tableEl = document.getElementById('nb-market-table');
+        if (!moversEl || !tableEl) return;
+
+        const instruments = [
+          { symbol: 'AAPL', label: 'Apple', kind: 'stock', price: 212.34, history: [] },
+          { symbol: 'MSFT', label: 'Microsoft', kind: 'stock', price: 468.12, history: [] },
+          { symbol: 'NVDA', label: 'NVIDIA', kind: 'stock', price: 121.88, history: [] },
+          { symbol: 'TSLA', label: 'Tesla', kind: 'stock', price: 178.55, history: [] },
+          { symbol: 'AMZN', label: 'Amazon', kind: 'stock', price: 189.42, history: [] },
+          { symbol: 'GOOGL', label: 'Alphabet', kind: 'stock', price: 176.31, history: [] },
+          { symbol: 'EURUSD', label: 'EUR/USD', kind: 'fx', price: 1.0832, history: [] },
+          { symbol: 'GBPUSD', label: 'GBP/USD', kind: 'fx', price: 1.2718, history: [] },
+          { symbol: 'USDJPY', label: 'USD/JPY', kind: 'fx', price: 156.22, history: [] },
+          { symbol: 'XAUUSD', label: 'Gold', kind: 'fx', price: 2346.8, history: [] },
+        ];
+
+        const fmt = (n, d = 2) => Number(n).toFixed(d);
+        const pct = (n) => `${n >= 0 ? '+' : ''}${fmt(n, 2)}%`;
+
+        function drift(kind) {
+          if (kind === 'fx') return 0.00055;
+          return 0.0035;
+        }
+
+        function decimalsFor(sym, kind) {
+          if (kind === 'fx') {
+            if (sym === 'USDJPY') return 2;
+            if (sym === 'XAUUSD') return 1;
+            return 4;
+          }
+          return 2;
+        }
+
+        function sparkline(points, stroke) {
+          const w = 88;
+          const h = 22;
+          if (!points.length) return '';
+          const min = Math.min(...points);
+          const max = Math.max(...points);
+          const span = max - min || 1;
+          const step = w / Math.max(1, points.length - 1);
+          const d = points.map((p, i) => {
+            const x = i * step;
+            const y = h - ((p - min) / span) * h;
+            return `${x.toFixed(1)},${y.toFixed(1)}`;
+          }).join(' ');
+          return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><polyline fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="${d}"></polyline></svg>`;
+        }
+
+        function updateOne(i) {
+          const p = i.price;
+          const vol = drift(i.kind);
+          const shock = (Math.random() - 0.5) * 2;
+          const move = p * (shock * vol);
+          const next = Math.max(0.0001, p + move);
+          const chg = next - p;
+          const pctChg = (chg / p) * 100;
+          i.prev = p;
+          i.price = next;
+          i.chg = chg;
+          i.pct = pctChg;
+          i.history.push(next);
+          if (i.history.length > 14) i.history.shift();
+        }
+
+        function render() {
+          const byMove = [...instruments].sort((a, b) => Math.abs(b.pct || 0) - Math.abs(a.pct || 0));
+          moversEl.innerHTML = byMove.slice(0, 6).map((m) => {
+            const up = (m.pct || 0) >= 0;
+            const d = decimalsFor(m.symbol, m.kind);
+            const stroke = up ? 'rgba(18,183,106,.95)' : 'rgba(240,68,56,.95)';
+            return `
+              <div class="nb-nav-preview-card" style="padding:14px;border-radius:18px;">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div style="min-width:0;">
+                    <div style="font-weight:950;color:var(--nb-primary);">${m.symbol}</div>
+                    <div style="font-size:12px;color:var(--nb-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.label}</div>
+                  </div>
+                  <div style="text-align:right;">
+                    <div class="nb-mono" style="font-weight:900;">${fmt(m.price, d)}</div>
+                    <div class="${up ? 'nb-up' : 'nb-down'} nb-mono" style="font-size:12px;font-weight:900;">${pct(m.pct || 0)}</div>
+                  </div>
+                </div>
+                <div style="margin-top:10px;">${sparkline(m.history, stroke)}</div>
+              </div>
+            `;
+          }).join('');
+
+          tableEl.innerHTML = instruments.map((m) => {
+            const up = (m.chg || 0) >= 0;
+            const d = decimalsFor(m.symbol, m.kind);
+            const chgTxt = `${up ? '+' : ''}${fmt(m.chg || 0, d)}`;
+            const pctTxt = pct(m.pct || 0);
+            const stroke = up ? 'rgba(18,183,106,.95)' : 'rgba(240,68,56,.95)';
+            const blink = (m._blink || '');
+            return `
+              <tr class="${blink}">
+                <td><div style="font-weight:950;">${m.symbol}</div><div style="font-size:12px;color:var(--nb-muted);">${m.kind.toUpperCase()}</div></td>
+                <td class="nb-mono">${fmt(m.price, d)}</td>
+                <td class="nb-mono ${up ? 'nb-up' : 'nb-down'}">${chgTxt}</td>
+                <td class="nb-mono ${up ? 'nb-up' : 'nb-down'}">${pctTxt}</td>
+                <td>${sparkline(m.history, stroke)}</td>
+              </tr>
+            `;
+          }).join('');
+        }
+
+        instruments.forEach((m) => { m.history = Array.from({ length: 10 }, () => m.price); });
+        instruments.forEach(updateOne);
+        render();
+
+        if (prefersReduced) return;
+        setInterval(() => {
+          instruments.forEach((m) => {
+            const prev = m.price;
+            updateOne(m);
+            const up = (m.price - prev) >= 0;
+            m._blink = up ? 'nb-blink-up' : 'nb-blink-down';
+            setTimeout(() => { m._blink = ''; }, 420);
+          });
+          render();
+        }, 1800);
+      })();
 
       (function () {
         const listEl = document.getElementById('nb-leaderboard-list');
@@ -1148,7 +1505,6 @@
         }
 
         function makeTransaction(nowTs) {
-          const name = makeName();
           const bank = pick(banks);
           const channel = makeChannel();
 
@@ -1159,10 +1515,10 @@
             const amt = incoming ? randInt(35, 650) : randInt(25, 950);
             return {
               id: `z-${nowTs}-${Math.random().toString(16).slice(2)}`,
-              name,
               bank,
               channel,
-              desc: incoming ? `Zelle received from ${other} — ${pick(reasons)}` : `Zelle transfer to ${other} — ${pick(reasons)}`,
+              destination: incoming ? `From ${other}` : `To ${other}`,
+              desc: pick(reasons),
               amount: incoming ? amt : -amt,
               createdAt: nowTs
             };
@@ -1175,10 +1531,10 @@
             const amt = randInt(10, 260) + (Math.random() < 0.25 ? 0.5 : 0);
             return {
               id: `c-${nowTs}-${Math.random().toString(16).slice(2)}`,
-              name,
               bank,
               channel,
-              desc: incoming ? `Cash App received from ${other} — ${pick(reasons)}` : `Cash App payment to ${other} — ${pick(reasons)}`,
+              destination: incoming ? `From ${other}` : `To ${other}`,
+              desc: pick(reasons),
               amount: incoming ? amt : -amt,
               createdAt: nowTs
             };
@@ -1191,10 +1547,10 @@
               const amt = randInt(80, 1200);
               return {
                 id: `a-${nowTs}-${Math.random().toString(16).slice(2)}`,
-                name,
                 bank,
                 channel,
-                desc: `ATM deposit — ${city}`,
+                destination: 'ATM deposit',
+                desc: city,
                 amount: amt,
                 createdAt: nowTs
               };
@@ -1202,10 +1558,10 @@
             const amt = randInt(20, 260);
             return {
               id: `a-${nowTs}-${Math.random().toString(16).slice(2)}`,
-              name,
               bank,
               channel,
-              desc: `ATM withdrawal — ${city}`,
+              destination: 'ATM withdrawal',
+              desc: city,
               amount: -amt,
               createdAt: nowTs
             };
@@ -1217,10 +1573,10 @@
             const isRefund = Math.random() < 0.08;
             return {
               id: `d-${nowTs}-${Math.random().toString(16).slice(2)}`,
-              name,
               bank,
               channel,
-              desc: isRefund ? `Card refund — ${merchant}` : `Debit purchase — ${merchant}`,
+              destination: merchant,
+              desc: isRefund ? 'Card refund' : 'Debit purchase',
               amount: isRefund ? amt : -amt,
               createdAt: nowTs
             };
@@ -1230,10 +1586,10 @@
           const amt = randInt(50, 850);
           return {
             id: `t-${nowTs}-${Math.random().toString(16).slice(2)}`,
-            name,
             bank,
             channel,
-            desc: transferToSavings ? 'ACH transfer to savings — autopilot' : 'ACH transfer received — payroll',
+            destination: transferToSavings ? 'Savings (ACH)' : 'Payroll (ACH)',
+            desc: transferToSavings ? 'Autopilot transfer' : 'Direct deposit',
             amount: transferToSavings ? -amt : amt,
             createdAt: nowTs
           };
@@ -1254,11 +1610,11 @@
             const ago = fmtAgoMs(nowTs - r.createdAt);
             return `
               <div class="nb-lb-row" style="animation-delay:${Math.min(420, i * 70)}ms">
-                <div class="nb-lb-avatar">${initials(r.name)}</div>
+                <div class="nb-lb-avatar"><i class="bi bi-${iconFor(r.channel)}"></i></div>
                 <div class="nb-lb-main">
                   <div class="nb-lb-topline">
-                    <div class="nb-lb-name">${r.name}</div>
-                    <div class="nb-lb-pill"><i class="bi bi-${iconFor(r.channel)}"></i><span>${r.channel}</span></div>
+                    <div class="nb-lb-name">${r.destination || r.channel}</div>
+                    <div class="nb-lb-pill"><i class="bi bi-bank2"></i><span>${r.channel}</span></div>
                   </div>
                   <div class="nb-lb-meta">${r.bank} • ${r.desc}</div>
                 </div>

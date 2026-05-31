@@ -138,7 +138,8 @@
             }
           } catch (_) {}
         }
-        renderAuthForm('login');
+        const view = (params.get('view') || '').toLowerCase();
+        renderAuthForm(view === 'register' ? 'register' : 'login');
       }
     });
   </script>
