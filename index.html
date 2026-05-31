@@ -157,41 +157,25 @@
     .banner-style-two .content-box h2 { color: #fff; }
     .banner-style-two .content-box p { color: rgba(255,255,255,.85); }
 
-    .nb-hero-card {
-      background: rgba(255,255,255,.95);
-      border: 1px solid rgba(255,255,255,.25);
-      border-radius: 22px;
-      box-shadow: 0 25px 70px rgba(0,0,0,.25);
-      padding: 22px;
-      transform: rotate(-2deg);
+    .nb-hero-visual {
+      width: 100%;
+      max-width: 520px;
+      margin-left: auto;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 26px;
+      box-shadow: 0 30px 90px rgba(0,0,0,.28);
+      padding: 16px;
+      backdrop-filter: blur(10px);
     }
-    [data-theme="dark"] .nb-hero-card {
-      background: rgba(22,27,34,.88);
+    [data-theme="dark"] .nb-hero-visual {
+      background: rgba(13,17,23,.38);
       border-color: rgba(255,255,255,.10);
-      box-shadow: 0 30px 90px rgba(0,0,0,.55);
+      box-shadow: 0 34px 110px rgba(0,0,0,.55);
     }
-    .nb-hero-card .nb-balance-card {
-      background: linear-gradient(135deg, #0f2d52 0%, #1d6fa4 70%);
-      border-radius: 18px;
-      padding: 18px;
-      color: #fff;
-      position: relative;
-      overflow: hidden;
-    }
-    .nb-hero-card .nb-balance-card::after { content:''; position:absolute; width:240px; height:240px; border-radius:50%; background:rgba(255,255,255,.08); bottom:-110px; right:-110px; }
-    .nb-hero-card .nb-pill { background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.16); padding: 6px 10px; border-radius: 10px; font-size: 12px; }
-    .nb-hero-card .nb-mini { background: var(--nb-light-accent); border: 1px solid rgba(29,111,164,.14); border-radius: 14px; padding: 12px; }
-    .nb-hero-card .nb-mini .label { font-size: 12px; color: var(--nb-muted); }
-    .nb-hero-card .nb-mini .val { font-weight: 700; color: var(--nb-primary); }
-
+    .nb-hero-visual svg { display: block; width: 100%; height: auto; }
     @media (max-width: 991px) {
-      .nb-hero-card { transform: none; margin-top: 28px; }
-    }
-    @media (max-width: 575px) {
-      .nb-hero-card { max-width: 420px; margin-left: auto; margin-right: auto; padding: 18px; border-radius: 18px; }
-      .nb-hero-card .nb-balance-card { padding: 14px; border-radius: 16px; }
-      .nb-hero-card .nb-balance-card::after { width: 200px; height: 200px; bottom: -95px; right: -95px; }
-      .nb-hero-card .nb-mini { padding: 10px; border-radius: 14px; }
+      .nb-hero-visual { margin-top: 28px; margin-right: auto; }
     }
 
     .navigation > li.nb-nav-preview { position: relative; }
@@ -285,156 +269,6 @@
     .nb-reveal.nb-in { opacity: 1; transform: translateY(0); }
     .nb-hero-swap { transition: opacity .38s ease, transform .38s cubic-bezier(.2,.9,.2,1); }
     .nb-hero-swap.nb-out { opacity: 0; transform: translateY(6px); }
-
-    .nb-leaderboard {
-      background: radial-gradient(900px 520px at 20% 15%, rgba(201,168,76,.18), rgba(201,168,76,0) 60%),
-        radial-gradient(900px 520px at 85% 85%, rgba(29,111,164,.18), rgba(29,111,164,0) 62%);
-    }
-    .nb-lb-card {
-      background: rgba(255,255,255,.86);
-      border: 1px solid rgba(15,45,82,.12);
-      border-radius: 22px;
-      box-shadow: 0 30px 80px rgba(15,45,82,.16);
-      overflow: hidden;
-      backdrop-filter: blur(10px);
-    }
-    [data-theme="dark"] .nb-lb-card {
-      background: rgba(22,27,34,.86);
-      border-color: rgba(255,255,255,.10);
-      box-shadow: 0 30px 90px rgba(0,0,0,.55);
-    }
-    .nb-lb-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 16px 18px;
-      border-bottom: 1px solid rgba(15,45,82,.08);
-      background: linear-gradient(135deg, rgba(29,111,164,.08), rgba(201,168,76,.06));
-    }
-    [data-theme="dark"] .nb-lb-header {
-      border-bottom-color: rgba(255,255,255,.08);
-      background: linear-gradient(135deg, rgba(29,111,164,.16), rgba(201,168,76,.10));
-    }
-    .nb-lb-title { font-weight: 900; color: var(--nb-primary); letter-spacing: -.2px; }
-    [data-theme="dark"] .nb-lb-title { color: rgba(255,255,255,.92); }
-    .nb-lb-live {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: rgba(18,183,106,.12);
-      border: 1px solid rgba(18,183,106,.22);
-      color: #0a5a34;
-      font-weight: 800;
-      font-size: 12px;
-    }
-    .nb-lb-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: var(--nb-success);
-      box-shadow: 0 0 0 0 rgba(18,183,106,.45);
-      animation: nbPulse 1.6s ease-in-out infinite;
-    }
-    @keyframes nbPulse { 0% { box-shadow: 0 0 0 0 rgba(18,183,106,.45); } 70% { box-shadow: 0 0 0 10px rgba(18,183,106,0); } 100% { box-shadow: 0 0 0 0 rgba(18,183,106,0); } }
-    @media (prefers-reduced-motion: reduce) { .nb-lb-dot { animation: none; } }
-    .nb-lb-list { padding: 8px 10px 14px; }
-    .nb-lb-row {
-      display: grid;
-      grid-template-columns: 44px 1fr auto;
-      gap: 12px;
-      align-items: center;
-      padding: 12px 12px;
-      border-radius: 16px;
-      border: 1px solid rgba(15,45,82,.08);
-      background: rgba(255,255,255,.78);
-      margin: 10px 8px;
-      position: relative;
-      overflow: hidden;
-      transform: translateY(10px);
-      opacity: 0;
-      animation: nbLbIn .65s cubic-bezier(.2,.9,.2,1) both;
-    }
-    [data-theme="dark"] .nb-lb-row {
-      border-color: rgba(255,255,255,.08);
-      background: rgba(13,17,23,.65);
-    }
-    @keyframes nbLbIn { to { transform: translateY(0); opacity: 1; } }
-    .nb-lb-row::after {
-      content:'';
-      position:absolute;
-      inset:-40px;
-      background: linear-gradient(105deg, rgba(255,255,255,0) 35%, rgba(255,255,255,.55) 48%, rgba(255,255,255,0) 62%);
-      transform: translateX(-55%);
-      animation: nbShimmer 2.8s ease-in-out infinite;
-      opacity: .35;
-      pointer-events: none;
-    }
-    @keyframes nbShimmer { 0% { transform: translateX(-65%); } 45% { transform: translateX(75%); } 100% { transform: translateX(75%); } }
-    @media (prefers-reduced-motion: reduce) { .nb-lb-row::after { animation: none; } }
-    .nb-lb-avatar {
-      width: 44px;
-      height: 44px;
-      border-radius: 14px;
-      display: grid;
-      place-items: center;
-      font-weight: 950;
-      color: #fff;
-      background: linear-gradient(135deg, var(--nb-primary), var(--nb-accent));
-      box-shadow: 0 14px 30px rgba(15,45,82,.18);
-    }
-    .nb-lb-main { min-width: 0; }
-    .nb-lb-topline { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
-    .nb-lb-name { font-weight: 900; color: var(--nb-primary); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .nb-lb-meta { color: var(--nb-muted); font-size: 12px; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .nb-lb-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(29,111,164,.16);
-      background: rgba(29,111,164,.08);
-      color: var(--nb-primary);
-      font-weight: 850;
-      font-size: 12px;
-      white-space: nowrap;
-    }
-    [data-theme="dark"] .nb-lb-pill {
-      border-color: rgba(255,255,255,.10);
-      background: rgba(255,255,255,.06);
-      color: rgba(255,255,255,.86);
-    }
-    .nb-lb-amt { font-weight: 950; font-size: 14px; letter-spacing: -.2px; }
-    .nb-lb-amt.in { color: #0a5a34; }
-    .nb-lb-amt.out { color: #8a1f17; }
-    .nb-lb-time { font-size: 12px; color: var(--nb-muted); text-align: right; margin-top: 4px; }
-    .nb-lb-summary {
-      border-radius: 22px;
-      border: 1px solid rgba(15,45,82,.12);
-      background: linear-gradient(135deg, rgba(15,45,82,.96), rgba(29,111,164,.92));
-      color: rgba(255,255,255,.92);
-      box-shadow: 0 30px 80px rgba(0,0,0,.20);
-      padding: 20px;
-      overflow: hidden;
-      position: relative;
-    }
-    .nb-lb-summary::after {
-      content:'';
-      position:absolute;
-      width: 340px;
-      height: 340px;
-      border-radius: 50%;
-      background: rgba(255,255,255,.08);
-      right: -160px;
-      top: -160px;
-    }
-    .nb-lb-summary h3 { color: #fff; font-weight: 950; margin-bottom: 10px; }
-    .nb-lb-summary p { color: rgba(255,255,255,.80); margin-bottom: 16px; }
-    .nb-lb-badges { display:flex; gap:10px; flex-wrap: wrap; }
-    .nb-lb-badge { display:inline-flex; align-items:center; gap:8px; padding: 8px 10px; border-radius: 999px; border: 1px solid rgba(255,255,255,.20); background: rgba(255,255,255,.10); font-weight: 800; font-size: 12px; color: rgba(255,255,255,.92); }
 
     #nb-market-table td {
       background: rgba(255,255,255,.78);
@@ -574,23 +408,6 @@
                       </div>
                     </li>
                     <li class="nb-nav-preview">
-                      <a href="#leaderboard">Live Feed</a>
-                      <div class="nb-nav-preview-panel">
-                        <div class="title">Recent activity</div>
-                        <div class="desc">A demo leaderboard showing typical transfers, card payments, and ATM activity.</div>
-                        <div class="nb-nav-preview-grid">
-                          <a class="nb-nav-preview-card" href="#leaderboard" style="text-decoration:none;">
-                            <div class="k"><i class="bi bi-arrow-repeat"></i><span>Updated</span></div>
-                            <div class="v">Auto-refresh</div>
-                          </a>
-                          <a class="nb-nav-preview-card" href="#leaderboard" style="text-decoration:none;">
-                            <div class="k"><i class="bi bi-shield-check"></i><span>Safe</span></div>
-                            <div class="v">Demo data only</div>
-                          </a>
-                        </div>
-                      </div>
-                    </li>
-                    <li class="nb-nav-preview">
                       <a href="#testimonials">Testimonials</a>
                       <div class="nb-nav-preview-panel">
                         <div class="title">Loved by customers</div>
@@ -698,39 +515,63 @@
                 </div>
               </div>
               <div class="col-lg-5 col-md-12 col-sm-12">
-                <div class="nb-hero-card nb-reveal">
-                  <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div style="font-weight:800;color:var(--nb-primary);">My Wallet</div>
-                    <div class="d-flex align-items-center gap-2">
-                      <span class="badge rounded-pill" style="background:rgba(29,111,164,.12);color:var(--nb-accent);border:1px solid rgba(29,111,164,.2);">Live</span>
-                      <i class="bi bi-shield-check" style="color:var(--nb-success);"></i>
-                    </div>
-                  </div>
+                <div class="nb-hero-visual nb-reveal" aria-hidden="true">
+                  <svg viewBox="0 0 520 520" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                      <linearGradient id="nbCardG1" x1="0" x2="1" y1="0" y2="1">
+                        <stop offset="0" stop-color="#0f2d52" />
+                        <stop offset="0.65" stop-color="#1d6fa4" />
+                        <stop offset="1" stop-color="#0b223f" />
+                      </linearGradient>
+                      <linearGradient id="nbCardG2" x1="0" x2="1" y1="0" y2="1">
+                        <stop offset="0" stop-color="#c9a84c" stop-opacity="0.95" />
+                        <stop offset="1" stop-color="#ffffff" stop-opacity="0.12" />
+                      </linearGradient>
+                      <filter id="nbSoftShadow" x="-30%" y="-30%" width="160%" height="160%">
+                        <feDropShadow dx="0" dy="22" stdDeviation="22" flood-color="#000000" flood-opacity="0.35" />
+                      </filter>
+                      <filter id="nbLiteShadow" x="-30%" y="-30%" width="160%" height="160%">
+                        <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#000000" flood-opacity="0.22" />
+                      </filter>
+                    </defs>
 
-                  <div class="nb-balance-card mb-3">
-                    <div style="opacity:.85;font-size:12px;">Total Balance</div>
-                    <div style="font-size:28px;font-weight:800;letter-spacing:-.5px;">$24,500.00</div>
-                    <div class="d-flex gap-2 mt-3 flex-wrap">
-                      <div class="nb-pill mono">**** 4242</div>
-                      <div class="nb-pill mono">09/28</div>
-                      <div class="nb-pill mono">NEXA • VISA</div>
-                    </div>
-                  </div>
+                    <rect x="0" y="0" width="520" height="520" rx="28" fill="transparent" />
 
-                  <div class="row g-2">
-                    <div class="col-6">
-                      <div class="nb-mini">
-                        <div class="label"><i class="bi bi-arrow-down-left me-1"></i>Income</div>
-                        <div class="val mono">$3,420</div>
-                      </div>
-                    </div>
-                    <div class="col-6">
-                      <div class="nb-mini">
-                        <div class="label"><i class="bi bi-arrow-up-right me-1"></i>Expenses</div>
-                        <div class="val mono">$1,980</div>
-                      </div>
-                    </div>
-                  </div>
+                    <g filter="url(#nbSoftShadow)" transform="translate(56, 98) rotate(-6 204 150)">
+                      <rect x="0" y="0" width="408" height="256" rx="26" fill="url(#nbCardG1)" />
+                      <circle cx="332" cy="62" r="74" fill="rgba(255,255,255,0.10)" />
+                      <circle cx="68" cy="212" r="110" fill="rgba(255,255,255,0.08)" />
+                      <rect x="26" y="26" width="112" height="34" rx="17" fill="rgba(255,255,255,0.16)" stroke="rgba(255,255,255,0.18)" />
+                      <text x="42" y="49" font-size="14" fill="rgba(255,255,255,0.92)" font-family="Poppins, system-ui, -apple-system, Segoe UI, sans-serif" font-weight="700">NexaBank</text>
+
+                      <g transform="translate(30, 96)">
+                        <rect x="0" y="0" width="86" height="64" rx="12" fill="rgba(255,255,255,0.16)" stroke="rgba(255,255,255,0.18)" />
+                        <rect x="10" y="12" width="66" height="10" rx="5" fill="rgba(201,168,76,0.90)" />
+                        <rect x="10" y="28" width="52" height="10" rx="5" fill="rgba(255,255,255,0.26)" />
+                        <rect x="10" y="44" width="40" height="10" rx="5" fill="rgba(255,255,255,0.20)" />
+                      </g>
+
+                      <text x="30" y="214" font-size="18" fill="rgba(255,255,255,0.95)" font-family="JetBrains Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace" font-weight="700">••••  4242  ••••  0912</text>
+                      <text x="30" y="242" font-size="12" fill="rgba(255,255,255,0.82)" font-family="Poppins, system-ui, -apple-system, Segoe UI, sans-serif" font-weight="700">VISA</text>
+                      <text x="360" y="242" font-size="12" fill="rgba(255,255,255,0.82)" text-anchor="end" font-family="Poppins, system-ui, -apple-system, Segoe UI, sans-serif" font-weight="700">DEBIT</text>
+                    </g>
+
+                    <g filter="url(#nbLiteShadow)" transform="translate(134, 236) rotate(6 170 116)">
+                      <rect x="0" y="0" width="340" height="232" rx="26" fill="rgba(255,255,255,0.92)" />
+                      <rect x="18" y="18" width="304" height="64" rx="18" fill="rgba(29,111,164,0.08)" stroke="rgba(15,45,82,0.12)" />
+                      <text x="34" y="46" font-size="13" fill="rgba(15,45,82,0.70)" font-family="Poppins, system-ui, -apple-system, Segoe UI, sans-serif" font-weight="700">Balance</text>
+                      <text x="34" y="72" font-size="22" fill="rgba(15,45,82,0.92)" font-family="Poppins, system-ui, -apple-system, Segoe UI, sans-serif" font-weight="800">$24,500.00</text>
+
+                      <rect x="18" y="98" width="148" height="108" rx="18" fill="rgba(29,111,164,0.06)" stroke="rgba(15,45,82,0.10)" />
+                      <rect x="174" y="98" width="148" height="108" rx="18" fill="rgba(201,168,76,0.10)" stroke="rgba(15,45,82,0.10)" />
+                      <text x="34" y="126" font-size="12" fill="rgba(15,45,82,0.70)" font-family="Poppins, system-ui, -apple-system, Segoe UI, sans-serif" font-weight="700">Income</text>
+                      <text x="34" y="156" font-size="18" fill="rgba(15,45,82,0.92)" font-family="JetBrains Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace" font-weight="800">$3,420</text>
+                      <text x="190" y="126" font-size="12" fill="rgba(15,45,82,0.70)" font-family="Poppins, system-ui, -apple-system, Segoe UI, sans-serif" font-weight="700">Expenses</text>
+                      <text x="190" y="156" font-size="18" fill="rgba(15,45,82,0.92)" font-family="JetBrains Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace" font-weight="800">$1,980</text>
+
+                      <circle cx="290" cy="44" r="64" fill="url(#nbCardG2)" opacity="0.55" />
+                    </g>
+                  </svg>
                 </div>
               </div>
             </div>
@@ -938,41 +779,6 @@
               <div style="font-size:12px;color:var(--nb-muted);padding:0 4px;margin-top:6px;">
                 Uses Alpha Vantage when available; falls back to demo updates without external keys.
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="pt_110 pb_110 nb-leaderboard" id="leaderboard">
-      <div class="auto-container">
-        <div class="sec-title centred nb-reveal">
-          <span class="sub-title">Recent Transactions</span>
-          <h2>Activity leaderboard</h2>
-          <p style="max-width:760px;margin:0 auto;">A live-style demo feed of common transfers and card activity. Names and details shown here are sample data.</p>
-        </div>
-        <div class="row clearfix g-4 align-items-stretch">
-          <div class="col-12 col-lg-5 nb-reveal">
-            <div class="nb-lb-summary">
-              <h3>Fast payments, clear receipts</h3>
-              <p>See typical actions customers take daily: Zelle transfers, Cash App top-ups, card purchases, and ATM withdrawals—presented with modern motion and clarity.</p>
-              <div class="nb-lb-badges">
-                <span class="nb-lb-badge"><i class="bi bi-lightning-charge"></i> Instant updates</span>
-                <span class="nb-lb-badge"><i class="bi bi-receipt"></i> Clean descriptions</span>
-                <span class="nb-lb-badge"><i class="bi bi-bank2"></i> Multi-bank context</span>
-              </div>
-              <div style="margin-top:14px;font-size:12px;opacity:.86;">
-                Demo only. No real customer data is displayed.
-              </div>
-            </div>
-          </div>
-          <div class="col-12 col-lg-7 nb-reveal">
-            <div class="nb-lb-card">
-              <div class="nb-lb-header">
-                <div class="nb-lb-title">Recent activity</div>
-                <div class="nb-lb-live"><span class="nb-lb-dot"></span><span>LIVE</span></div>
-              </div>
-              <div class="nb-lb-list" id="nb-leaderboard-list"></div>
             </div>
           </div>
         </div>
@@ -1190,8 +996,16 @@
         ];
 
         let i = 0;
-        function apply(next) {
+        function apply(next, immediate = false) {
           const s = slides[next % slides.length];
+          if (prefersReduced || immediate) {
+            title.textContent = s.title;
+            sub.textContent = s.sub;
+            bg.style.setProperty('--nb-hero-bg', s.bg);
+            title.classList.remove('nb-out');
+            sub.classList.remove('nb-out');
+            return;
+          }
           title.classList.add('nb-out');
           sub.classList.add('nb-out');
           setTimeout(() => {
@@ -1200,15 +1014,15 @@
             bg.style.setProperty('--nb-hero-bg', s.bg);
             title.classList.remove('nb-out');
             sub.classList.remove('nb-out');
-          }, prefersReduced ? 0 : 220);
+          }, 220);
         }
 
-        bg.style.setProperty('--nb-hero-bg', slides[0].bg);
-        if (prefersReduced) return;
+        apply(0, true);
+        const intervalMs = prefersReduced ? 9000 : 5600;
         setInterval(() => {
           i = (i + 1) % slides.length;
           apply(i);
-        }, 5600);
+        }, intervalMs);
       })();
 
       const revealEls = document.querySelectorAll('.nb-reveal');
@@ -1551,222 +1365,6 @@
           await tick();
           setInterval(tick, 15000);
         })();
-      })();
-
-      (function () {
-        const listEl = document.getElementById('nb-leaderboard-list');
-        if (!listEl) return;
-        const UPDATE_MS = 2600;
-        const MAX_ITEMS = 14;
-        const VIEW_COUNT = 7;
-
-        const firstNames = ['Ava','Noah','Mia','Ethan','Sofia','Liam','Isabella','Jackson','Olivia','Lucas','Amelia','James','Harper','Benjamin','Evelyn','Henry','Ella','Daniel','Grace','Leo','Chloe','Nora','Mateo','Aaliyah','Zoe','Mason'];
-        const lastInitials = ['A.','B.','C.','D.','E.','F.','G.','H.','J.','K.','L.','M.','N.','P.','R.','S.','T.','W.','Y.'];
-        const banks = ['Chase','Bank of America','Wells Fargo','Citibank','Capital One','PNC Bank','U.S. Bank','TD Bank','Truist','Ally Bank','HSBC'];
-        const merchants = ['Starbucks','Amazon Marketplace','Apple Services','Trader Joe’s','Whole Foods Market','Shell','Target','Walmart','Costco','Uber','Lyft','CVS Pharmacy','Walgreens','Home Depot'];
-        const cities = ['New York, NY','Los Angeles, CA','Chicago, IL','Houston, TX','Miami, FL','Seattle, WA','Atlanta, GA','Denver, CO','Phoenix, AZ','Boston, MA'];
-
-        function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-        function rand(min, max) { return min + Math.random() * (max - min); }
-        function randInt(min, max) { return Math.floor(rand(min, max + 1)); }
-
-        function initials(name) {
-          const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
-          if (!parts.length) return 'U';
-          const letters = parts.slice(0, 2).map(p => (p[0] || '').toUpperCase()).join('');
-          return letters || 'U';
-        }
-
-        function fmtMoney(n) {
-          const abs = Math.abs(n);
-          const sign = n >= 0 ? '+' : '−';
-          return `${sign}$${abs.toFixed(2)}`;
-        }
-
-        function fmtAgoMs(ms) {
-          const s = Math.max(0, Math.floor(ms / 1000));
-          if (s < 10) return 'just now';
-          if (s < 60) return `${s}s ago`;
-          const m = Math.floor(s / 60);
-          if (m < 60) return `${m}m ago`;
-          const h = Math.floor(m / 60);
-          return `${h}h ago`;
-        }
-
-        function iconFor(channel) {
-          const c = String(channel || '').toLowerCase();
-          if (c.includes('zelle')) return 'send';
-          if (c.includes('cash')) return 'cash-coin';
-          if (c.includes('atm')) return 'bank';
-          if (c.includes('card')) return 'credit-card-2-front';
-          if (c.includes('transfer') || c.includes('ach')) return 'arrow-left-right';
-          return 'arrow-repeat';
-        }
-
-        function makeName() {
-          return `${pick(firstNames)} ${pick(lastInitials)}`;
-        }
-
-        function makeChannel() {
-          const r = Math.random();
-          if (r < 0.25) return 'Zelle';
-          if (r < 0.45) return 'Cash App';
-          if (r < 0.62) return 'ATM';
-          if (r < 0.86) return 'Card';
-          return 'ACH Transfer';
-        }
-
-        function makeTransaction(nowTs) {
-          const bank = pick(banks);
-          const channel = makeChannel();
-
-          if (channel === 'Zelle') {
-            const incoming = Math.random() < 0.35;
-            const other = makeName();
-            const reasons = ['rent split','reimbursement','utilities','gift','tuition','childcare','shared groceries'];
-            const amt = incoming ? randInt(35, 650) : randInt(25, 950);
-            return {
-              id: `z-${nowTs}-${Math.random().toString(16).slice(2)}`,
-              bank,
-              channel,
-              destination: incoming ? `From ${other}` : `To ${other}`,
-              desc: pick(reasons),
-              amount: incoming ? amt : -amt,
-              createdAt: nowTs
-            };
-          }
-
-          if (channel === 'Cash App') {
-            const incoming = Math.random() < 0.28;
-            const other = makeName();
-            const reasons = ['dinner','rideshare','weekend plans','group trip','tickets','coffee','split bill'];
-            const amt = randInt(10, 260) + (Math.random() < 0.25 ? 0.5 : 0);
-            return {
-              id: `c-${nowTs}-${Math.random().toString(16).slice(2)}`,
-              bank,
-              channel,
-              destination: incoming ? `From ${other}` : `To ${other}`,
-              desc: pick(reasons),
-              amount: incoming ? amt : -amt,
-              createdAt: nowTs
-            };
-          }
-
-          if (channel === 'ATM') {
-            const isDeposit = Math.random() < 0.18;
-            const city = pick(cities);
-            if (isDeposit) {
-              const amt = randInt(80, 1200);
-              return {
-                id: `a-${nowTs}-${Math.random().toString(16).slice(2)}`,
-                bank,
-                channel,
-                destination: 'ATM deposit',
-                desc: city,
-                amount: amt,
-                createdAt: nowTs
-              };
-            }
-            const amt = randInt(20, 260);
-            return {
-              id: `a-${nowTs}-${Math.random().toString(16).slice(2)}`,
-              bank,
-              channel,
-              destination: 'ATM withdrawal',
-              desc: city,
-              amount: -amt,
-              createdAt: nowTs
-            };
-          }
-
-          if (channel === 'Card') {
-            const merchant = pick(merchants);
-            const amt = Math.round(rand(6.5, 180) * 100) / 100;
-            const isRefund = Math.random() < 0.08;
-            return {
-              id: `d-${nowTs}-${Math.random().toString(16).slice(2)}`,
-              bank,
-              channel,
-              destination: merchant,
-              desc: isRefund ? 'Card refund' : 'Debit purchase',
-              amount: isRefund ? amt : -amt,
-              createdAt: nowTs
-            };
-          }
-
-          const transferToSavings = Math.random() < 0.55;
-          const amt = randInt(50, 850);
-          return {
-            id: `t-${nowTs}-${Math.random().toString(16).slice(2)}`,
-            bank,
-            channel,
-            destination: transferToSavings ? 'Savings (ACH)' : 'Payroll (ACH)',
-            desc: transferToSavings ? 'Autopilot transfer' : 'Direct deposit',
-            amount: transferToSavings ? -amt : amt,
-            createdAt: nowTs
-          };
-        }
-
-        const now = Date.now();
-        const feed = Array.from({ length: MAX_ITEMS }, (_, i) => {
-          const ts = now - (i * randInt(45, 220) * 1000);
-          return makeTransaction(ts);
-        });
-        feed.sort((a, b) => b.createdAt - a.createdAt);
-
-        function render() {
-          const nowTs = Date.now();
-          const view = feed.slice(0, VIEW_COUNT);
-          listEl.innerHTML = view.map((r, i) => {
-            const amtClass = r.amount >= 0 ? 'in' : 'out';
-            const ago = fmtAgoMs(nowTs - r.createdAt);
-            return `
-              <div class="nb-lb-row" style="animation-delay:${Math.min(420, i * 70)}ms">
-                <div class="nb-lb-avatar"><i class="bi bi-${iconFor(r.channel)}"></i></div>
-                <div class="nb-lb-main">
-                  <div class="nb-lb-topline">
-                    <div class="nb-lb-name">${r.destination || r.channel}</div>
-                    <div class="nb-lb-pill"><i class="bi bi-bank2"></i><span>${r.channel}</span></div>
-                  </div>
-                  <div class="nb-lb-meta">${r.bank} • ${r.desc}</div>
-                </div>
-                <div style="text-align:right;">
-                  <div class="nb-lb-amt ${amtClass}">${fmtMoney(r.amount)}</div>
-                  <div class="nb-lb-time">${ago}</div>
-                </div>
-              </div>
-            `;
-          }).join('');
-        }
-
-        render();
-
-        let paused = false;
-        const card = listEl.closest('.nb-lb-card');
-        if (card) {
-          card.addEventListener('mouseenter', () => { paused = true; });
-          card.addEventListener('mouseleave', () => { paused = false; });
-        }
-
-        const tickClock = setInterval(() => {
-          if (paused) return;
-          render();
-        }, prefersReduced ? 15000 : 8000);
-
-        if (prefersReduced) return;
-
-        const tickNew = setInterval(() => {
-          if (paused) return;
-          const tx = makeTransaction(Date.now());
-          feed.unshift(tx);
-          if (feed.length > MAX_ITEMS) feed.length = MAX_ITEMS;
-          render();
-        }, UPDATE_MS);
-
-        window.addEventListener('beforeunload', () => {
-          clearInterval(tickNew);
-          clearInterval(tickClock);
-        });
       })();
 
       const counters = document.querySelectorAll('.nb-counter');
