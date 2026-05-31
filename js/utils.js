@@ -65,7 +65,7 @@ document.addEventListener('click', e => {
     if (b.dataset && b.dataset.nbLocked === '1') return;
     b.disabled = false;
   }, 600);
-}, true);
+}, false);
 
 function toggleSidebar(force) {
   const s = document.getElementById('sidebar');
