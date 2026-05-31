@@ -743,20 +743,20 @@
       <div class="nb-ticker-viewport">
         <div class="nb-ticker-track">
           <div class="nb-ticker-wrap">
-            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-graph-up-arrow me-1"></i>AAPL</span><span class="val">$212.34</span><span class="chg up">+0.86%</span></span>
-            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-graph-down-arrow me-1"></i>NVDA</span><span class="val">$121.88</span><span class="chg down">-1.12%</span></span>
-            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-currency-exchange me-1"></i>EUR/USD</span><span class="val">1.0832</span><span class="chg up">+0.09%</span></span>
-            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-currency-exchange me-1"></i>GBP/USD</span><span class="val">1.2718</span><span class="chg down">-0.04%</span></span>
-            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-gem me-1"></i>Gold</span><span class="val">$2346.8</span><span class="chg up">+0.22%</span></span>
-            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-cash-coin me-1"></i>Savings APY</span><span class="val">4.10%</span><span class="chg up">+0.05%</span></span>
+            <span class="nb-rate-pill" data-ticker="AAPL"><span class="tag"><i class="bi bi-graph-up-arrow me-1"></i>AAPL</span><span class="val nb-mono" data-val>$—</span><span class="chg up nb-mono" data-chg>—</span></span>
+            <span class="nb-rate-pill" data-ticker="NVDA"><span class="tag"><i class="bi bi-graph-down-arrow me-1"></i>NVDA</span><span class="val nb-mono" data-val>$—</span><span class="chg down nb-mono" data-chg>—</span></span>
+            <span class="nb-rate-pill" data-ticker="EURUSD"><span class="tag"><i class="bi bi-currency-exchange me-1"></i>EUR/USD</span><span class="val nb-mono" data-val>—</span><span class="chg up nb-mono" data-chg>—</span></span>
+            <span class="nb-rate-pill" data-ticker="GBPUSD"><span class="tag"><i class="bi bi-currency-exchange me-1"></i>GBP/USD</span><span class="val nb-mono" data-val>—</span><span class="chg down nb-mono" data-chg>—</span></span>
+            <span class="nb-rate-pill" data-ticker="XAUUSD"><span class="tag"><i class="bi bi-gem me-1"></i>Gold</span><span class="val nb-mono" data-val>$—</span><span class="chg up nb-mono" data-chg>—</span></span>
+            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-cash-coin me-1"></i>Savings APY</span><span class="val nb-mono">4.10%</span><span class="chg up nb-mono">+0.05%</span></span>
           </div>
           <div class="nb-ticker-wrap" aria-hidden="true">
-            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-graph-up-arrow me-1"></i>AAPL</span><span class="val">$212.34</span><span class="chg up">+0.86%</span></span>
-            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-graph-down-arrow me-1"></i>NVDA</span><span class="val">$121.88</span><span class="chg down">-1.12%</span></span>
-            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-currency-exchange me-1"></i>EUR/USD</span><span class="val">1.0832</span><span class="chg up">+0.09%</span></span>
-            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-currency-exchange me-1"></i>GBP/USD</span><span class="val">1.2718</span><span class="chg down">-0.04%</span></span>
-            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-gem me-1"></i>Gold</span><span class="val">$2346.8</span><span class="chg up">+0.22%</span></span>
-            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-cash-coin me-1"></i>Savings APY</span><span class="val">4.10%</span><span class="chg up">+0.05%</span></span>
+            <span class="nb-rate-pill" data-ticker="AAPL"><span class="tag"><i class="bi bi-graph-up-arrow me-1"></i>AAPL</span><span class="val nb-mono" data-val>$—</span><span class="chg up nb-mono" data-chg>—</span></span>
+            <span class="nb-rate-pill" data-ticker="NVDA"><span class="tag"><i class="bi bi-graph-down-arrow me-1"></i>NVDA</span><span class="val nb-mono" data-val>$—</span><span class="chg down nb-mono" data-chg>—</span></span>
+            <span class="nb-rate-pill" data-ticker="EURUSD"><span class="tag"><i class="bi bi-currency-exchange me-1"></i>EUR/USD</span><span class="val nb-mono" data-val>—</span><span class="chg up nb-mono" data-chg>—</span></span>
+            <span class="nb-rate-pill" data-ticker="GBPUSD"><span class="tag"><i class="bi bi-currency-exchange me-1"></i>GBP/USD</span><span class="val nb-mono" data-val>—</span><span class="chg down nb-mono" data-chg>—</span></span>
+            <span class="nb-rate-pill" data-ticker="XAUUSD"><span class="tag"><i class="bi bi-gem me-1"></i>Gold</span><span class="val nb-mono" data-val>$—</span><span class="chg up nb-mono" data-chg>—</span></span>
+            <span class="nb-rate-pill"><span class="tag"><i class="bi bi-cash-coin me-1"></i>Savings APY</span><span class="val nb-mono">4.10%</span><span class="chg up nb-mono">+0.05%</span></span>
           </div>
         </div>
       </div>
@@ -936,7 +936,7 @@
                 </table>
               </div>
               <div style="font-size:12px;color:var(--nb-muted);padding:0 4px;margin-top:6px;">
-                Demo pricing engine (no external API keys required).
+                Uses Alpha Vantage when available; falls back to demo updates without external keys.
               </div>
             </div>
           </div>
@@ -1327,18 +1327,18 @@
           { symbol: 'TSLA', label: 'Tesla', kind: 'stock', price: 178.55, history: [] },
           { symbol: 'AMZN', label: 'Amazon', kind: 'stock', price: 189.42, history: [] },
           { symbol: 'GOOGL', label: 'Alphabet', kind: 'stock', price: 176.31, history: [] },
-          { symbol: 'EURUSD', label: 'EUR/USD', kind: 'fx', price: 1.0832, history: [] },
-          { symbol: 'GBPUSD', label: 'GBP/USD', kind: 'fx', price: 1.2718, history: [] },
-          { symbol: 'USDJPY', label: 'USD/JPY', kind: 'fx', price: 156.22, history: [] },
-          { symbol: 'XAUUSD', label: 'Gold', kind: 'fx', price: 2346.8, history: [] },
+          { symbol: 'EURUSD', label: 'EUR/USD', kind: 'fx', from: 'EUR', to: 'USD', price: 1.0832, history: [] },
+          { symbol: 'GBPUSD', label: 'GBP/USD', kind: 'fx', from: 'GBP', to: 'USD', price: 1.2718, history: [] },
+          { symbol: 'USDJPY', label: 'USD/JPY', kind: 'fx', from: 'USD', to: 'JPY', price: 156.22, history: [] },
+          { symbol: 'XAUUSD', label: 'Gold', kind: 'fx', from: 'XAU', to: 'USD', price: 2346.8, history: [] },
         ];
 
         const fmt = (n, d = 2) => Number(n).toFixed(d);
         const pct = (n) => `${n >= 0 ? '+' : ''}${fmt(n, 2)}%`;
 
         function drift(kind) {
-          if (kind === 'fx') return 0.00055;
-          return 0.0035;
+          if (kind === 'fx') return 0.00045;
+          return 0.0028;
         }
 
         function decimalsFor(sym, kind) {
@@ -1348,6 +1348,58 @@
             return 4;
           }
           return 2;
+        }
+
+        async function nbLoadAlphaVantageKey() {
+          const direct = (window.NB_ALPHA_VANTAGE_API_KEY || window.ALPHA_VANTAGE_API_KEY || '').trim();
+          if (direct) return direct;
+          const saved = (localStorage.getItem('nb_av_key') || '').trim();
+          if (saved) return saved;
+          const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+          if (!isLocal) return '';
+          try {
+            const res = await fetch('.env', { cache: 'no-store' });
+            if (!res.ok) return '';
+            const txt = await res.text();
+            const m = txt.match(/ALPHA_VANTAGE_API_KEY\s*[:=]\s*"?\s*([^"\r\n]+?)\s*"?\s*(?:$|\r|\n)/i);
+            const key = (m?.[1] || '').trim();
+            if (key) localStorage.setItem('nb_av_key', key);
+            return key;
+          } catch (_) {
+            return '';
+          }
+        }
+
+        async function nbFetchJson(url, timeoutMs = 9000) {
+          const c = new AbortController();
+          const t = setTimeout(() => c.abort(), timeoutMs);
+          try {
+            const r = await fetch(url, { signal: c.signal, cache: 'no-store' });
+            if (!r.ok) return null;
+            return await r.json();
+          } catch (_) {
+            return null;
+          } finally {
+            clearTimeout(t);
+          }
+        }
+
+        async function avStock(symbol, key) {
+          const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${encodeURIComponent(symbol)}&apikey=${encodeURIComponent(key)}`;
+          const data = await nbFetchJson(url);
+          const q = data && data['Global Quote'];
+          const price = Number(q && (q['05. price'] || q['05. Price']));
+          const changePctRaw = String(q && (q['10. change percent'] || q['10. Change percent'] || ''));
+          const pctNum = Number(changePctRaw.replace('%', ''));
+          return Number.isFinite(price) ? { price, pct: Number.isFinite(pctNum) ? pctNum : null } : null;
+        }
+
+        async function avFx(from, to, key) {
+          const url = `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=${encodeURIComponent(from)}&to_currency=${encodeURIComponent(to)}&apikey=${encodeURIComponent(key)}`;
+          const data = await nbFetchJson(url);
+          const q = data && data['Realtime Currency Exchange Rate'];
+          const rate = Number(q && q['5. Exchange Rate']);
+          return Number.isFinite(rate) ? { price: rate } : null;
         }
 
         function sparkline(points, stroke) {
@@ -1372,14 +1424,40 @@
           const shock = (Math.random() - 0.5) * 2;
           const move = p * (shock * vol);
           const next = Math.max(0.0001, p + move);
+          applyUpdate(i, next, null);
+        }
+
+        function applyUpdate(i, nextPrice, pctFromApi) {
+          const p = i.price;
+          const next = Number(nextPrice);
+          if (!Number.isFinite(next)) return;
           const chg = next - p;
-          const pctChg = (chg / p) * 100;
+          const pctChg = Number.isFinite(p) && p !== 0 ? (chg / p) * 100 : 0;
           i.prev = p;
           i.price = next;
           i.chg = chg;
-          i.pct = pctChg;
+          i.pct = Number.isFinite(pctFromApi) ? pctFromApi : pctChg;
           i.history.push(next);
           if (i.history.length > 14) i.history.shift();
+        }
+
+        function syncTicker() {
+          const pills = document.querySelectorAll('.nb-rate-pill[data-ticker]');
+          pills.forEach((p) => {
+            const sym = p.getAttribute('data-ticker');
+            const m = instruments.find((x) => x.symbol === sym);
+            if (!m) return;
+            const val = p.querySelector('[data-val]');
+            const chg = p.querySelector('[data-chg]');
+            if (!val || !chg) return;
+            const up = (m.pct || 0) >= 0;
+            const d = decimalsFor(m.symbol, m.kind);
+            const priceTxt = m.kind === 'stock' ? `$${fmt(m.price, d)}` : (m.symbol === 'XAUUSD' ? `$${fmt(m.price, d)}` : fmt(m.price, d));
+            val.textContent = priceTxt;
+            chg.textContent = pct(m.pct || 0);
+            chg.classList.toggle('up', up);
+            chg.classList.toggle('down', !up);
+          });
         }
 
         function render() {
@@ -1422,23 +1500,57 @@
               </tr>
             `;
           }).join('');
+          syncTicker();
         }
 
         instruments.forEach((m) => { m.history = Array.from({ length: 10 }, () => m.price); });
-        instruments.forEach(updateOne);
-        render();
 
-        if (prefersReduced) return;
-        setInterval(() => {
-          instruments.forEach((m) => {
-            const prev = m.price;
-            updateOne(m);
-            const up = (m.price - prev) >= 0;
-            m._blink = up ? 'nb-blink-up' : 'nb-blink-down';
-            setTimeout(() => { m._blink = ''; }, 420);
-          });
+        function blinkFor(m, prevPrice) {
+          const up = (m.price - prevPrice) >= 0;
+          m._blink = up ? 'nb-blink-up' : 'nb-blink-down';
+          setTimeout(() => { m._blink = ''; }, 420);
+        }
+
+        async function refreshOne(m, key) {
+          const prev = m.price;
+          if (m.kind === 'stock') {
+            const r = await avStock(m.symbol, key);
+            if (r) applyUpdate(m, r.price, r.pct);
+          } else {
+            const r = await avFx(m.from, m.to, key);
+            if (r) applyUpdate(m, r.price, null);
+          }
+          blinkFor(m, prev);
+        }
+
+        (async function start() {
           render();
-        }, 1800);
+          if (prefersReduced) return;
+          const key = await nbLoadAlphaVantageKey();
+          if (!key) {
+            setInterval(() => {
+              instruments.forEach((m) => {
+                const prev = m.price;
+                updateOne(m);
+                blinkFor(m, prev);
+              });
+              render();
+            }, 1800);
+            return;
+          }
+
+          let idx = 0;
+          const ORDER = instruments.filter((m) => m.symbol !== 'XAUUSD').concat(instruments.filter((m) => m.symbol === 'XAUUSD'));
+          async function tick() {
+            const m = ORDER[idx % ORDER.length];
+            idx += 1;
+            await refreshOne(m, key);
+            render();
+          }
+
+          await tick();
+          setInterval(tick, 15000);
+        })();
       })();
 
       (function () {
