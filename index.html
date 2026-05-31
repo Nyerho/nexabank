@@ -178,6 +178,116 @@
       .nb-hero-visual { margin-top: 28px; margin-right: auto; }
     }
 
+    .nb-support-fab {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      width: 56px;
+      height: 56px;
+      border-radius: 999px;
+      border: 1px solid rgba(15,45,82,.18);
+      background: linear-gradient(135deg, rgba(29,111,164,.95), rgba(15,45,82,.95));
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 18px 60px rgba(0,0,0,.28);
+      z-index: 9999;
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+    .nb-support-fab:hover { transform: translateY(-1px); box-shadow: 0 22px 75px rgba(0,0,0,.32); }
+    .nb-support-fab:focus-visible { outline: 3px solid rgba(201,168,76,.55); outline-offset: 3px; }
+    .nb-support-panel {
+      position: fixed;
+      right: 18px;
+      bottom: 86px;
+      width: min(360px, calc(100vw - 36px));
+      border-radius: 18px;
+      border: 1px solid rgba(15,45,82,.14);
+      background: rgba(255,255,255,.92);
+      box-shadow: 0 26px 90px rgba(15,45,82,.22);
+      backdrop-filter: blur(10px);
+      z-index: 9999;
+      overflow: hidden;
+      transform: translateY(10px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease, transform .24s cubic-bezier(.2,.9,.2,1);
+    }
+    [data-theme="dark"] .nb-support-panel {
+      background: rgba(22,27,34,.92);
+      border-color: rgba(255,255,255,.10);
+      box-shadow: 0 26px 90px rgba(0,0,0,.55);
+    }
+    .nb-support-panel.open {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .nb-support-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(15,45,82,.10);
+      background: linear-gradient(135deg, rgba(29,111,164,.10), rgba(201,168,76,.08));
+    }
+    [data-theme="dark"] .nb-support-header { border-bottom-color: rgba(255,255,255,.10); }
+    .nb-support-title { font-weight: 950; color: var(--nb-primary); letter-spacing: -.2px; }
+    [data-theme="dark"] .nb-support-title { color: rgba(255,255,255,.92); }
+    .nb-support-close {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      border: 1px solid rgba(15,45,82,.12);
+      background: rgba(255,255,255,.65);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--nb-primary);
+    }
+    [data-theme="dark"] .nb-support-close {
+      border-color: rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.88);
+    }
+    .nb-support-body { padding: 12px 14px 14px; }
+    .nb-support-help { font-size: 12px; color: var(--nb-muted); margin: 0 0 10px; }
+    .nb-support-field { display: grid; gap: 6px; margin-bottom: 10px; }
+    .nb-support-field label { font-size: 12px; font-weight: 800; color: var(--nb-text); }
+    .nb-support-input {
+      width: 100%;
+      border-radius: 14px;
+      border: 1px solid rgba(15,45,82,.12);
+      background: rgba(255,255,255,.85);
+      padding: 10px 12px;
+      font-size: 13px;
+      color: var(--nb-text);
+    }
+    [data-theme="dark"] .nb-support-input {
+      border-color: rgba(255,255,255,.10);
+      background: rgba(13,17,23,.55);
+      color: rgba(255,255,255,.92);
+    }
+    .nb-support-actions { display: flex; gap: 10px; align-items: center; justify-content: flex-end; margin-top: 10px; }
+    .nb-support-send {
+      border-radius: 14px;
+      border: 1px solid rgba(29,111,164,.22);
+      background: linear-gradient(135deg, rgba(29,111,164,.95), rgba(15,45,82,.95));
+      color: #fff;
+      font-weight: 900;
+      padding: 10px 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nb-support-status { margin-top: 10px; font-size: 12px; color: var(--nb-muted); min-height: 16px; }
+    @media (prefers-reduced-motion: reduce) {
+      .nb-support-panel, .nb-support-fab { transition: none; }
+      .nb-support-fab:hover { transform: none; }
+    }
+
     .navigation > li.nb-nav-preview { position: relative; }
     .navigation > li.nb-nav-preview > a { position: relative; }
     .nb-nav-preview-panel {
@@ -926,6 +1036,35 @@
       </svg>
     </div>
 
+    <button class="nb-support-fab" id="nb-support-fab" type="button" aria-label="Support chat" aria-expanded="false" aria-controls="nb-support-panel">
+      <i class="bi bi-chat-dots-fill" style="font-size:20px;"></i>
+    </button>
+    <div class="nb-support-panel" id="nb-support-panel" role="dialog" aria-modal="false" aria-label="Support chat">
+      <div class="nb-support-header">
+        <div class="nb-support-title">Support</div>
+        <button class="nb-support-close" id="nb-support-close" type="button" aria-label="Close support chat">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="nb-support-body">
+        <p class="nb-support-help">Send a message to our support inbox. You’ll receive a reply by email.</p>
+        <div class="nb-support-field">
+          <label for="nb-support-email">Your email</label>
+          <input class="nb-support-input" id="nb-support-email" type="email" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="nb-support-field">
+          <label for="nb-support-msg">Message</label>
+          <textarea class="nb-support-input" id="nb-support-msg" rows="4" placeholder="How can we help you?"></textarea>
+        </div>
+        <div class="nb-support-actions">
+          <button class="nb-support-send" id="nb-support-send" type="button">
+            <i class="bi bi-send"></i><span>Send</span>
+          </button>
+        </div>
+        <div class="nb-support-status" id="nb-support-status"></div>
+      </div>
+    </div>
+
   </div>
 
   <script src="cornerstone/assets/js/jquery.js"></script>
@@ -944,6 +1083,7 @@
   <script src="cornerstone/assets/js/jquery.lettering.min.js"></script>
   <script src="cornerstone/assets/js/jquery.circleType.js"></script>
   <script src="cornerstone/assets/js/script.js"></script>
+  <script type="module" src="js/firebase.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script>
     (function () {
@@ -1426,6 +1566,93 @@
           io.observe(el);
         });
       }
+
+      (function () {
+        const supportEmail = 'support@nexabank.com';
+        const fab = document.getElementById('nb-support-fab');
+        const panel = document.getElementById('nb-support-panel');
+        const closeBtn = document.getElementById('nb-support-close');
+        const emailEl = document.getElementById('nb-support-email');
+        const msgEl = document.getElementById('nb-support-msg');
+        const sendBtn = document.getElementById('nb-support-send');
+        const statusEl = document.getElementById('nb-support-status');
+        if (!fab || !panel || !closeBtn || !sendBtn || !statusEl || !msgEl) return;
+
+        function setStatus(text) {
+          statusEl.textContent = text || '';
+        }
+
+        function open() {
+          panel.classList.add('open');
+          fab.setAttribute('aria-expanded', 'true');
+          setStatus('');
+          setTimeout(() => {
+            const el = emailEl || msgEl;
+            if (el && el.focus) el.focus();
+          }, prefersReduced ? 0 : 10);
+        }
+
+        function close() {
+          panel.classList.remove('open');
+          fab.setAttribute('aria-expanded', 'false');
+        }
+
+        function escapeMailto(s) {
+          return encodeURIComponent(String(s || '')).replace(/%20/g, '+');
+        }
+
+        function fallbackToMailto(fromEmail, message) {
+          const subject = `Support request${fromEmail ? ` — ${fromEmail}` : ''}`;
+          const body = `From: ${fromEmail || 'Not provided'}\n\nMessage:\n${message || ''}\n\n---\nSent from NexaBank website`;
+          const href = `mailto:${escapeMailto(supportEmail)}?subject=${escapeMailto(subject)}&body=${escapeMailto(body)}`;
+          window.location.href = href;
+          setStatus('Opening your email app…');
+        }
+
+        fab.addEventListener('click', () => {
+          const isOpen = panel.classList.contains('open');
+          if (isOpen) close();
+          else open();
+        });
+        closeBtn.addEventListener('click', close);
+        document.addEventListener('keydown', (e) => {
+          if (e.key !== 'Escape') return;
+          if (!panel.classList.contains('open')) return;
+          close();
+        });
+        document.addEventListener('click', (e) => {
+          if (!panel.classList.contains('open')) return;
+          const t = e.target;
+          if (t === panel || panel.contains(t) || t === fab || (fab.contains && fab.contains(t))) return;
+          close();
+        });
+
+        sendBtn.addEventListener('click', async () => {
+          const fromEmail = (emailEl?.value || '').trim();
+          const message = (msgEl.value || '').trim();
+          if (!message) return setStatus('Please enter a message.');
+          setStatus('Sending…');
+          sendBtn.disabled = true;
+
+          try {
+            if (!window.NB_FIREBASE?.queueEmail) {
+              fallbackToMailto(fromEmail, message);
+              return;
+            }
+            const subject = `Website support request${fromEmail ? ` — ${fromEmail}` : ''}`;
+            const text = `From: ${fromEmail || 'Not provided'}\n\n${message}`;
+            const safeMessage = message.replace(/[<>]/g, '');
+            const html = `<p><strong>From:</strong> ${fromEmail ? String(fromEmail).replace(/[<>]/g, '') : 'Not provided'}</p><p><strong>Message:</strong></p><p>${safeMessage.replace(/\n/g, '<br>')}</p>`;
+            await window.NB_FIREBASE.queueEmail(supportEmail, subject, text, html);
+            msgEl.value = '';
+            setStatus('Message sent. We’ll reply by email.');
+          } catch (_) {
+            fallbackToMailto(fromEmail, message);
+          } finally {
+            sendBtn.disabled = false;
+          }
+        });
+      })();
     })();
   </script>
 
