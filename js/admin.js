@@ -337,6 +337,10 @@ function doAdjustBalance(id) {
   DB.transactions.create({id:'t'+uid(),fromId:type==='debit'?id:null,toId:type==='credit'?id:null,amount,type:'adjustment',category:'Adjustment',desc:reason,status:'completed',ts});
   const ownerId = a.userId;
   const direction = type === 'debit' ? 'debit' : 'credit';
+  
+  // Send Email Alert
+  sendTransactionAlert(ownerId, direction, amount, reason);
+
   const msg = direction === 'debit'
     ? `A withdrawal of ${fmt(amount)} was posted. ${reason ? '('+reason+')' : ''}`.trim()
     : `A deposit of ${fmt(amount)} was posted. ${reason ? '('+reason+')' : ''}`.trim();
@@ -429,8 +433,16 @@ function adminSaveTxn() {
   const ts = fromDatetimeLocalValue(document.getElementById('mt-ts').value) || new Date().toISOString();
   const cat = document.getElementById('mt-cat').value;
   const desc = sanitizeTxnDesc(document.getElementById('mt-desc').value||'Transaction posted');
-  if (fromId) { const a=DB.accounts.getById(fromId); DB.accounts.update(fromId,{balance:Math.max(0,a.balance-amount)}); }
-  if (toId) { const a=DB.accounts.getById(toId); DB.accounts.update(toId,{balance:a.balance+amount}); }
+  if (fromId) { 
+    const a=DB.accounts.getById(fromId); 
+    DB.accounts.update(fromId,{balance:Math.max(0,a.balance-amount)}); 
+    sendTransactionAlert(a.userId, 'debit', amount, desc);
+  }
+  if (toId) { 
+    const a=DB.accounts.getById(toId); 
+    DB.accounts.update(toId,{balance:a.balance+amount}); 
+    sendTransactionAlert(a.userId, 'credit', amount, desc);
+  }
   const id='t'+uid();
   DB.transactions.create({id,fromId,toId,amount,type:'adjustment',category:cat,desc,status:'completed',ts});
   const impacted = new Set();

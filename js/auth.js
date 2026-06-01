@@ -153,24 +153,100 @@ async function requestLoginOtp(user) {
   const expiresAt = Date.now() + 10 * 60 * 1000;
   const payload = { userId: user.id, email: normalizeEmail(user.email), expiresAt, attempts: 0 };
   sessionStorage.setItem('nb_login_otp', JSON.stringify(payload));
-  try {
-    if (!window.NB_FIREBASE?.queueEmail || !window.NB_FIREBASE?.saveLoginOtp) throw new Error('Firebase not ready');
-    if (!crypto?.subtle) throw new Error('Secure context required');
-    const hash = await sha256Hex(`${user.id}:${code}`);
-    await window.NB_FIREBASE.saveLoginOtp(user.id, normalizeEmail(user.email), hash, expiresAt);
-    await window.NB_FIREBASE.queueEmail(
-      normalizeEmail(user.email),
-      'Your NexaBank one-time login code',
-      `Your one-time login code is ${code}. It expires in 10 minutes.`,
-      `<p>Your one-time login code is <strong>${code}</strong>.</p><p>This code expires in 10 minutes.</p>`
-    );
+  
+  const ok = await sendGenericOtp(user, code, 'login', 'Your NexaBank one-time login code');
+  if (ok) {
     toast('Login code queued to email. If you don’t receive it, use your access code.', 'success');
-  } catch (_) {
+  } else {
     const fallback = { ...payload, code };
     sessionStorage.setItem('nb_login_otp', JSON.stringify(fallback));
     toast('Email OTP is not available. Use your access code, or the fallback code for testing.', 'warning');
     const showCode = (localStorage.getItem('nb_show_login_otp') || '1') === '1';
     if (showCode) toast(`Login code: ${code}`, 'info');
+  }
+}
+
+async function sendGenericOtp(user, code, actionType, subject) {
+  try {
+    if (!window.NB_FIREBASE?.queueEmail || !window.NB_FIREBASE?.saveLoginOtp) throw new Error('Firebase not ready');
+    if (!crypto?.subtle) throw new Error('Secure context required');
+    
+    const expiresAt = Date.now() + 10 * 60 * 1000;
+    const hash = await sha256Hex(`${user.id}:${code}`);
+    
+    // Save to Firestore for verification
+    await window.NB_FIREBASE.saveLoginOtp(user.id, normalizeEmail(user.email), hash, expiresAt);
+    
+    // Queue the email
+    await window.NB_FIREBASE.queueEmail(
+      normalizeEmail(user.email),
+      subject || 'Your NexaBank verification code',
+      `Your verification code is ${code}. It expires in 10 minutes.`,
+      `<p>Your verification code is <strong>${code}</strong>.</p><p>This code expires in 10 minutes.</p><p>If you didn't request this, please secure your account.</p>`
+    );
+    return true;
+  } catch (e) {
+    console.error('OTP Send Error:', e);
+    return false;
+  }
+}
+
+async function verifyGenericOtp(userId, code) {
+  try {
+    if (!window.NB_FIREBASE?.getLoginOtp || !window.NB_FIREBASE?.deleteLoginOtp) throw new Error('Firebase not ready');
+    if (!crypto?.subtle) throw new Error('Secure context required');
+    
+    const rec = await window.NB_FIREBASE.getLoginOtp(userId);
+    if (!rec?.hash || !rec?.expiresAt || Date.now() > rec.expiresAt) {
+      return { ok: false, msg: 'Code expired or not found.' };
+    }
+    
+    const hash = await sha256Hex(`${userId}:${code}`);
+    if (hash === rec.hash) {
+      await window.NB_FIREBASE.deleteLoginOtp(userId);
+      return { ok: true };
+    }
+    return { ok: false, msg: 'Invalid verification code.' };
+  } catch (e) {
+    console.error('OTP Verify Error:', e);
+    return { ok: false, msg: 'Verification service unavailable.' };
+  }
+}
+
+async function sendTransactionAlert(userId, type, amount, desc) {
+  const user = DB.users.getById(userId);
+  if (!user || !user.email) return;
+
+  const subject = `Transaction Alert: ${type === 'credit' ? 'Credit' : 'Debit'} - ${fmt(amount)}`;
+  const time = new Date().toLocaleString();
+  const balance = DB.accounts.getByUser(userId).reduce((s, a) => s + a.balance, 0);
+
+  const text = `A ${type} transaction of ${fmt(amount)} has occurred on your account.\nDescription: ${desc}\nTime: ${time}\nNew Total Balance: ${fmt(balance)}`;
+  const html = `
+    <div style="font-family:sans-serif;max-width:500px;border:1px solid #e5e9f0;border-radius:12px;padding:24px;background:#ffffff;">
+      <h2 style="color:${type === 'credit' ? '#12b76a' : '#f04438'};margin-top:0;font-size:20px;">${type === 'credit' ? 'Credit' : 'Debit'} Alert</h2>
+      <p style="font-size:15px;color:#1a1f36;">Hello ${user.name},</p>
+      <p style="font-size:15px;color:#1a1f36;">This is to notify you of a <strong>${type}</strong> transaction on your account.</p>
+      <div style="background:#f3f6fb;padding:16px;border-radius:8px;margin:20px 0;">
+        <table style="width:100%;font-size:14px;border-collapse:collapse;">
+          <tr><td style="padding:4px 0;color:#6b7280;">Amount</td><td style="padding:4px 0;text-align:right;font-weight:700;color:#1a1f36;">${fmt(amount)}</td></tr>
+          <tr><td style="padding:4px 0;color:#6b7280;">Description</td><td style="padding:4px 0;text-align:right;color:#1a1f36;">${desc}</td></tr>
+          <tr><td style="padding:4px 0;color:#6b7280;">Date</td><td style="padding:4px 0;text-align:right;color:#1a1f36;">${time}</td></tr>
+        </table>
+      </div>
+      <p style="font-size:14px;color:#1a1f36;">Your total account balance is now <strong>${fmt(balance)}</strong>.</p>
+      <p style="font-size:12px;color:#9ca3af;margin-top:30px;border-top:1px solid #e5e9f0;padding-top:12px;line-height:1.5;">
+        If you did not authorize this transaction, please contact NexaBank support immediately or freeze your cards in the mobile app.
+      </p>
+    </div>
+  `;
+
+  try {
+    if (window.NB_FIREBASE?.queueEmail) {
+      await window.NB_FIREBASE.queueEmail(user.email, subject, text, html);
+    }
+  } catch (e) {
+    console.error('Failed to send transaction alert email:', e);
   }
 }
 
@@ -389,16 +465,8 @@ async function doLoginVerify() {
     if (otp !== pending.code && !accessCodeOk) return toast('Invalid verification code.', 'error');
   } else {
     try {
-      if (!window.NB_FIREBASE?.getLoginOtp || !window.NB_FIREBASE?.deleteLoginOtp) throw new Error('Firebase not ready');
-      if (!crypto?.subtle) throw new Error('Secure context required');
-      const rec = await window.NB_FIREBASE.getLoginOtp(pending.userId);
-      if (!rec?.hash || !rec?.expiresAt || Date.now() > rec.expiresAt) {
-        if (!accessCodeOk) return toast('Login code expired. Use your access code or sign in again.', 'error');
-      } else {
-        const hash = await sha256Hex(`${pending.userId}:${otp}`);
-        if (hash !== rec.hash && !accessCodeOk) return toast('Invalid verification code.', 'error');
-        if (hash === rec.hash) await window.NB_FIREBASE.deleteLoginOtp(pending.userId);
-      }
+      const res = await verifyGenericOtp(pending.userId, otp);
+      if (!res.ok && !accessCodeOk) return toast(res.msg || 'Invalid verification code.', 'error');
     } catch (_) {
       if (!accessCodeOk) return toast('Unable to verify code. Use your access code or try again.', 'error');
     }

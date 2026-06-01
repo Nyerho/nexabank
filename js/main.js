@@ -525,6 +525,9 @@ function doOpenAccount() {
   const type = document.getElementById('new-acc-type').value;
   const deposit = parseFloat(document.getElementById('new-acc-deposit').value)||0;
   DB.accounts.create({ id:'a'+uid(), userId:STATE.user.id, type, balance:deposit, iban:Math.floor(1000000000 + Math.random() * 9000000000).toString(), swift:'NXBKGB21', status:'active', limit:5000, createdAt:new Date().toISOString().slice(0,10) });
+  if (deposit > 0) {
+    sendTransactionAlert(STATE.user.id, 'credit', deposit, `Initial Deposit — ${type} Account`);
+  }
   toast(`${type} account opened!`, 'success');
   closeModal();
   navigate('accounts');
@@ -598,7 +601,7 @@ function switchTransferTab(btn, mode) {
   document.getElementById('transfer-to-external').style.display = mode==='external'?'block':'none';
   document.getElementById('transfer-to-intl').style.display = mode==='international'?'block':'none';
 }
-function initiateTransfer() {
+async function initiateTransfer() {
   const amount = parseFloat(document.getElementById('t-amount').value);
   const fromId = document.getElementById('t-from').value;
   const desc = document.getElementById('t-desc').value || 'Transfer';
@@ -606,27 +609,43 @@ function initiateTransfer() {
   if (!amount || amount <= 0) return toast('Enter a valid amount', 'error');
   const fromAcc = DB.accounts.getById(fromId);
   if (fromAcc.balance < amount) return toast('Insufficient funds', 'error');
+
+  const code = generateOtpCode();
+  const ok = await sendGenericOtp(STATE.user, code, 'transfer', 'Confirm your NexaBank transfer');
+  
   // OTP confirm
   showModal('Confirm Transfer', `
     <div style="text-align:center;padding:1rem 0;">
       <div style="font-size:2rem;font-weight:700;color:var(--nb-accent);">${currency} ${fmt(amount)}</div>
       <div style="color:var(--nb-muted);margin:.5rem 0;">${desc}</div>
-      <p style="font-size:.85rem;">Enter your OTP to confirm:</p>
-      <input class="nb-input" id="otp-input" placeholder="Enter 6-digit OTP" style="max-width:200px;margin:0 auto;text-align:center;font-size:1.2rem;letter-spacing:4px;" maxlength="6">
-      <p style="font-size:.78rem;color:var(--nb-muted);margin-top:.5rem;">Demo OTP: <strong>123456</strong></p>
+      <p style="font-size:.85rem;">Enter the verification code sent to your email:</p>
+      <input class="nb-input" id="otp-input" placeholder="6-digit code" style="max-width:200px;margin:0 auto;text-align:center;font-size:1.2rem;letter-spacing:4px;" maxlength="6">
+      ${!ok ? `<p style="font-size:.78rem;color:var(--nb-danger);margin-top:.5rem;">Email service unavailable. Use fallback: <strong>${code}</strong></p>` : `<p style="font-size:.78rem;color:var(--nb-muted);margin-top:.5rem;">Code expires in 10 minutes.</p>`}
     </div>`,
-    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="confirmTransfer('${fromId}',${amount},'${desc}')"><i class="bi bi-check2"></i> Confirm</button></div>`
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="runLocked(this, () => confirmTransfer('${fromId}',${amount},'${desc}','${!ok?code:''}'), 'Confirming...')"><i class="bi bi-check2"></i> Confirm</button></div>`
   );
 }
-function confirmTransfer(fromId, amount, desc) {
+async function confirmTransfer(fromId, amount, desc, fallbackCode) {
   const otp = document.getElementById('otp-input').value;
-  if (otp !== '123456') return toast('Invalid OTP', 'error');
+  if (fallbackCode) {
+    if (otp !== fallbackCode) return toast('Invalid verification code', 'error');
+  } else {
+    const res = await verifyGenericOtp(STATE.user.id, otp);
+    if (!res.ok) return toast(res.msg, 'error');
+  }
+
   const fromAcc = DB.accounts.getById(fromId);
   DB.accounts.update(fromId, { balance: fromAcc.balance - amount });
+  sendTransactionAlert(STATE.user.id, 'debit', amount, desc);
+
   let toId = null;
   if (transferMode === 'internal') {
     toId = document.getElementById('t-to-internal')?.value;
-    if (toId) { const toAcc = DB.accounts.getById(toId); DB.accounts.update(toId, { balance: toAcc.balance + amount }); }
+    if (toId) {
+      const toAcc = DB.accounts.getById(toId);
+      DB.accounts.update(toId, { balance: toAcc.balance + amount });
+      sendTransactionAlert(toAcc.userId, 'credit', amount, desc);
+    }
   }
   DB.transactions.create({ id:'t'+uid(), fromId, toId, amount, type:'transfer', category:'Transfer', desc, status:'completed', ts:new Date().toISOString() });
   DB.notifications.add({ id:'n'+uid(), userId:STATE.user.id, message:`Transfer of ${fmt(amount)} was successful.`, type:'success', read:false, ts:new Date().toISOString() });
@@ -950,15 +969,45 @@ function renderBills(el) {
       </div>
     </div>`;
 }
-function payBill() {
+async function payBill() {
   const amount = parseFloat(document.getElementById('bill-amount').value);
-  if (!amount||amount<=0) return toast('Enter valid amount', 'error');
+  if (!amount || amount <= 0) return toast('Enter valid amount', 'error');
   const fromId = document.getElementById('bill-from').value;
   const acc = DB.accounts.getById(fromId);
-  if (acc.balance < amount) return toast('Insufficient funds','error');
-  DB.accounts.update(fromId, {balance:acc.balance-amount});
-  DB.transactions.create({id:'t'+uid(),fromId,toId:null,amount,type:'payment',category:document.getElementById('bill-cat').value,desc:document.getElementById('bill-provider').value||'Bill Payment',status:'completed',ts:new Date().toISOString()});
-  toast('Bill paid successfully!','success');
+  if (acc.balance < amount) return toast('Insufficient funds', 'error');
+
+  const cat = document.getElementById('bill-cat').value;
+  const provider = document.getElementById('bill-provider').value || 'Bill Payment';
+
+  const code = generateOtpCode();
+  const ok = await sendGenericOtp(STATE.user, code, 'payment', `Confirm your ${cat} payment`);
+
+  showModal('Confirm Payment', `
+    <div style="text-align:center;padding:1rem 0;">
+      <div style="font-size:2rem;font-weight:700;color:var(--nb-accent);">$${fmt(amount)}</div>
+      <div style="color:var(--nb-muted);margin:.5rem 0;">${cat} — ${provider}</div>
+      <p style="font-size:.85rem;">Enter the verification code sent to your email:</p>
+      <input class="nb-input" id="otp-input" placeholder="6-digit code" style="max-width:200px;margin:0 auto;text-align:center;font-size:1.2rem;letter-spacing:4px;" maxlength="6">
+      ${!ok ? `<p style="font-size:.78rem;color:var(--nb-danger);margin-top:.5rem;">Email service unavailable. Use fallback: <strong>${code}</strong></p>` : `<p style="font-size:.78rem;color:var(--nb-muted);margin-top:.5rem;">Code expires in 10 minutes.</p>`}
+    </div>`,
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="runLocked(this, () => confirmBillPayment('${fromId}',${amount},'${cat}','${provider}','${!ok?code:''}'), 'Processing...')"><i class="bi bi-check2"></i> Confirm</button></div>`
+  );
+}
+async function confirmBillPayment(fromId, amount, cat, provider, fallbackCode) {
+  const otp = document.getElementById('otp-input').value;
+  if (fallbackCode) {
+    if (otp !== fallbackCode) return toast('Invalid verification code', 'error');
+  } else {
+    const res = await verifyGenericOtp(STATE.user.id, otp);
+    if (!res.ok) return toast(res.msg, 'error');
+  }
+
+  const acc = DB.accounts.getById(fromId);
+  DB.accounts.update(fromId, { balance: acc.balance - amount });
+  sendTransactionAlert(STATE.user.id, 'debit', amount, `${cat} — ${provider}`);
+  DB.transactions.create({ id: 't' + uid(), fromId, toId: null, amount, type: 'payment', category: cat, desc: provider, status: 'completed', ts: new Date().toISOString() });
+  toast('Bill paid successfully!', 'success');
+  closeModal();
   navigate('history');
 }
 function quickBill(cat) {

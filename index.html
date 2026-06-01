@@ -70,6 +70,19 @@
     [data-theme="dark"] .main-header.header-style-two .main-menu .navigation > li > a { color: rgba(255,255,255,.86); }
     [data-theme="dark"] .main-header.header-style-two .main-menu .navigation > li:hover > a { color: #fff; }
 
+    /* GLOBAL SHADOW REMOVAL & FLAT UI */
+    .nb-card, .banking-block-one, .inner-box, .image-box, .content-box, .btn-box, .header-upper, .nb-nav-preview-panel, .nb-support-panel, .nb-support-fab, .nb-hero-visual, .nb-rate-pill, .nb-lb-card {
+      box-shadow: none !important;
+    }
+    .nb-card, .nb-lb-card, .feature-card-new, .how-it-works-card {
+      border: 1px solid var(--nb-border) !important;
+    }
+    .nb-support-panel { border: 1px solid var(--nb-border) !important; }
+    
+    [data-theme="dark"] .nb-card, [data-theme="dark"] .nb-lb-card, [data-theme="dark"] .feature-card-new, [data-theme="dark"] .how-it-works-card {
+      border-color: rgba(255,255,255,.1) !important;
+    }
+
     .nb-theme-toggle {
       width: 42px;
       height: 42px;
@@ -79,7 +92,6 @@
       color: var(--nb-primary);
       display: grid;
       place-items: center;
-      box-shadow: 0 12px 30px rgba(15,45,82,.12);
       transition: transform .18s ease, background .18s ease, border-color .18s ease;
     }
     .nb-theme-toggle:hover { transform: translateY(-1px); border-color: rgba(29,111,164,.22); }
@@ -87,7 +99,6 @@
       background: rgba(22,27,34,.82);
       border-color: rgba(255,255,255,.12);
       color: rgba(255,255,255,.92);
-      box-shadow: 0 18px 50px rgba(0,0,0,.35);
     }
 
     .funfact-section#stats { padding: 36px 0 46px; }
@@ -105,7 +116,6 @@
       place-items: center;
       background: radial-gradient(circle at 30% 25%, rgba(255,255,255,.95) 0%, rgba(255,255,255,.78) 45%, rgba(255,255,255,.55) 100%);
       border: 1px solid rgba(15,45,82,.14);
-      box-shadow: 0 18px 60px rgba(15,45,82,.12);
       overflow: hidden;
       will-change: transform;
     }
@@ -166,7 +176,6 @@
       background: #ffffff;
       border: 1px solid rgba(15,45,82,.12);
       border-radius: 26px;
-      box-shadow: 0 30px 90px rgba(0,0,0,.28);
       padding: 16px;
       overflow: hidden;
       position: relative;
@@ -174,7 +183,6 @@
     [data-theme="dark"] .nb-hero-visual {
       background: #161b22;
       border-color: rgba(255,255,255,.10);
-      box-shadow: 0 34px 110px rgba(0,0,0,.55);
     }
     .nb-hero-visual img { display: block; width: 100%; height: auto; border-radius: 18px; }
     @media (max-width: 991px) {
@@ -194,11 +202,10 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 18px 60px rgba(0,0,0,.28);
       z-index: 9999;
-      transition: transform .18s ease, box-shadow .18s ease;
+      transition: transform .18s ease, border-color .18s ease;
     }
-    .nb-support-fab:hover { transform: translateY(-1px); box-shadow: 0 22px 75px rgba(0,0,0,.32); }
+    .nb-support-fab:hover { transform: translateY(-1px); border-color: rgba(255,255,255,.4); }
     .nb-support-fab:focus-visible { outline: 3px solid rgba(201,168,76,.55); outline-offset: 3px; }
     .nb-support-panel {
       position: fixed;
@@ -208,7 +215,6 @@
       border-radius: 18px;
       border: 1px solid rgba(15,45,82,.14);
       background: rgba(255,255,255,.92);
-      box-shadow: 0 26px 90px rgba(15,45,82,.22);
       backdrop-filter: blur(10px);
       z-index: 9999;
       overflow: hidden;
@@ -220,7 +226,6 @@
     [data-theme="dark"] .nb-support-panel {
       background: rgba(22,27,34,.92);
       border-color: rgba(255,255,255,.10);
-      box-shadow: 0 26px 90px rgba(0,0,0,.55);
     }
     .nb-support-panel.open {
       opacity: 1;
@@ -322,7 +327,6 @@
       border-radius: 16px;
       background: rgba(255,255,255,.92);
       border: 1px solid rgba(15,45,82,.12);
-      box-shadow: 0 22px 65px rgba(15,45,82,.22);
       backdrop-filter: blur(10px);
       opacity: 0;
       transform: translateY(10px);
@@ -333,7 +337,6 @@
     [data-theme="dark"] .nb-nav-preview-panel {
       background: rgba(22,27,34,.92);
       border-color: rgba(255,255,255,.10);
-      box-shadow: 0 22px 65px rgba(0,0,0,.55);
     }
     [data-theme="dark"] .nb-nav-preview-panel .title { color: rgba(255,255,255,.92); }
     .navigation > li.nb-nav-preview:hover .nb-nav-preview-panel { opacity: 1; transform: translateY(0); pointer-events: auto; }
@@ -386,7 +389,6 @@
       border: 1px solid rgba(255,255,255,.22);
       background: rgba(255,255,255,.10);
       color: rgba(255,255,255,.92);
-      box-shadow: 0 18px 50px rgba(0,0,0,.18);
     }
     .nb-rate-ticker .nb-rate-pill .tag { font-size: 12px; opacity: .9; }
     .nb-rate-ticker .nb-rate-pill .val { font-weight: 850; letter-spacing: -.2px; }
@@ -681,47 +683,41 @@
       </div>
     </section>
 
-    <section class="custom-banking-two" id="features">
+    <section class="custom-banking-two" id="features" style="background:var(--nb-bg);border-top:1px solid var(--nb-border);">
       <div class="auto-container">
         <div class="sec-title centred nb-reveal">
           <span class="sub-title">Why Choose NexaBank?</span>
           <h2>We build tools that help you master your money.</h2>
         </div>
-        <div class="three-item-carousel owl-carousel owl-theme owl-nav-none dots-style-one">
-          <div class="banking-block-one nb-reveal">
-            <div class="inner-box">
-              <div class="text-box">
-                <h3><a href="javascript:void(0)">Bank-Grade Security</a></h3>
-                <p>Your data is protected by 256-bit encryption and multi-factor authentication. We never sleep on security.</p>
+        <div class="row g-4">
+          <div class="col-lg-4 col-md-6 col-sm-12 nb-reveal">
+            <div class="feature-card-new" style="background:var(--nb-card);border:1px solid var(--nb-border);border-radius:22px;padding:32px;height:100%;transition:border-color .2s;position:relative;overflow:hidden;">
+              <div class="card-img-bg" style="position:absolute;top:0;right:0;width:120px;height:120px;opacity:0.05;background:url('cornerstone/assets/images/resource/banking-2.jpg') center/cover;mask-image:radial-gradient(circle at top right, #000, transparent);"></div>
+              <div class="icon-wrap-new" style="width:54px;height:54px;border-radius:14px;background:rgba(29,111,164,.1);color:var(--nb-accent);display:grid;place-items:center;margin-bottom:24px;font-size:24px;position:relative;z-index:1;">
+                <i class="bi bi-shield-check"></i>
               </div>
-              <div class="image-box">
-                <figure class="image"><img src="cornerstone/assets/images/resource/banking-2.jpg" alt=""></figure>
-                <div class="icon-box"><img src="cornerstone/assets/images/icons/icon-52.png" alt=""></div>
-              </div>
+              <h3 style="font-size:20px;margin-bottom:12px;font-weight:800;position:relative;z-index:1;">Bank-Grade Security</h3>
+              <p style="font-size:15px;line-height:1.6;margin-bottom:0;position:relative;z-index:1;">Your data is protected by 256-bit encryption and multi-factor authentication. We never sleep on security.</p>
             </div>
           </div>
-          <div class="banking-block-one nb-reveal">
-            <div class="inner-box">
-              <div class="text-box">
-                <h3><a href="javascript:void(0)">Smart Analytics</a></h3>
-                <p>Visualize your spending habits with intuitive charts and insights to help you save more.</p>
+          <div class="col-lg-4 col-md-6 col-sm-12 nb-reveal">
+            <div class="feature-card-new" style="background:var(--nb-card);border:1px solid var(--nb-border);border-radius:22px;padding:32px;height:100%;transition:border-color .2s;position:relative;overflow:hidden;">
+              <div class="card-img-bg" style="position:absolute;top:0;right:0;width:120px;height:120px;opacity:0.05;background:url('cornerstone/assets/images/resource/banking-3.jpg') center/cover;mask-image:radial-gradient(circle at top right, #000, transparent);"></div>
+              <div class="icon-wrap-new" style="width:54px;height:54px;border-radius:14px;background:rgba(201,168,76,.1);color:var(--nb-gold);display:grid;place-items:center;margin-bottom:24px;font-size:24px;position:relative;z-index:1;">
+                <i class="bi bi-pie-chart"></i>
               </div>
-              <div class="image-box">
-                <figure class="image"><img src="cornerstone/assets/images/resource/banking-3.jpg" alt=""></figure>
-                <div class="icon-box"><img src="cornerstone/assets/images/icons/icon-53.png" alt=""></div>
-              </div>
+              <h3 style="font-size:20px;margin-bottom:12px;font-weight:800;position:relative;z-index:1;">Smart Analytics</h3>
+              <p style="font-size:15px;line-height:1.6;margin-bottom:0;position:relative;z-index:1;">Visualize your spending habits with intuitive charts and insights to help you save more.</p>
             </div>
           </div>
-          <div class="banking-block-one nb-reveal">
-            <div class="inner-box">
-              <div class="text-box">
-                <h3><a href="javascript:void(0)">Mobile First</a></h3>
-                <p>Access your account from anywhere, on any device. Our platform is built for life on the go.</p>
+          <div class="col-lg-4 col-md-6 col-sm-12 nb-reveal">
+            <div class="feature-card-new" style="background:var(--nb-card);border:1px solid var(--nb-border);border-radius:22px;padding:32px;height:100%;transition:border-color .2s;position:relative;overflow:hidden;">
+              <div class="card-img-bg" style="position:absolute;top:0;right:0;width:120px;height:120px;opacity:0.05;background:url('cornerstone/assets/images/resource/banking-4.jpg') center/cover;mask-image:radial-gradient(circle at top right, #000, transparent);"></div>
+              <div class="icon-wrap-new" style="width:54px;height:54px;border-radius:14px;background:rgba(18,183,106,.1);color:var(--nb-success);display:grid;place-items:center;margin-bottom:24px;font-size:24px;position:relative;z-index:1;">
+                <i class="bi bi-phone"></i>
               </div>
-              <div class="image-box">
-                <figure class="image"><img src="cornerstone/assets/images/resource/banking-4.jpg" alt=""></figure>
-                <div class="icon-box"><img src="cornerstone/assets/images/icons/icon-54.png" alt=""></div>
-              </div>
+              <h3 style="font-size:20px;margin-bottom:12px;font-weight:800;position:relative;z-index:1;">Mobile First</h3>
+              <p style="font-size:15px;line-height:1.6;margin-bottom:0;position:relative;z-index:1;">Access your account from anywhere, on any device. Our platform is built for life on the go.</p>
             </div>
           </div>
         </div>
@@ -737,25 +733,28 @@
         </div>
         <div class="row clearfix g-4">
           <div class="col-lg-4 col-md-6 col-sm-12 nb-reveal">
-            <a href="app.html" class="nb-nav-preview-card" style="text-decoration:none;display:block;height:100%;padding:16px 16px;border-radius:18px;">
-              <div class="k"><i class="bi bi-person-check"></i><span>Create account</span></div>
-              <div class="v" style="font-size:16px;">Sign up and verify email</div>
-              <div class="desc" style="margin-top:10px;">Create your account and secure it with email verification and one-time codes.</div>
-            </a>
+            <div class="how-it-works-card" style="background:var(--nb-card);border:1px solid var(--nb-border);border-radius:22px;padding:28px;height:100%;transition:border-color .2s;">
+              <div class="step-num" style="font-size:12px;font-weight:900;text-transform:uppercase;color:var(--nb-accent);letter-spacing:1px;margin-bottom:12px;">Step 01</div>
+              <h3 style="font-size:18px;font-weight:800;margin-bottom:10px;">Create account</h3>
+              <p style="font-size:14px;line-height:1.6;margin-bottom:0;">Sign up and secure your identity with email verification and one-time codes.</p>
+              <a href="app.html?view=register" class="btn-nb btn-nb-outline btn-nb-sm" style="margin-top:20px;border-radius:12px;">Get Started</a>
+            </div>
           </div>
           <div class="col-lg-4 col-md-6 col-sm-12 nb-reveal">
-            <a href="app.html" class="nb-nav-preview-card" style="text-decoration:none;display:block;height:100%;padding:16px 16px;border-radius:18px;">
-              <div class="k"><i class="bi bi-arrow-left-right"></i><span>Move money</span></div>
-              <div class="v" style="font-size:16px;">Transfer and pay instantly</div>
-              <div class="desc" style="margin-top:10px;">Send transfers, manage payees, and track every transaction with clarity.</div>
-            </a>
+            <div class="how-it-works-card" style="background:var(--nb-card);border:1px solid var(--nb-border);border-radius:22px;padding:28px;height:100%;transition:border-color .2s;">
+              <div class="step-num" style="font-size:12px;font-weight:900;text-transform:uppercase;color:var(--nb-gold);letter-spacing:1px;margin-bottom:12px;">Step 02</div>
+              <h3 style="font-size:18px;font-weight:800;margin-bottom:10px;">Move money</h3>
+              <p style="font-size:14px;line-height:1.6;margin-bottom:0;">Transfer funds and pay bills instantly with our lightning-fast transaction engine.</p>
+              <a href="app.html" class="btn-nb btn-nb-outline btn-nb-sm" style="margin-top:20px;border-radius:12px;">Try Transfers</a>
+            </div>
           </div>
           <div class="col-lg-4 col-md-6 col-sm-12 nb-reveal">
-            <a href="app.html" class="nb-nav-preview-card" style="text-decoration:none;display:block;height:100%;padding:16px 16px;border-radius:18px;">
-              <div class="k"><i class="bi bi-graph-up-arrow"></i><span>Stay on top</span></div>
-              <div class="v" style="font-size:16px;">Insights that help you save</div>
-              <div class="desc" style="margin-top:10px;">Use trends and alerts to make better decisions and grow your balance.</div>
-            </a>
+            <div class="how-it-works-card" style="background:var(--nb-card);border:1px solid var(--nb-border);border-radius:22px;padding:28px;height:100%;transition:border-color .2s;">
+              <div class="step-num" style="font-size:12px;font-weight:900;text-transform:uppercase;color:var(--nb-success);letter-spacing:1px;margin-bottom:12px;">Step 03</div>
+              <h3 style="font-size:18px;font-weight:800;margin-bottom:10px;">Grow wealth</h3>
+              <p style="font-size:14px;line-height:1.6;margin-bottom:0;">Monitor your growth with smart analytics and automated saving tools.</p>
+              <a href="app.html" class="btn-nb btn-nb-outline btn-nb-sm" style="margin-top:20px;border-radius:12px;">View Insights</a>
+            </div>
           </div>
         </div>
       </div>
@@ -1580,8 +1579,26 @@
           const subject = `Support request${fromEmail ? ` — ${fromEmail}` : ''}`;
           const body = `From: ${fromEmail || 'Not provided'}\n\nMessage:\n${message || ''}\n\n---\nSent from NexaBank website`;
           const href = `mailto:${escapeMailto(supportEmail)}?subject=${escapeMailto(subject)}&body=${escapeMailto(body)}`;
-          window.location.href = href;
+          
           setStatus('Opening your email app…');
+          
+          // Try multiple ways to open the mailto link
+          try {
+            const link = document.createElement('a');
+            link.href = href;
+            link.click();
+          } catch (e) {
+            window.location.href = href;
+          }
+
+          // Show fallback after a delay if it's "stuck"
+          setTimeout(() => {
+            const fallback = document.getElementById('nb-support-fallback');
+            if (fallback) {
+              fallback.style.display = 'block';
+              setStatus('If your app didn’t open, use the link below:');
+            }
+          }, 2000);
         }
 
         fab.addEventListener('click', () => {
