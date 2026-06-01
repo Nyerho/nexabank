@@ -153,7 +153,9 @@
       background-position: center;
     }
     .banner-style-two .bg-layer::after { content:''; position:absolute; inset:0; background: radial-gradient(900px 500px at 85% 25%, rgba(201,168,76,.35) 0%, rgba(201,168,76,0) 60%), radial-gradient(700px 400px at 20% 75%, rgba(255,255,255,.16) 0%, rgba(255,255,255,0) 55%); }
-    .banner-style-two .slide-item { overflow: hidden; }
+    .banner-style-two .slide-item { overflow: hidden; position: relative; }
+    .banner-style-two .bg-layer { z-index: 0; }
+    .banner-style-two .auto-container { position: relative; z-index: 2; }
     .banner-style-two .content-box h2 { color: #fff; }
     .banner-style-two .content-box p { color: rgba(255,255,255,.85); }
 
@@ -161,18 +163,20 @@
       width: 100%;
       max-width: 520px;
       margin-left: auto;
-      background: rgba(255,255,255,.92);
+      background: #ffffff;
       border: 1px solid rgba(15,45,82,.12);
       border-radius: 26px;
       box-shadow: 0 30px 90px rgba(0,0,0,.28);
       padding: 16px;
+      overflow: hidden;
+      position: relative;
     }
     [data-theme="dark"] .nb-hero-visual {
-      background: rgba(22,27,34,.86);
+      background: #161b22;
       border-color: rgba(255,255,255,.10);
       box-shadow: 0 34px 110px rgba(0,0,0,.55);
     }
-    .nb-hero-visual svg { display: block; width: 100%; height: auto; }
+    .nb-hero-visual img { display: block; width: 100%; height: auto; border-radius: 18px; }
     @media (max-width: 991px) {
       .nb-hero-visual { margin-top: 28px; margin-right: auto; }
     }
@@ -282,6 +286,26 @@
       gap: 8px;
     }
     .nb-support-status { margin-top: 10px; font-size: 12px; color: var(--nb-muted); min-height: 16px; }
+    .nb-support-fallback { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(15,45,82,.10); }
+    [data-theme="dark"] .nb-support-fallback { border-top-color: rgba(255,255,255,.10); }
+    .nb-support-fallback a { color: var(--nb-accent); font-weight: 800; text-decoration: none; }
+    .nb-support-fallback a:hover { text-decoration: underline; }
+    .nb-support-mini-btn {
+      border-radius: 12px;
+      border: 1px solid rgba(15,45,82,.12);
+      background: rgba(255,255,255,.65);
+      padding: 8px 10px;
+      font-weight: 850;
+      color: var(--nb-primary);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    [data-theme="dark"] .nb-support-mini-btn {
+      border-color: rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.88);
+    }
     @media (prefers-reduced-motion: reduce) {
       .nb-support-panel, .nb-support-fab { transition: none; }
       .nb-support-fab:hover { transform: none; }
@@ -625,62 +649,7 @@
               </div>
               <div class="col-lg-5 col-md-12 col-sm-12">
                 <div class="nb-hero-visual nb-reveal" aria-hidden="true">
-                  <svg viewBox="0 0 520 520" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <linearGradient id="nbCardG1" x1="0" x2="1" y1="0" y2="1">
-                        <stop offset="0" stop-color="#0f2d52" />
-                        <stop offset="0.65" stop-color="#1d6fa4" />
-                        <stop offset="1" stop-color="#0b223f" />
-                      </linearGradient>
-                      <linearGradient id="nbCardG2" x1="0" x2="1" y1="0" y2="1">
-                        <stop offset="0" stop-color="#c9a84c" stop-opacity="0.95" />
-                        <stop offset="1" stop-color="#ffffff" stop-opacity="0.12" />
-                      </linearGradient>
-                      <filter id="nbSoftShadow" x="-30%" y="-30%" width="160%" height="160%">
-                        <feDropShadow dx="0" dy="22" stdDeviation="22" flood-color="#000000" flood-opacity="0.35" />
-                      </filter>
-                      <filter id="nbLiteShadow" x="-30%" y="-30%" width="160%" height="160%">
-                        <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#000000" flood-opacity="0.22" />
-                      </filter>
-                    </defs>
-
-                    <rect x="0" y="0" width="520" height="520" rx="28" fill="transparent" />
-
-                    <g filter="url(#nbSoftShadow)" transform="translate(56, 98) rotate(-6 204 150)">
-                      <rect x="0" y="0" width="408" height="256" rx="26" fill="url(#nbCardG1)" />
-                      <circle cx="332" cy="62" r="74" fill="rgba(255,255,255,0.10)" />
-                      <circle cx="68" cy="212" r="110" fill="rgba(255,255,255,0.08)" />
-                      <rect x="26" y="26" width="112" height="34" rx="17" fill="rgba(255,255,255,0.16)" stroke="rgba(255,255,255,0.18)" />
-                      <text x="42" y="49" font-size="14" fill="rgba(255,255,255,0.92)" font-family="Poppins, system-ui, -apple-system, Segoe UI, sans-serif" font-weight="700">NexaBank</text>
-
-                      <g transform="translate(30, 96)">
-                        <rect x="0" y="0" width="86" height="64" rx="12" fill="rgba(255,255,255,0.16)" stroke="rgba(255,255,255,0.18)" />
-                        <rect x="10" y="12" width="66" height="10" rx="5" fill="rgba(201,168,76,0.90)" />
-                        <rect x="10" y="28" width="52" height="10" rx="5" fill="rgba(255,255,255,0.26)" />
-                        <rect x="10" y="44" width="40" height="10" rx="5" fill="rgba(255,255,255,0.20)" />
-                      </g>
-
-                      <text x="30" y="214" font-size="18" fill="rgba(255,255,255,0.95)" font-family="JetBrains Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace" font-weight="700">••••  4242  ••••  0912</text>
-                      <text x="30" y="242" font-size="12" fill="rgba(255,255,255,0.82)" font-family="Poppins, system-ui, -apple-system, Segoe UI, sans-serif" font-weight="700">VISA</text>
-                      <text x="360" y="242" font-size="12" fill="rgba(255,255,255,0.82)" text-anchor="end" font-family="Poppins, system-ui, -apple-system, Segoe UI, sans-serif" font-weight="700">DEBIT</text>
-                    </g>
-
-                    <g filter="url(#nbLiteShadow)" transform="translate(134, 236) rotate(6 170 116)">
-                      <rect x="0" y="0" width="340" height="232" rx="26" fill="rgba(255,255,255,0.92)" />
-                      <rect x="18" y="18" width="304" height="64" rx="18" fill="rgba(29,111,164,0.08)" stroke="rgba(15,45,82,0.12)" />
-                      <text x="34" y="46" font-size="13" fill="rgba(15,45,82,0.70)" font-family="Poppins, system-ui, -apple-system, Segoe UI, sans-serif" font-weight="700">Balance</text>
-                      <text x="34" y="72" font-size="22" fill="rgba(15,45,82,0.92)" font-family="Poppins, system-ui, -apple-system, Segoe UI, sans-serif" font-weight="800">$24,500.00</text>
-
-                      <rect x="18" y="98" width="148" height="108" rx="18" fill="rgba(29,111,164,0.06)" stroke="rgba(15,45,82,0.10)" />
-                      <rect x="174" y="98" width="148" height="108" rx="18" fill="rgba(201,168,76,0.10)" stroke="rgba(15,45,82,0.10)" />
-                      <text x="34" y="126" font-size="12" fill="rgba(15,45,82,0.70)" font-family="Poppins, system-ui, -apple-system, Segoe UI, sans-serif" font-weight="700">Income</text>
-                      <text x="34" y="156" font-size="18" fill="rgba(15,45,82,0.92)" font-family="JetBrains Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace" font-weight="800">$3,420</text>
-                      <text x="190" y="126" font-size="12" fill="rgba(15,45,82,0.70)" font-family="Poppins, system-ui, -apple-system, Segoe UI, sans-serif" font-weight="700">Expenses</text>
-                      <text x="190" y="156" font-size="18" fill="rgba(15,45,82,0.92)" font-family="JetBrains Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace" font-weight="800">$1,980</text>
-
-                      <circle cx="290" cy="44" r="64" fill="url(#nbCardG2)" opacity="0.55" />
-                    </g>
-                  </svg>
+                  <img src="cornerstone/assets/images/background/grok-mobile-app.png" alt="">
                 </div>
               </div>
             </div>
@@ -1061,6 +1030,13 @@
           </button>
         </div>
         <div class="nb-support-status" id="nb-support-status"></div>
+        <div class="nb-support-fallback" id="nb-support-fallback">
+          <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;">
+            <a id="nb-support-mailto" href="mailto:support@nexabank.co">Email support@nexabank.co</a>
+            <button class="nb-support-mini-btn" id="nb-support-copy" type="button"><i class="bi bi-clipboard"></i><span>Copy message</span></button>
+          </div>
+          <div style="margin-top:8px;font-size:12px;color:var(--nb-muted);">If nothing opens, send the copied message from any email app to support@nexabank.co.</div>
+        </div>
       </div>
     </div>
 
