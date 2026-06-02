@@ -249,6 +249,7 @@ function adminEditUser(id) {
         <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="copyFieldValue('eu-code')" title="Copy"><i class="bi bi-clipboard"></i></button>
       </div>
     </div>
+    <div class="form-group"><label>Member Since</label><input class="nb-input" id="eu-joined" type="date" value="${String(u.joined||'').slice(0,10)}"></div>
     <div class="form-group"><label>Phone</label><input class="nb-input" id="eu-phone" value="${u.phone||''}"></div>
     <div class="form-group"><label>Address</label><input class="nb-input" id="eu-addr" value="${u.address||''}"></div>
     <div class="form-group"><label>Role</label><select class="nb-input" id="eu-role"><option ${u.role==='customer'?'selected':''}>customer</option><option ${u.role==='teller'?'selected':''}>teller</option><option ${u.role==='admin'?'selected':''}>admin</option><option ${u.role==='superadmin'?'selected':''}>superadmin</option></select></div>
@@ -258,7 +259,9 @@ function adminEditUser(id) {
   );
 }
 function adminUpdateUser(id) {
-  DB.users.update(id, { name:document.getElementById('eu-name').value, email:document.getElementById('eu-email').value, phone:document.getElementById('eu-phone').value, address:document.getElementById('eu-addr').value, role:document.getElementById('eu-role').value, status:document.getElementById('eu-status').value });
+  const joinedInput = String(document.getElementById('eu-joined')?.value || '').trim();
+  const existing = DB.users.getById(id);
+  DB.users.update(id, { name:document.getElementById('eu-name').value, email:document.getElementById('eu-email').value, joined: joinedInput || existing?.joined || new Date().toISOString().slice(0,10), phone:document.getElementById('eu-phone').value, address:document.getElementById('eu-addr').value, role:document.getElementById('eu-role').value, status:document.getElementById('eu-status').value });
   logAudit('UPDATE_USER','user',id);
   toast('User updated','success');
   closeModal();

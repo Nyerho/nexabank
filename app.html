@@ -114,7 +114,17 @@
         } catch (_) {
           toast('Email verification failed or expired.', 'error');
         }
-        history.replaceState({}, '', 'app.html');
+        const hasSession = restoreSession() || !!window.NB_FIREBASE?.auth?.currentUser;
+        if (hasSession) {
+          if (isAdmin()) {
+            location.replace('admin.html');
+          } else {
+            location.replace('app.html');
+          }
+        } else {
+          location.replace('app.html?view=login');
+        }
+        return;
       }
 
       // Check Session
