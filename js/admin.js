@@ -325,7 +325,7 @@ function adminAdjustBalance(id) {
     `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-gold" onclick="doAdjustBalance('${id}')">Apply Adjustment</button></div>`
   );
 }
-function doAdjustBalance(id) {
+async function doAdjustBalance(id) {
   const a = DB.accounts.getById(id);
   const type = document.getElementById('adj-type').value;
   const amount = parseFloat(document.getElementById('adj-amount').value);
@@ -337,7 +337,8 @@ function doAdjustBalance(id) {
   else if (type==='debit') newBal -= amount;
   else newBal = amount;
   DB.accounts.update(id, {balance: Math.max(0, newBal)});
-  DB.transactions.create({id:'t'+uid(),fromId:type==='debit'?id:null,toId:type==='credit'?id:null,amount,type:'adjustment',category:'Adjustment',desc:reason,status:'completed',ts});
+  const txnId = 't' + uid();
+  DB.transactions.create({id:txnId,fromId:type==='debit'?id:null,toId:type==='credit'?id:null,amount,type:'adjustment',category:'Adjustment',desc:reason,status:'completed',ts});
   const ownerId = a.userId;
   const direction = type === 'debit' ? 'debit' : 'credit';
   
@@ -347,8 +348,26 @@ function doAdjustBalance(id) {
   const msg = direction === 'debit'
     ? `A withdrawal of ${fmt(amount)} was posted. ${reason ? '('+reason+')' : ''}`.trim()
     : `A deposit of ${fmt(amount)} was posted. ${reason ? '('+reason+')' : ''}`.trim();
-  DB.notifications.add({ id:'n'+uid(), userId: ownerId, message: msg, type: 'info', read: false, ts });
+  const notifId = 'n' + uid();
+  DB.notifications.add({ id:notifId, userId: ownerId, message: msg, type: 'info', read: false, ts });
   logAudit('ADJUST_BALANCE','account',id,reason);
+
+  const cloudEnabled = !!DB?.cloud?.enabled && DB.cloud.enabled();
+  if (!cloudEnabled) {
+    toast('Saved locally only (cloud sync is off). This balance will not reflect on other phones/browsers.', 'warning');
+  } else if (window.NB_FIREBASE?.upsert) {
+    try {
+      await window.NB_FIREBASE.upsert('accounts', id, DB.accounts.getById(id));
+      const txn = DB.transactions.getAll().find(t => t.id === txnId);
+      if (txn) await window.NB_FIREBASE.upsert('transactions', txnId, txn);
+      const notifs = DB.get('notifications') || [];
+      const notif = notifs.find(n => n.id === notifId);
+      if (notif) await window.NB_FIREBASE.upsert('notifications', notifId, notif);
+    } catch (_) {
+      toast('Saved locally, but cloud sync failed. Other devices may still show the old balance.', 'warning');
+    }
+  }
+
   toast('Balance adjusted!','success');
   closeModal();
   navigate('admin-accounts');

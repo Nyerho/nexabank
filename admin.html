@@ -93,7 +93,7 @@
   <script src="js/admin.js"></script>
   <script>
     // Boot Admin
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       // Check theme
       const savedTheme = localStorage.getItem('nb_theme') || 'light';
       document.documentElement.dataset.theme = savedTheme;
@@ -104,6 +104,9 @@
       if (!restoreSession() || !isAdmin()) {
         location.href = 'app.html';
       } else {
+        try {
+          if (DB?.cloud?.syncDown && window.NB_FIREBASE?.auth?.currentUser) await DB.cloud.syncDown();
+        } catch (_) {}
         const u = STATE.user;
         document.getElementById('sidebar-name').textContent = u.name;
         document.getElementById('sidebar-role').textContent = u.role.toUpperCase();

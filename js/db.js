@@ -2,6 +2,7 @@
 // DATABASE (localStorage simulation)
 // ============================================================
 function nbCloudEnabled() {
+  if (location.protocol === 'file:') return false;
   return !!window.NB_FIREBASE?.db && !!window.NB_FIREBASE?.upsert;
 }
 

@@ -2,6 +2,11 @@
 // AUTH & SESSION
 // ============================================================
 
+if (location.protocol === 'file:' && !window.__NB_FILE_MODE_WARNED) {
+  window.__NB_FILE_MODE_WARNED = true;
+  try { toast('You are opening the app as a file. Cloud sync is disabled, so balances won’t reflect on other phones/browsers. Host it on http/https to enable syncing.', 'warning'); } catch (_) {}
+}
+
 function normalizeEmail(email) {
   return (email || '').trim().toLowerCase();
 }
