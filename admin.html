@@ -107,6 +107,7 @@
         try {
           if (DB?.cloud?.syncDown && window.NB_FIREBASE?.auth?.currentUser) await DB.cloud.syncDown();
         } catch (_) {}
+        try { if (DB?.cloud?.watch) await DB.cloud.watch(); } catch (_) {}
         const u = STATE.user;
         document.getElementById('sidebar-name').textContent = u.name;
         document.getElementById('sidebar-role').textContent = u.role.toUpperCase();
@@ -117,6 +118,18 @@
         navigate('admin-dashboard');
       }
     });
+
+    (function () {
+      let t = null;
+      window.addEventListener('nb_data_changed', () => {
+        if (t) clearTimeout(t);
+        t = setTimeout(() => {
+          if (!STATE.user) return;
+          if (document.getElementById('active-modal')) return;
+          navigate(STATE.page || 'admin-dashboard');
+        }, 120);
+      });
+    })();
 
     function toggleTheme() {
       const html = document.documentElement;

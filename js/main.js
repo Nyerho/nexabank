@@ -159,6 +159,8 @@ function bootApp() {
   }
   
   navigate(startPage);
+
+  try { if (DB?.cloud?.watch) DB.cloud.watch(); } catch (_) {}
   
   const saved = localStorage.getItem('nb_theme');
   if (saved === 'dark') { 
@@ -170,6 +172,19 @@ function bootApp() {
   // Sidebar overlay listener
   document.getElementById('sidebar-overlay')?.addEventListener('click', () => toggleSidebar(false));
 }
+
+(() => {
+  let t = null;
+  window.addEventListener('nb_data_changed', () => {
+    if (t) clearTimeout(t);
+    t = setTimeout(() => {
+      if (!STATE.user) return;
+      try { updateTopbarUser(); } catch (_) {}
+      try { updateNotifDot(); } catch (_) {}
+      try { renderPage(STATE.page); } catch (_) {}
+    }, 120);
+  });
+})();
 
 function showNotifications() {
   const notifs = DB.notifications.getByUser(STATE.user.id);

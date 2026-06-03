@@ -96,7 +96,10 @@ async function nbCloudSyncDown() {
 
 const DB = {
   get(key) { try { return JSON.parse(localStorage.getItem('nb_' + key)) || null; } catch { return null; } },
-  set(key, val) { localStorage.setItem('nb_' + key, JSON.stringify(val)); },
+  set(key, val) {
+    localStorage.setItem('nb_' + key, JSON.stringify(val));
+    try { window.dispatchEvent(new CustomEvent('nb_data_changed', { detail: { key } })); } catch (_) {}
+  },
   
   // Seed function removed to avoid placeholder data
   seed() {
@@ -198,7 +201,48 @@ const DB = {
   }
 };
 
-DB.cloud = { enabled: nbCloudEnabled, syncDown: nbCloudSyncDown };
+async function nbCloudWatch() {
+  if (!nbCloudEnabled() || !window.NB_FIREBASE?.auth?.currentUser) return false;
+  const u = window.NB_FIREBASE.auth.currentUser;
+  if (!u?.uid) return false;
+  if (!window.NB_FIREBASE?.subscribeWhere || !window.NB_FIREBASE?.subscribeAll || !window.NB_FIREBASE?.subscribeDoc) return false;
+  try {
+    const prev = window.__nb_cloud_unsubs;
+    if (Array.isArray(prev)) prev.forEach(fn => { try { fn(); } catch (_) {} });
+    window.__nb_cloud_unsubs = [];
+    const unsubs = window.__nb_cloud_unsubs;
+
+    let isAdmin = false;
+    try { isAdmin = await (window.NB_FIREBASE?.existsDoc ? window.NB_FIREBASE.existsDoc('admins', u.uid) : false); } catch (_) { isAdmin = false; }
+
+    const setKey = (key, val) => DB.set(key, Array.isArray(val) ? val : val ? [val] : []);
+
+    if (isAdmin) {
+      unsubs.push(window.NB_FIREBASE.subscribeAll('users', v => DB.set('users', v || [])));
+      unsubs.push(window.NB_FIREBASE.subscribeAll('accounts', v => DB.set('accounts', v || [])));
+      unsubs.push(window.NB_FIREBASE.subscribeAll('transactions', v => DB.set('transactions', v || [])));
+      unsubs.push(window.NB_FIREBASE.subscribeAll('cards', v => DB.set('cards', v || [])));
+      unsubs.push(window.NB_FIREBASE.subscribeAll('loans', v => DB.set('loans', v || [])));
+      unsubs.push(window.NB_FIREBASE.subscribeAll('notifications', v => DB.set('notifications', v || [])));
+      unsubs.push(window.NB_FIREBASE.subscribeAll('payees', v => DB.set('payees', v || [])));
+      unsubs.push(window.NB_FIREBASE.subscribeAll('auditLog', v => DB.set('auditLog', v || [])));
+      return true;
+    }
+
+    unsubs.push(window.NB_FIREBASE.subscribeDoc('users', u.uid, v => setKey('users', v)));
+    unsubs.push(window.NB_FIREBASE.subscribeWhere('accounts', 'userId', '==', u.uid, v => DB.set('accounts', v || [])));
+    unsubs.push(window.NB_FIREBASE.subscribeWhere('transactions', 'userIds', 'array-contains', u.uid, v => DB.set('transactions', v || [])));
+    unsubs.push(window.NB_FIREBASE.subscribeWhere('cards', 'userId', '==', u.uid, v => DB.set('cards', v || [])));
+    unsubs.push(window.NB_FIREBASE.subscribeWhere('loans', 'userId', '==', u.uid, v => DB.set('loans', v || [])));
+    unsubs.push(window.NB_FIREBASE.subscribeWhere('notifications', 'userId', '==', u.uid, v => DB.set('notifications', v || [])));
+    unsubs.push(window.NB_FIREBASE.subscribeWhere('payees', 'userId', '==', u.uid, v => DB.set('payees', v || [])));
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+DB.cloud = { enabled: nbCloudEnabled, syncDown: nbCloudSyncDown, watch: nbCloudWatch };
 
 // Initialize DB and ensure Admin exists
 DB.seed();

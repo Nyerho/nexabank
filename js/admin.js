@@ -36,7 +36,7 @@ function renderAdminDashboard(el) {
         ${loans.filter(l=>l.status==='pending').map(l=>`
           <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px solid var(--nb-border);">
             <div><div style="font-weight:500;">${l.type} Loan — ${fmt(l.amount)}</div><div style="font-size:.75rem;color:var(--nb-muted);">${DB.users.getById(l.userId)?.name||'Unknown'}</div></div>
-            <div class="d-flex gap-1"><button class="btn-nb btn-nb-success btn-nb-sm" onclick="approveLoan('${l.id}')"><i class="bi bi-check2"></i></button><button class="btn-nb btn-nb-danger btn-nb-sm" onclick="rejectLoan('${l.id}')"><i class="bi bi-x"></i></button></div>
+            <div class="d-flex gap-1"><button class="btn-nb btn-nb-success btn-nb-sm" onclick="runLocked(this, ()=>approveLoan('${l.id}'), 'Approving...')"><i class="bi bi-check2"></i></button><button class="btn-nb btn-nb-danger btn-nb-sm" onclick="runLocked(this, ()=>rejectLoan('${l.id}'), 'Rejecting...')"><i class="bi bi-x"></i></button></div>
           </div>`).join('')||'<div style="color:var(--nb-muted);font-size:.85rem;">No pending loans</div>'}
       </div></div>
     </div>`;
@@ -177,7 +177,7 @@ function adminResetPassword(id) {
     </div>`,
     `<div class="d-flex gap-2 justify-content-end">
       <button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button>
-      <button class="btn-nb btn-nb-primary" onclick="adminConfirmResetPassword('${id}')">Reset</button>
+      <button class="btn-nb btn-nb-primary" onclick="runLocked(this, ()=>adminConfirmResetPassword('${id}'), 'Resetting...')">Reset</button>
     </div>`
   );
 }
@@ -255,7 +255,7 @@ function adminEditUser(id) {
     <div class="form-group"><label>Role</label><select class="nb-input" id="eu-role"><option ${u.role==='customer'?'selected':''}>customer</option><option ${u.role==='teller'?'selected':''}>teller</option><option ${u.role==='admin'?'selected':''}>admin</option><option ${u.role==='superadmin'?'selected':''}>superadmin</option></select></div>
     <div class="form-group"><label>Status</label><select class="nb-input" id="eu-status"><option ${u.status==='active'?'selected':''}>active</option><option ${u.status==='frozen'?'selected':''}>frozen</option></select></div>
     <div class="d-flex gap-2 flex-wrap"><button class="btn-nb btn-nb-outline" onclick="adminResetPassword('${id}')"><i class="bi bi-key"></i> Reset Password</button>${(u.failedLogins||0)>=5?`<button class="btn-nb btn-nb-outline" onclick="adminUnlockUser('${id}')"><i class="bi bi-unlock"></i> Unlock</button>`:''}</div>`,
-    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="adminUpdateUser('${id}')">Save Changes</button></div>`
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="runLocked(this, ()=>adminUpdateUser('${id}'), 'Saving...')">Save Changes</button></div>`
   );
 }
 function adminUpdateUser(id) {
@@ -322,7 +322,7 @@ function adminAdjustBalance(id) {
     <div class="form-group"><label>Amount ($)</label><input class="nb-input" id="adj-amount" type="number" placeholder="0.00"></div>
     <div class="form-group"><label>Transaction Date</label><input class="nb-input" id="adj-ts" type="datetime-local" value="${toDatetimeLocalValue(new Date().toISOString())}"></div>
     <div class="form-group"><label>Reason</label><input class="nb-input" id="adj-reason" placeholder="Reason for adjustment"></div>`,
-    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-gold" onclick="doAdjustBalance('${id}')">Apply Adjustment</button></div>`
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-gold" onclick="runLocked(this, ()=>doAdjustBalance('${id}'), 'Applying...')">Apply Adjustment</button></div>`
   );
 }
 async function doAdjustBalance(id) {
@@ -394,7 +394,7 @@ function adminCreateAccountModal() {
     <div class="form-group"><label>Account Type</label><select class="nb-input" id="ca-type"><option>Checking</option><option>Savings</option><option>Fixed Deposit</option></select></div>
     <div class="form-group"><label>Initial Balance</label><input class="nb-input" id="ca-bal" type="number" value="0"></div>
     <div class="form-group"><label>Status</label><select class="nb-input" id="ca-status"><option>active</option><option>frozen</option></select></div>`,
-    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="adminSaveAccount()">Create</button></div>`
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="runLocked(this, adminSaveAccount, 'Creating...')">Create</button></div>`
   );
 }
 function adminSaveAccount() {
@@ -444,7 +444,7 @@ function adminCreateTxnModal() {
     <div class="form-group"><label>Transaction Date</label><input class="nb-input" id="mt-ts" type="datetime-local" value="${toDatetimeLocalValue(new Date().toISOString())}"></div>
     <div class="form-group"><label>Category</label><select class="nb-input" id="mt-cat"><option>Adjustment</option><option>Transfer</option><option>Fee</option><option>Refund</option><option>Interest</option></select></div>
     <div class="form-group"><label>Description</label><input class="nb-input" id="mt-desc" placeholder="Reason / notes"></div>`,
-    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="adminSaveTxn()">Create</button></div>`
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="runLocked(this, adminSaveTxn, 'Creating...')">Create</button></div>`
   );
 }
 function adminSaveTxn() {
@@ -486,7 +486,7 @@ function adminEditTxn(id) {
     <div class="form-group"><label>Category</label><input class="nb-input" id="et-cat" value="${t.category}"></div>
     <div class="form-group"><label>Date</label><input class="nb-input" id="et-ts" type="datetime-local" value="${toDatetimeLocalValue(t.ts)}"></div>
     <div class="form-group"><label>Status</label><select class="nb-input" id="et-status"><option ${t.status==='completed'?'selected':''}>completed</option><option ${t.status==='pending'?'selected':''}>pending</option><option ${t.status==='reversed'?'selected':''}>reversed</option></select></div>`,
-    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="adminUpdateTxn('${id}')">Save</button></div>`
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="runLocked(this, ()=>adminUpdateTxn('${id}'), 'Saving...')">Save</button></div>`
   );
 }
 function adminUpdateTxn(id) {
@@ -532,7 +532,7 @@ function renderAdminLoans(el) {
       <td>
         <div class="d-flex gap-1">
           <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="adminEditLoan('${l.id}')" title="Edit"><i class="bi bi-pencil"></i></button>
-          ${l.status==='pending'?`<button class="btn-nb btn-nb-success btn-nb-sm" onclick="approveLoan('${l.id}')"><i class="bi bi-check2"></i></button><button class="btn-nb btn-nb-danger btn-nb-sm" onclick="rejectLoan('${l.id}')"><i class="bi bi-x"></i></button>`:''}
+          ${l.status==='pending'?`<button class="btn-nb btn-nb-success btn-nb-sm" onclick="runLocked(this, ()=>approveLoan('${l.id}'), 'Approving...')"><i class="bi bi-check2"></i></button><button class="btn-nb btn-nb-danger btn-nb-sm" onclick="runLocked(this, ()=>rejectLoan('${l.id}'), 'Rejecting...')"><i class="bi bi-x"></i></button>`:''}
           <button class="btn-nb btn-nb-danger btn-nb-sm" onclick="adminDeleteLoan('${l.id}')" title="Cancel"><i class="bi bi-trash"></i></button>
         </div>
       </td>

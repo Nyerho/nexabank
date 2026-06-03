@@ -16,6 +16,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  onSnapshot,
   getFirestore,
   query,
   serverTimestamp,
@@ -144,6 +145,21 @@ async function findOneByField(collectionName, field, value) {
   return { id: docSnap.id, ...docSnap.data() };
 }
 
+function subscribeAll(collectionName, cb) {
+  const q = collection(db, collectionName);
+  return onSnapshot(q, snap => cb(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+}
+
+function subscribeWhere(collectionName, field, op, value, cb) {
+  const q = query(collection(db, collectionName), where(field, op, value));
+  return onSnapshot(q, snap => cb(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+}
+
+function subscribeDoc(collectionName, id, cb) {
+  const ref = doc(db, collectionName, id);
+  return onSnapshot(ref, snap => cb(snap.exists() ? ({ id: snap.id, ...snap.data() }) : null));
+}
+
 window.NB_FIREBASE = {
   app,
   auth,
@@ -166,7 +182,10 @@ window.NB_FIREBASE = {
   listWhere,
   getById,
   existsDoc,
-  findOneByField
+  findOneByField,
+  subscribeAll,
+  subscribeWhere,
+  subscribeDoc
 };
 
-export { app, auth, db, signIn, signUp, sendVerifyEmail, sendPasswordReset, adminCreateAuthUser, reloadCurrentUser, applyEmailVerificationCode, signOutUser, queueEmail, saveLoginOtp, getLoginOtp, deleteLoginOtp, upsert, remove, list, listWhere, getById, existsDoc, findOneByField };
+export { app, auth, db, signIn, signUp, sendVerifyEmail, sendPasswordReset, adminCreateAuthUser, reloadCurrentUser, applyEmailVerificationCode, signOutUser, queueEmail, saveLoginOtp, getLoginOtp, deleteLoginOtp, upsert, remove, list, listWhere, getById, existsDoc, findOneByField, subscribeAll, subscribeWhere, subscribeDoc };
