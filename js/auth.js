@@ -363,13 +363,19 @@ async function doLoginStart() {
         isStaffKnown = false;
         isStaff = false;
       }
+      if (isStaffKnown && !isStaff && email === 'admin@nexabank.com' && window.NB_FIREBASE?.upsert) {
+        try {
+          await window.NB_FIREBASE.upsert('admins', cloud.firebaseUser.uid, { id: cloud.firebaseUser.uid, email: normalizeEmail(email), enabled: true, ts: new Date().toISOString() });
+          isStaff = await (window.NB_FIREBASE?.existsDoc ? window.NB_FIREBASE.existsDoc('admins', cloud.firebaseUser.uid) : false);
+        } catch (_) {}
+      }
       if (isStaffKnown && !isStaff && email === 'admin@nexabank.com') {
         showModal('Admin Access Not Enabled', `
           <p style="font-size:.88rem;color:var(--nb-muted);margin-bottom:.75rem;">
             This account signed in with Firebase Auth, but it is not marked as an admin in Firestore.
           </p>
           <p style="font-size:.82rem;color:var(--nb-muted);margin-bottom:.75rem;">
-            To enable admin login without OTP, create a Firestore document:
+            Create a Firestore document:
           </p>
           <div class="nb-card" style="padding:1rem;">
             <div style="font-size:.82rem;color:var(--nb-muted);">Collection</div>
@@ -378,7 +384,7 @@ async function doLoginStart() {
             <div class="mono" style="font-weight:700;">${cloud.firebaseUser.uid}</div>
           </div>
           <p style="font-size:.82rem;color:var(--nb-muted);margin-top:.75rem;">
-            After creating it, click Continue again.
+            Also make sure you deployed your Firestore rules.
           </p>`,
           `<div class="d-flex gap-2 justify-content-end">
             <button class="btn-nb btn-nb-outline" onclick="closeModal()">Close</button>

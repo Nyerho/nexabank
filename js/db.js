@@ -8,12 +8,34 @@ function nbCloudEnabled() {
 
 function nbCloudUpsert(collectionName, id, data) {
   if (!nbCloudEnabled()) return;
-  try { window.NB_FIREBASE.upsert(collectionName, id, data); } catch (_) {}
+  const warn = () => {
+    const now = Date.now();
+    if (now - (window.__nb_cloud_err_at || 0) < 5000) return;
+    window.__nb_cloud_err_at = now;
+    try { toast('Cloud sync failed. Changes may not show on other devices.', 'warning'); } catch (_) {}
+  };
+  try {
+    const p = window.NB_FIREBASE.upsert(collectionName, id, data);
+    if (p && typeof p.then === 'function') p.catch(warn);
+  } catch (_) {
+    warn();
+  }
 }
 
 function nbCloudRemove(collectionName, id) {
   if (!nbCloudEnabled()) return;
-  try { window.NB_FIREBASE.remove(collectionName, id); } catch (_) {}
+  const warn = () => {
+    const now = Date.now();
+    if (now - (window.__nb_cloud_err_at || 0) < 5000) return;
+    window.__nb_cloud_err_at = now;
+    try { toast('Cloud sync failed. Changes may not show on other devices.', 'warning'); } catch (_) {}
+  };
+  try {
+    const p = window.NB_FIREBASE.remove(collectionName, id);
+    if (p && typeof p.then === 'function') p.catch(warn);
+  } catch (_) {
+    warn();
+  }
 }
 
 async function nbCloudSyncDown() {
@@ -61,6 +83,13 @@ async function nbCloudSyncDown() {
     if (Array.isArray(payees)) DB.set('payees', payees);
     return true;
   } catch (_) {
+    try {
+      const now = Date.now();
+      if (now - (window.__nb_cloud_sync_err_at || 0) >= 5000) {
+        window.__nb_cloud_sync_err_at = now;
+        toast('Unable to sync your data from cloud. Check Firestore rules and hosting (http/https).', 'warning');
+      }
+    } catch (_) {}
     return false;
   }
 }
