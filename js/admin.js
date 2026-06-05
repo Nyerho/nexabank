@@ -298,6 +298,7 @@ function renderAdminAccounts(el) {
       <td>
         <div class="d-flex gap-1">
           <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="adminAdjustBalance('${a.id}')" title="Adjust Balance"><i class="bi bi-currency-dollar"></i></button>
+          <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="adminEditAccountOpened('${a.id}')" title="Edit Opened Date"><i class="bi bi-calendar3"></i></button>
           <button class="btn-nb ${a.status==='active'?'btn-nb-outline':'btn-nb-success'} btn-nb-sm" onclick="adminToggleAccount('${a.id}')" title="${a.status==='active'?'Freeze':'Unfreeze'}"><i class="bi bi-${a.status==='active'?'snow':'check2-circle'}"></i></button>
           <button class="btn-nb btn-nb-danger btn-nb-sm" onclick="adminDeleteAccount('${a.id}')" title="Delete"><i class="bi bi-trash"></i></button>
         </div>
@@ -324,6 +325,31 @@ function adminAdjustBalance(id) {
     <div class="form-group"><label>Reason</label><input class="nb-input" id="adj-reason" placeholder="Reason for adjustment"></div>`,
     `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-gold" onclick="runLocked(this, ()=>doAdjustBalance('${id}'), 'Applying...')">Apply Adjustment</button></div>`
   );
+}
+
+function adminEditAccountOpened(id) {
+  const a = DB.accounts.getById(id);
+  if (!a) return toast('Account not found', 'error');
+  const owner = DB.users.getById(a.userId);
+  const v = String(a.createdAt || '').slice(0, 10);
+  showModal('Edit Opened Date — ' + a.type, `
+    <div class="form-group"><label>Account</label><div class="mono">${a.id}</div></div>
+    <div class="form-group"><label>Owner</label><div>${owner?.name || '—'}</div></div>
+    <div class="form-group"><label>Opened Date</label><input class="nb-input" id="ea-opened" type="date" value="${v}"></div>`,
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="runLocked(this, ()=>adminSaveAccountOpened('${id}'), 'Saving...')">Save</button></div>`
+  );
+}
+
+function adminSaveAccountOpened(id) {
+  const a = DB.accounts.getById(id);
+  if (!a) return toast('Account not found', 'error');
+  const opened = String(document.getElementById('ea-opened')?.value || '').trim();
+  if (!opened) return toast('Select a date', 'error');
+  DB.accounts.update(id, { createdAt: opened });
+  logAudit('UPDATE_ACCOUNT_OPENED','account',id,opened);
+  toast('Opened date updated', 'success');
+  closeModal();
+  navigate('admin-accounts');
 }
 async function doAdjustBalance(id) {
   const a = DB.accounts.getById(id);
@@ -419,7 +445,7 @@ function renderAdminTransactions(el) {
     <td>
       <div class="d-flex gap-1">
         <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="adminEditTxn('${t.id}')" title="Edit"><i class="bi bi-pencil"></i></button>
-        <button class="btn-nb btn-nb-danger btn-nb-sm" onclick="adminDeleteTxn('${t.id}')" title="Void"><i class="bi bi-x-circle"></i></button>
+        <button class="btn-nb btn-nb-danger btn-nb-sm" onclick="runLocked(this, ()=>adminDeleteTxn('${t.id}'), 'Deleting...')" title="Delete"><i class="bi bi-trash"></i></button>
       </div>
     </td>
   </tr>`).join('');
@@ -504,10 +530,10 @@ function adminUpdateTxn(id) {
   navigate('admin-transactions');
 }
 function adminDeleteTxn(id) {
-  if (!confirm('Void this transaction?')) return;
-  DB.transactions.update(id,{status:'voided'});
-  logAudit('VOID_TRANSACTION','transaction',id);
-  toast('Transaction voided','warning');
+  if (!confirm('Delete this transaction permanently?')) return;
+  DB.transactions.delete(id);
+  logAudit('DELETE_TRANSACTION','transaction',id);
+  toast('Transaction deleted','success');
   navigate('admin-transactions');
 }
 function exportAllTxns() {
