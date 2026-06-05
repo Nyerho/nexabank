@@ -500,6 +500,7 @@ function renderAccounts(el) {
         <div class="d-flex gap-2">
           <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="navigate('history')"><i class="bi bi-clock-history"></i> History</button>
           <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="downloadStatement('${a.id}')"><i class="bi bi-download"></i> Statement</button>
+          <button class="btn-nb btn-nb-outline btn-nb-sm" onclick="setTransferLimitModal('${a.id}')"><i class="bi bi-sliders"></i> Limit</button>
           ${a.status==='active'&&a.type!=='Fixed Deposit'?`<button class="btn-nb btn-nb-danger btn-nb-sm" onclick="closeAccountConfirm('${a.id}')"><i class="bi bi-x-circle"></i> Close</button>`:''}
         </div>
       </div>
@@ -510,6 +511,29 @@ function renderAccounts(el) {
       <button class="btn-nb btn-nb-primary" onclick="openNewAccountModal()"><i class="bi bi-plus-lg"></i> Open Account</button>
     </div>
     <div class="row g-4">${cards||'<div class="col-12"><div class="empty-state"><i class="bi bi-wallet2"></i>No accounts yet</div></div>'}</div>`;
+}
+
+function setTransferLimitModal(accountId) {
+  const a = DB.accounts.getById(accountId);
+  if (!a) return toast('Account not found', 'error');
+  showModal('Update Transfer Limit', `
+    <p style="font-size:.85rem;color:var(--nb-muted);margin-bottom:.75rem;">This sets your daily transfer limit for this account.</p>
+    <div class="form-group"><label>Account</label><div style="font-weight:600;">${a.type}</div><div class="mono" style="font-size:.78rem;">${a.iban || a.id}</div></div>
+    <div class="form-group"><label>Daily Limit ($)</label><input class="nb-input" id="tl-limit" type="number" min="0" step="1" value="${Number(a.limit || 0)}"></div>`,
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="runLocked(this, ()=>saveTransferLimit('${accountId}'), 'Saving...')"><i class="bi bi-check2"></i> Save</button></div>`
+  );
+}
+
+async function saveTransferLimit(accountId) {
+  const a = DB.accounts.getById(accountId);
+  if (!a) return toast('Account not found', 'error');
+  const raw = document.getElementById('tl-limit')?.value;
+  const limit = Number.parseFloat(raw);
+  if (!Number.isFinite(limit) || limit < 0) return toast('Enter a valid limit', 'error');
+  DB.accounts.update(accountId, { limit });
+  toast('Transfer limit updated', 'success');
+  closeModal();
+  if (STATE.page === 'accounts') navigate('accounts');
 }
 
 function closeAccountConfirm(id) {
@@ -624,6 +648,7 @@ async function initiateTransfer() {
   if (!amount || amount <= 0) return toast('Enter a valid amount', 'error');
   const fromAcc = DB.accounts.getById(fromId);
   if (fromAcc.balance < amount) return toast('Insufficient funds', 'error');
+  if (Number(fromAcc.limit || 0) > 0 && amount > Number(fromAcc.limit || 0)) return toast(`Amount exceeds your daily transfer limit (${fmt(fromAcc.limit)})`, 'error');
 
   const code = generateOtpCode();
   const ok = await sendGenericOtp(STATE.user, code, 'transfer', 'Confirm your NexaBank transfer');
