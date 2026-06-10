@@ -650,24 +650,34 @@ async function initiateTransfer() {
   if (fromAcc.balance < amount) return toast('Insufficient funds', 'error');
   if (Number(fromAcc.limit || 0) > 0 && amount > Number(fromAcc.limit || 0)) return toast(`Amount exceeds your daily transfer limit (${fmt(fromAcc.limit)})`, 'error');
 
-  const code = generateOtpCode();
-  const ok = await sendGenericOtp(STATE.user, code, 'transfer', 'Confirm your NexaBank transfer');
+  const customCode = STATE.user.transferCode;
+  let code = '';
+  let ok = false;
+
+  if (!customCode) {
+    code = generateOtpCode();
+    ok = await sendGenericOtp(STATE.user, code, 'transfer', 'Confirm your NexaBank transfer');
+  }
   
   // OTP confirm
   showModal('Confirm Transfer', `
     <div style="text-align:center;padding:1rem 0;">
       <div style="font-size:2rem;font-weight:700;color:var(--nb-accent);">${currency} ${fmt(amount)}</div>
       <div style="color:var(--nb-muted);margin:.5rem 0;">${desc}</div>
-      <p style="font-size:.85rem;">Enter the verification code sent to your email:</p>
-      <input class="nb-input" id="otp-input" placeholder="6-digit code" style="max-width:200px;margin:0 auto;text-align:center;font-size:1.2rem;letter-spacing:4px;" maxlength="6">
-      ${!ok ? `<p style="font-size:.78rem;color:var(--nb-danger);margin-top:.5rem;">Email service unavailable. Use fallback: <strong>${code}</strong></p>` : `<p style="font-size:.78rem;color:var(--nb-muted);margin-top:.5rem;">Code expires in 10 minutes.</p>`}
+      <p style="font-size:.85rem;">${customCode ? 'Enter your custom transfer code:' : 'Enter the verification code sent to your email:'}</p>
+      <input class="nb-input" id="otp-input" type="${customCode ? 'password' : 'text'}" placeholder="${customCode ? 'Custom Code' : '6-digit code'}" style="max-width:200px;margin:0 auto;text-align:center;font-size:1.2rem;letter-spacing:4px;" maxlength="6">
+      ${!customCode && !ok ? `<p style="font-size:.78rem;color:var(--nb-danger);margin-top:.5rem;">Email service unavailable. Use fallback: <strong>${code}</strong></p>` : customCode ? '' : `<p style="font-size:.78rem;color:var(--nb-muted);margin-top:.5rem;">Code expires in 10 minutes.</p>`}
     </div>`,
-    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="runLocked(this, () => confirmTransfer('${fromId}',${amount},'${desc}','${!ok?code:''}'), 'Confirming...')"><i class="bi bi-check2"></i> Confirm</button></div>`
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="runLocked(this, () => confirmTransfer('${fromId}',${amount},'${desc}','${!customCode && !ok?code:''}'), 'Confirming...')"><i class="bi bi-check2"></i> Confirm</button></div>`
   );
 }
 async function confirmTransfer(fromId, amount, desc, fallbackCode) {
   const otp = document.getElementById('otp-input').value;
-  if (fallbackCode) {
+  const customCode = STATE.user.transferCode;
+
+  if (customCode) {
+    if (otp !== customCode) return toast('Invalid transfer code', 'error');
+  } else if (fallbackCode) {
     if (otp !== fallbackCode) return toast('Invalid verification code', 'error');
   } else {
     const res = await verifyGenericOtp(STATE.user.id, otp);
@@ -1019,23 +1029,33 @@ async function payBill() {
   const cat = document.getElementById('bill-cat').value;
   const provider = document.getElementById('bill-provider').value || 'Bill Payment';
 
-  const code = generateOtpCode();
-  const ok = await sendGenericOtp(STATE.user, code, 'payment', `Confirm your ${cat} payment`);
+  const customCode = STATE.user.transferCode;
+  let code = '';
+  let ok = false;
+
+  if (!customCode) {
+    code = generateOtpCode();
+    ok = await sendGenericOtp(STATE.user, code, 'payment', `Confirm your ${cat} payment`);
+  }
 
   showModal('Confirm Payment', `
     <div style="text-align:center;padding:1rem 0;">
       <div style="font-size:2rem;font-weight:700;color:var(--nb-accent);">$${fmt(amount)}</div>
       <div style="color:var(--nb-muted);margin:.5rem 0;">${cat} — ${provider}</div>
-      <p style="font-size:.85rem;">Enter the verification code sent to your email:</p>
-      <input class="nb-input" id="otp-input" placeholder="6-digit code" style="max-width:200px;margin:0 auto;text-align:center;font-size:1.2rem;letter-spacing:4px;" maxlength="6">
-      ${!ok ? `<p style="font-size:.78rem;color:var(--nb-danger);margin-top:.5rem;">Email service unavailable. Use fallback: <strong>${code}</strong></p>` : `<p style="font-size:.78rem;color:var(--nb-muted);margin-top:.5rem;">Code expires in 10 minutes.</p>`}
+      <p style="font-size:.85rem;">${customCode ? 'Enter your custom transfer code:' : 'Enter the verification code sent to your email:'}</p>
+      <input class="nb-input" id="otp-input" type="${customCode ? 'password' : 'text'}" placeholder="${customCode ? 'Custom Code' : '6-digit code'}" style="max-width:200px;margin:0 auto;text-align:center;font-size:1.2rem;letter-spacing:4px;" maxlength="6">
+      ${!customCode && !ok ? `<p style="font-size:.78rem;color:var(--nb-danger);margin-top:.5rem;">Email service unavailable. Use fallback: <strong>${code}</strong></p>` : customCode ? '' : `<p style="font-size:.78rem;color:var(--nb-muted);margin-top:.5rem;">Code expires in 10 minutes.</p>`}
     </div>`,
-    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="runLocked(this, () => confirmBillPayment('${fromId}',${amount},'${cat}','${provider}','${!ok?code:''}'), 'Processing...')"><i class="bi bi-check2"></i> Confirm</button></div>`
+    `<div class="d-flex gap-2 justify-content-end"><button class="btn-nb btn-nb-outline" onclick="closeModal()">Cancel</button><button class="btn-nb btn-nb-primary" onclick="runLocked(this, () => confirmBillPayment('${fromId}',${amount},'${cat}','${provider}','${!customCode && !ok?code:''}'), 'Processing...')"><i class="bi bi-check2"></i> Confirm</button></div>`
   );
 }
 async function confirmBillPayment(fromId, amount, cat, provider, fallbackCode) {
   const otp = document.getElementById('otp-input').value;
-  if (fallbackCode) {
+  const customCode = STATE.user.transferCode;
+
+  if (customCode) {
+    if (otp !== customCode) return toast('Invalid transfer code', 'error');
+  } else if (fallbackCode) {
     if (otp !== fallbackCode) return toast('Invalid verification code', 'error');
   } else {
     const res = await verifyGenericOtp(STATE.user.id, otp);
@@ -1168,7 +1188,7 @@ function renderProfile(el) {
           </div>
           <button class="btn-nb btn-nb-primary mt-2" onclick="saveProfile()"><i class="bi bi-check2"></i> Save Changes</button>
         </div>
-        <div class="nb-card">
+        <div class="nb-card mb-3">
           <h6 class="fw-semibold mb-3">Change Password</h6>
           <div class="row g-3">
             <div class="col-md-4 form-group"><label>Current Password</label><input class="nb-input" id="p-cur-pass" type="password"></div>
@@ -1176,6 +1196,21 @@ function renderProfile(el) {
             <div class="col-md-4 form-group"><label>Confirm New</label><input class="nb-input" id="p-con-pass" type="password"></div>
           </div>
           <button class="btn-nb btn-nb-outline mt-2" onclick="changePassword()"><i class="bi bi-lock"></i> Update Password</button>
+        </div>
+        <div class="nb-card">
+          <h6 class="fw-semibold mb-3">Transfer Verification Code</h6>
+          <p style="font-size:.82rem;color:var(--nb-muted);margin-bottom:1rem;">Set a custom code to authorize transfers without waiting for an email. Leave empty to use email OTP.</p>
+          <div class="row g-3">
+            <div class="col-md-6 form-group">
+              <label>Custom Transfer Code</label>
+              <input class="nb-input" id="p-transfer-code" type="password" maxlength="6" placeholder="4-6 digits" value="${u.transferCode||''}">
+            </div>
+            <div class="col-md-6 form-group">
+              <label>Confirm Code</label>
+              <input class="nb-input" id="p-transfer-code-confirm" type="password" maxlength="6" placeholder="repeat code">
+            </div>
+          </div>
+          <button class="btn-nb btn-nb-outline mt-2" onclick="updateTransferCode()"><i class="bi bi-shield-lock"></i> Update Transfer Code</button>
         </div>
       </div>
     </div>`;
@@ -1274,4 +1309,17 @@ function changePassword() {
   DB.users.update(STATE.user.id, { password: nw });
   STATE.user.password = nw;
   toast('Password updated!', 'success');
+}
+
+function updateTransferCode() {
+  const code = document.getElementById('p-transfer-code').value;
+  const confirm = document.getElementById('p-transfer-code-confirm').value;
+  
+  if (code !== confirm) return toast('Transfer codes do not match', 'error');
+  if (code && !/^\d{4,6}$/.test(code)) return toast('Code must be 4-6 digits', 'error');
+  
+  DB.users.update(STATE.user.id, { transferCode: code || null });
+  STATE.user = DB.users.getById(STATE.user.id);
+  toast(code ? 'Transfer code updated!' : 'Transfer code removed. Email OTP will be used.', 'success');
+  renderProfile(document.getElementById('page-content'));
 }
