@@ -84,6 +84,28 @@ async function signOutUser() {
 }
 
 async function queueEmail(to, subject, text, html) {
+  const apiUrl = location.protocol === 'file:' ? '' : `${location.origin}/api/send-email`;
+  if (apiUrl) {
+    const res = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to,
+        subject: subject || '',
+        text: text || '',
+        html: html || ''
+      })
+    });
+    if (!res.ok) {
+      let msg = 'Email API failed';
+      try {
+        const data = await res.json();
+        if (data?.error) msg = data.error;
+      } catch (_) {}
+      throw new Error(msg);
+    }
+    return res.json().catch(() => ({}));
+  }
   const payload = {
     to,
     message: {

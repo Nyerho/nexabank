@@ -255,6 +255,34 @@ async function sendTransactionAlert(userId, type, amount, desc) {
   }
 }
 
+async function sendWelcomeEmail(user) {
+  if (!user?.email) return;
+  const subject = 'Welcome to NexaBank';
+  const text = `Hello ${user.name}, welcome to NexaBank. Your account has been created successfully.`;
+  const html = `
+    <div style="font-family:sans-serif;max-width:500px;border:1px solid #e5e9f0;border-radius:12px;padding:24px;background:#ffffff;">
+      <h2 style="color:#1d6fa4;margin-top:0;font-size:20px;">Welcome to NexaBank</h2>
+      <p style="font-size:15px;color:#1a1f36;">Hello ${user.name},</p>
+      <p style="font-size:15px;color:#1a1f36;">Your account has been created successfully and is ready to use.</p>
+      <div style="background:#f3f6fb;padding:16px;border-radius:8px;margin:20px 0;">
+        <table style="width:100%;font-size:14px;border-collapse:collapse;">
+          <tr><td style="padding:4px 0;color:#6b7280;">Email</td><td style="padding:4px 0;text-align:right;color:#1a1f36;">${user.email}</td></tr>
+          <tr><td style="padding:4px 0;color:#6b7280;">Member Since</td><td style="padding:4px 0;text-align:right;color:#1a1f36;">${user.joined || new Date().toISOString().slice(0, 10)}</td></tr>
+          <tr><td style="padding:4px 0;color:#6b7280;">Support</td><td style="padding:4px 0;text-align:right;color:#1a1f36;">support@nexabank.co</td></tr>
+        </table>
+      </div>
+      <p style="font-size:14px;color:#1a1f36;">If you need help, reply to this email or contact support.</p>
+    </div>
+  `;
+  try {
+    if (window.NB_FIREBASE?.queueEmail) {
+      await window.NB_FIREBASE.queueEmail(user.email, subject, text, html);
+    }
+  } catch (e) {
+    console.error('Failed to send welcome email:', e);
+  }
+}
+
 function getPendingLoginOtp() {
   try { return JSON.parse(sessionStorage.getItem('nb_login_otp') || 'null'); } catch { return null; }
 }
@@ -528,6 +556,7 @@ function doRegister() {
         DB.users.create(user);
         DB.accounts.create({ id:'a'+uid(), userId:id, type:accType, balance:0, iban:Math.floor(1000000000 + Math.random() * 9000000000).toString(), swift:'NXBKGB21', status:'active', limit:5000, createdAt:new Date().toISOString().slice(0,10) });
         await window.NB_FIREBASE.upsert('users', id, user);
+        await sendWelcomeEmail(user);
         try { await DB.cloud.syncDown(); } catch (_) {}
         toast('Account created. If you don’t receive a login code by email, contact support for your access code.', 'info');
         toast('Verification email sent. Please verify your email.', 'success');
@@ -545,6 +574,7 @@ function doRegister() {
   const user = { id, name:`${fname} ${lname}`, email, password:pass, role:'customer', status:'active', phone, dob, ssn:ssnDigits, address, city, state, zip, country, accessCode, joined:new Date().toISOString().slice(0,10), failedLogins:0 };
   DB.users.create(user);
   DB.accounts.create({ id:'a'+uid(), userId:id, type:accType, balance:0, iban:Math.floor(1000000000 + Math.random() * 9000000000).toString(), swift:'NXBKGB21', status:'active', limit:5000, createdAt:new Date().toISOString().slice(0,10) });
+  sendWelcomeEmail(user);
   const res = verifyCredentials(email, pass);
   if (!res.ok) { toast('Registration successful. Please sign in.', 'success'); return renderAuthForm('login'); }
   toast('Account created. If you don’t receive a login code by email, contact support for your access code.', 'info');
